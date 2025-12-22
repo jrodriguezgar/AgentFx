@@ -382,36 +382,27 @@ def from_iso_to_local_datetime(iso_string: str) -> datetime:
 
     # 1. Parse the ISO string into a datetime object
     try:
+        # Python 3.10's datetime.fromisoformat() doesn't support 'Z' suffix for UTC
+        # Replace 'Z' with '+00:00' for compatibility
+        normalized_string = iso_string.replace('Z', '+00:00') if iso_string.endswith('Z') else iso_string
+        
         # datetime.fromisoformat() handles various ISO 8601 formats,
-        # including those with 'Z' (UTC) or explicit offsets like '+02:00'.
-        dt_object = datetime.fromisoformat(iso_string)
+        # including those with explicit offsets like '+02:00'.
+        dt_object = datetime.fromisoformat(normalized_string)
     except ValueError as e:
         raise ValueError(f"Invalid ISO 8601 string format: '{iso_string}'. Error: {e}") from e
 
-    # 2. Determine the local timezone
-    try:
-        # zoneinfo.ZoneInfo("localtime") fetches the system's local timezone.
-        local_timezone = zoneinfo.ZoneInfo("localtime")
-    except zoneinfo.ZoneInfoNotFoundError:
-        raise ValueError(
-            "Could not determine local timezone. "
-            "Ensure your system's timezone is configured correctly."
-        )
-
-    # 3. Handle timezone conversion
+    # 2. Handle timezone conversion using datetime.astimezone() which automatically
+    #    determines the local timezone without needing explicit ZoneInfo("localtime")
     if dt_object.tzinfo is None:
         # If the parsed datetime object is naive (no timezone info),
         # assume it's in UTC, then convert it to local timezone.
         # This is a common and safe assumption for naive ISO strings from APIs.
-        # If you know the naive string is *already* in local time,
-        # you'd use `local_timezone.localize(dt_object)` or `dt_object.replace(tzinfo=local_timezone)`.
-        # For general-purpose ISO conversion, treating naive as UTC is often safer.
-        dt_object = dt_object.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
-        return dt_object.astimezone(local_timezone)
-    else:
-        # If the parsed datetime object is aware (has timezone info),
-        # directly convert it to the local timezone.
-        return dt_object.astimezone(local_timezone)
+        dt_object = dt_object.replace(tzinfo=timezone.utc)
+    
+    # Convert to local timezone using astimezone() without argument
+    # This automatically uses the system's local timezone and works on all platforms
+    return dt_object.astimezone()
     
 
 def list_available_timezones() -> List[str]:

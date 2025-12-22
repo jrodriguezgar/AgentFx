@@ -228,6 +228,7 @@ how_to_use_it.py
 
 
 # Excluir directorios de proyecto, tests y documentación
+**/secrets.*
 .github/
 .vscode/
 project_structure.txt
@@ -237,5 +238,3 @@ docs/
 examples/
 notebooks/
 ToDo/
-
-secrets.toml
