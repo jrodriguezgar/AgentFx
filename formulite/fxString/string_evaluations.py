@@ -1,3 +1,20 @@
+"""String Evaluation Functions.
+
+This module provides comprehensive functions for evaluating and validating
+various properties and formats of strings. It includes functions for checking
+data types, validating formats (emails, URLs, domains), extracting information
+from structured strings, and performing complex string comparisons.
+
+Key Features:
+- Character type validation (alphabetic, numeric, alphanumeric)
+- Format validation (email, URL, domain, date, NIF/VAT)
+- Pattern extraction (postal codes, phone numbers)
+- Email parsing and domain validation
+- Spanish NIF/CIF/NIE validation with checksums
+- Substring presence and position checking
+
+"""
+
 import unicodedata
 import re
 from typing import Optional
@@ -69,6 +86,8 @@ def contains_digit(input_string: str) -> bool:
         False
         >>> contains_digit("123")
         True
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if input_string is None:
         return input_string
@@ -116,6 +135,8 @@ def same_letters(string_a: str, string_b: str) -> bool:
 
         >>> same_letters("", "")
         True
+
+    **Cost:** O(n log n), where n is the maximum length of the two input strings (due to sorting)
     """
     if string_a is None or string_b is None:
         return None    
@@ -136,6 +157,8 @@ def is_alphabetic(alpha_string):
     """
     Checks if a given input is a single alphabetic character (letter),
     including common accented characters.
+
+    **Cost:** O(1), constant time operation
     """
     if alpha_string is None:
         return alpha_string
@@ -172,6 +195,8 @@ def is_numeric(input_string: str) -> bool:
         is_numeric("-45.67") returns True
         is_numeric("abc") returns False
         is_numeric("12a") returns False
+
+    **Cost:** O(n), where n is the length of the input string (due to float conversion)
     """
     try:
         # Attempt to convert the string to a float.
@@ -184,11 +209,19 @@ def is_numeric(input_string: str) -> bool:
     
 
 def is_aZ(aZ_string):
+    """Checks if string contains only alphabetic characters.
+
+    **Cost:** O(n), where n is the length of the input string
+    """
     if aZ_string is None: return None
     else: return bool(re.match('^[a-zA-Z]*$',aZ_string))
 
 
 def is_aZ09(aZ0_string):
+    """Checks if string contains only alphanumeric characters.
+
+    **Cost:** O(n), where n is the length of the input string
+    """
     if aZ0_string is None: return None
     else: return bool(re.match('^[a-zA-Z0-9]*$',aZ0_string))
 
@@ -220,6 +253,8 @@ def is_internet_domain_format(domain_string: str) -> bool:
         False
         >>> is_internet_domain_format("domain.c") # Fails because TLD is too short
         False
+
+    **Cost:** O(n), where n is the length of the input string (regex matching)
     """
     if not isinstance(domain_string, str):
         # We raise a TypeError because the function expects a string input.
@@ -273,6 +308,8 @@ def is_email_format(email_string: str) -> bool:
         False
         >>> is_email_format("user@.com") # Invalid domain start
         False
+
+    **Cost:** O(n), where n is the length of the input string (regex matching)
     """
     if not isinstance(email_string, str):
         # We ensure the input is a string for robust function behavior,
@@ -338,6 +375,8 @@ def is_url_format(url_string: str) -> bool:
         False
         >>> is_url_format("example.com/path") # No scheme
         False
+
+    **Cost:** O(n), where n is the length of the input string (regex matching)
     """
     if not isinstance(url_string, str):
         # We raise a TypeError to ensure the function receives expected input,
@@ -384,6 +423,8 @@ def has_date_format(value: str) -> bool:
 
     Returns:
         bool: True if the string matches one of the formats, False otherwise.
+
+    **Cost:** O(k * m), where k is the number of date formats to try and m is the length of the input string
     """
     if not isinstance(value, str):
         return False
@@ -449,6 +490,8 @@ def has_numbers(input_string: str) -> bool:
         has_numbers("python") returns False
         has_numbers("!@#$") returns False
         has_numbers("12345") returns True
+
+    **Cost:** O(n), where n is the length of the input string
     """
     for char in input_string:
         # Check if the current character is a digit.
@@ -482,6 +525,8 @@ def has_substring(input_string: str, char_to_find: str) -> bool:
         has_substring("hello world", "o") returns True
         has_substring("python", "z") returns False
         has_substring("programming", "g") returns True
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if not isinstance(char_to_find, str) or len(char_to_find) != 1:
         # Raises an error if the character to find is not a single character string.
@@ -512,6 +557,8 @@ def starts_with_substring(input_string: str, prefix: str, case_sensitive: bool =
         starts_with_substring("data_123", "data_") returns True
         starts_with_substring("MyDocument", "document", case_sensitive=False) returns True
         starts_with_substring("MyDocument", "Doc") returns False
+
+    **Cost:** O(m), where m is the length of the prefix
     """
     if not input_string:
         # An empty string cannot start with any prefix (unless prefix is also empty,
@@ -542,6 +589,8 @@ def ends_with_substring(input_string: str, suffix: str, case_sensitive: bool = T
 
     Returns:
         bool: True if the string ends with the suffix, False otherwise.
+
+    **Cost:** O(m), where m is the length of the suffix
     """
     if not input_string:
         return False
@@ -583,6 +632,8 @@ def check_substring_at_position(main_string: str, substring: str, position: int 
         False
         >>> check_substring_at_position("hello world", "xyz", "start")
         False
+
+    **Cost:** O(m), where m is the length of the substring
     """
     substring_length = len(substring)
     main_string_length = len(main_string)
@@ -644,6 +695,8 @@ def validate_substring_type(
     Raises:
         ValueError: Si extract_method es inválido o faltan parámetros para la extracción.
         TypeError: Si los tipos de entrada no son correctos.
+
+    **Cost:** O(n), where n is the length of the extracted substring
     """
     
     # If the input is None, do not execute the function
@@ -747,6 +800,8 @@ def get_phones(phone, p_separator=""):
     Returns:
         list[str] or None: A list of cleaned phone numbers (digits only) if found,
                            otherwise None.
+
+    **Cost:** O(n), where n is the length of the input string (regex operations)
     """
     if phone is None:
         return phone
@@ -802,6 +857,8 @@ def get_postalcode(address: str) -> list[str] | None:
         list[str] or None: A list of found postal codes (as strings).
                            Returns an empty list if no codes are found.
                            Returns None if the input `address` is None.
+
+    **Cost:** O(n), where n is the length of the address string (regex search)
     """
     if address is None:
         return address
@@ -843,6 +900,8 @@ def is_valid_email_format(email_string: str) -> bool:
         True
         >>> is_valid_email("invalid-email")
         False
+
+    **Cost:** O(n), where n is the length of the email string (regex matching)
     """
     if not isinstance(email_string, str):
         raise TypeError("Input 'email_string' must be a string.")
@@ -889,6 +948,8 @@ def parse_email(email_address: str) -> dict | None:
         {'username': 'another.user+tag', 'domain': 'sub.domain.co.uk'}
         >>> parse_email("invalid-email")
         None
+
+    **Cost:** O(n), where n is the length of the email string
     """
     if email_address is None:
         return email_address
@@ -935,6 +996,8 @@ def username_from_email(email_address: str) -> list[str] | None:
         None
         >>> username_from_email("another.user+tag@example.com") # Note: '+' is not split by default
         ['another', 'user+tag']
+
+    **Cost:** O(n), where n is the length of the username (regex split operation)
     """
     if email_address is None:
         return email_address
@@ -993,6 +1056,8 @@ def domain_from_email(email_address: str) -> str | None:
         Traceback (most recent call last):
             ...
         TypeError: Input must be a string.
+
+    **Cost:** O(n), where n is the length of the email string
     """
     if email_address is None:
         return email_address
@@ -1063,6 +1128,8 @@ def is_valid_domain_format(domain_string: str) -> bool:
         Traceback (most recent call last):
             ...
         TypeError: Input 'domain_string' must be a string.
+
+    **Cost:** O(n), where n is the length of the domain string (regex matching)
     """
     if domain_string is None:
         return domain_string
@@ -1084,6 +1151,11 @@ def is_valid_domain_format(domain_string: str) -> bool:
 
 
 def email_belongs_to_name(name,email):
+    """
+    Checks if an email address belongs to a given name.
+
+    **Cost:** O(n + m), where n is the length of the name and m is the length of the email
+    """
     result = None
 
     if name and email:
@@ -1118,7 +1190,10 @@ def email_belongs_to_name(name,email):
 
 
 def _calculate_dni_nie_control_letter(numerical_part: int) -> str:
-    """Calculates the control letter for DNI/NIE based on the numerical part."""
+    """Calculates the control letter for DNI/NIE based on the numerical part.
+
+    **Cost:** O(1), constant time operation
+    """
     return _DNI_NIE_CONTROL_LETTERS[numerical_part % 23]
 
 
@@ -1143,6 +1218,8 @@ def _is_valid_spanish_cif(nif_value: str) -> bool:
 def _normalize_nif_input(raw_input: str) -> str:
     """
     Normalizes the input NIF string by removing spaces and converting to uppercase.
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if not isinstance(raw_input, str):
         raise TypeError("NIF input must be a string.")
@@ -1182,6 +1259,8 @@ def validate_nif_format_and_type(raw_nif_string: str, assume_spanish_if_no_prefi
         # (True, 'NIF', 'PORTUGAL', 'PT', 'PT123456789')
         # >>> validate_nif_format_and_type("invalid-nif")
         # (False, None, None, None, None)
+
+    **Cost:** O(n), where n is the length of the NIF string (regex matching and string operations)
     """
     try:
         oparse = _normalize_nif_input(raw_nif_string)
@@ -1278,8 +1357,7 @@ def detect_quotes(text: Optional[str]) -> bool:
         >>> detect_quotes("'")
         False
 
-    Cost:
-        O(1) - Constant time operation regardless of string length.
+    **Cost:** O(1), constant time operation regardless of string length
     """
     # Define valid quote characters as a constant for clarity and maintainability
     VALID_QUOTES = ("'", '"')
@@ -1328,6 +1406,8 @@ def count_words(input_string: str) -> int:
 
         >>> count_words("  ") # Only spaces
         0
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if not isinstance(input_string, str):
         raise TypeError("Input 'input_string' must be a string.")
@@ -1376,6 +1456,8 @@ def count_characters(input_string: str, target_char: str) -> int:
 
         >>> count_characters("test", "x")
         0
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if not isinstance(input_string, str):
         raise TypeError("Input 'input_string' must be a string.")

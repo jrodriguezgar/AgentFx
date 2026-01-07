@@ -1,3 +1,21 @@
+"""String Formatting and Normalization Functions.
+
+This module provides functions for formatting, normalizing, and standardizing
+strings according to various conventions and requirements. It includes utilities
+for formatting names, addresses, identifiers, and other text data.
+
+Key Features:
+- Date and number formatting
+- Name and company name formatting
+- Email, URL, and domain formatting
+- String case transformations
+- Symbol and space normalization
+- Character set filtering
+- Legal form parsing
+- SQL quoting and escaping
+
+"""
+
 from datetime import datetime
 from typing import Optional, Union, Any
 import locale as sys_locale

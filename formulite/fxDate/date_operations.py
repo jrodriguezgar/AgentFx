@@ -1,4 +1,33 @@
+"""
+Date Operations Module.
 
+This module provides comprehensive date and time manipulation utilities for
+Python applications. It includes functions for date validation, calculations,
+conversions, and formatting operations.
+
+Key Features:
+    - Date validation and type checking
+    - Weekday and month operations with locale support
+    - Date arithmetic (adding/subtracting time units)
+    - Business day calculations
+    - Quarter and season operations
+    - Random date/time generation
+    - Date range operations and intervals
+
+Dependencies:
+    - datetime: Core date/time functionality
+    - calendar: Calendar-related operations
+    - locale: Internationalization support
+    - zoneinfo: Timezone support (Python 3.9+)
+
+Example:
+    >>> from datetime import datetime
+    >>> from date_operations import is_valid_date, add_time_to_date
+    >>> is_valid_date("2025-01-15")
+    True
+    >>> add_time_to_date(datetime(2025, 1, 15), 30, 'days')
+    datetime.datetime(2025, 2, 14, 0, 0)
+"""
 
 from datetime import date, time, datetime, timedelta
 from typing import Union,Literal,List, Tuple, Optional, Set, Dict, Any
@@ -32,69 +61,68 @@ from string_convertions import string_to_date, string_to_datetime
 
 
 def is_date_type(value: Any) -> bool:
-    """Verifica si un objeto es de tipo fecha (date, datetime o time).
-
-    Problema/Necesidad del Usuario: Es común necesitar verificar si un valor es de tipo fecha
-    antes de realizar operaciones con él, especialmente cuando se reciben datos de distintas fuentes.
-
+    """Checks if an object is a date/time type (date, datetime, or time).
+    
+    Description:
+        Verifies if a value is one of Python's date/time types before
+        performing operations, preventing type errors.
+    
     Args:
-        value (Any): El valor a verificar.
-
+        value (Any): The value to check.
+    
     Returns:
-        bool: True si el valor es un objeto date, datetime o time; False en caso contrario.
-
-    Example:
+        bool: True if value is date, datetime, or time; False otherwise.
+    
+    Usage Example:
         >>> from datetime import date, datetime, time
-        >>> is_date_type(datetime(2025, 6, 11))
+        >>> from formulite.fxDate.date_operations import is_date_type
+        >>> is_date_type(datetime(2026, 1, 3))
         True
-        >>> is_date_type(date(2025, 6, 11))
+        >>> is_date_type(date(2026, 1, 3))
         True
         >>> is_date_type(time(10, 30, 0))
         True
-        >>> is_date_type("2025-06-11")
-        False
-        >>> is_date_type(123)
+        >>> is_date_type("2026-01-03")
         False
         >>> is_date_type(None)
         False
+    
+    Cost: O(1)
     """
     return isinstance(value, (date, datetime, time))
 
 
 def is_valid_date(date_input: Any, date_format: str = "%Y-%m-%d") -> bool:
-    """Validates if the input parameter is a valid date.
-
-    This function accepts either a datetime object or a string. If it's a string,
-    it attempts to parse it using the specified `date_format`. This helps
-    ensure that date inputs are correctly formatted and represent actual dates,
-    preventing errors in subsequent date-related operations.
-
+    """Validates if input is a valid date (datetime object or parseable string).
+    
+    Description:
+        Checks whether the input is a valid date. Accepts datetime objects
+        or strings that can be parsed with the specified format. Ensures
+        inputs represent actual dates before use in date operations.
+    
     Args:
-        date_input (Any): The parameter to be validated. It can be a datetime
-                          object or a string.
-        date_format (str): The expected format if `date_input` is a string.
-                           Defaults to "%Y-%m-%d".
-
+        date_input (Any): The parameter to validate (datetime object or string).
+        date_format (str): Expected format if date_input is a string.
+                          Defaults to "%Y-%m-%d".
+    
     Returns:
-        bool: True if 'date_input' is a valid date (either a datetime object
-              or a parseable string), False otherwise.
-
-    Example:
+        bool: True if date_input is valid date, False otherwise.
+    
+    Usage Example:
         >>> from datetime import datetime
-        >>> is_valid_date(datetime(2023, 1, 1))
+        >>> from formulite.fxDate.date_operations import is_valid_date
+        >>> is_valid_date(datetime(2026, 1, 3))
         True
-        >>> is_valid_date("2023-01-01")
+        >>> is_valid_date("2026-01-03")
         True
-        >>> is_valid_date("01/01/2023", "%m/%d/%Y")
+        >>> is_valid_date("03/01/2026", "%d/%m/%Y")
         True
-        >>> is_valid_date("2023-13-01") # Invalid month
+        >>> is_valid_date("2026-13-01")  # Invalid month
         False
         >>> is_valid_date("not-a-date")
         False
-        >>> is_valid_date(12345)
-        False
-        >>> is_valid_date(None)
-        False
+    
+    Cost: O(1)
     """
     # If the input is already a date or datetime object, it's valid.
     if is_date_type(date_input):
@@ -151,6 +179,8 @@ def weekday_number(date_input: datetime, start_day: str = 'european') -> int:
         6
         >>> weekday_number(date_to_check_sunday, start_day='anglo')
         0
+
+    **Cost:** O(1), constant time for date arithmetic operations.
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -213,6 +243,8 @@ def weekday_name(date_input: datetime, language: str = 'en') -> str:
         >>> except ValueError as e:
         >>>     print(f"Could not get German weekday name: {e}")
         # Expected output (if locale installed): 'Donnerstag'
+
+    **Cost:** O(1), constant time for locale operations and string formatting.
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -306,6 +338,8 @@ def first_day_of_week(date_input: Union[datetime, str], week_start_day: int = 0)
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: week_start_day must be between 0 (Monday) and 6 (Sunday).
+
+    **Cost:** O(1), constant time for date arithmetic operations.
     """
     # Función auxiliar interna para parsear la entrada de fecha (datetime o string)
     def _parse_date_input_internal(date_val: Union[datetime, str]) -> datetime:
@@ -396,6 +430,8 @@ def last_day_of_week(date_input: Union[datetime, str], week_start_day: int = 0) 
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: week_start_day must be between 0 (Monday) and 6 (Sunday).
+
+    **Cost:** O(1), constant time for date arithmetic operations.
     """
     # Función auxiliar interna para parsear la entrada de fecha (reutilizada de first_day_of_week)
     def _parse_date_input_internal(date_val: Union[datetime, str]) -> datetime:
@@ -476,6 +512,8 @@ def month_name(date_input: datetime, language: str = 'en') -> str:
         >>> except ValueError as e:
         >>>     print(f"Could not get German month name: {e}")
         # Expected output (if locale installed): 'Oktober'
+
+    **Cost:** O(1), constant time for locale operations and string formatting.
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -577,6 +615,8 @@ def months_between_dates(start_date: datetime, end_date: datetime) -> int:
         >>> except TypeError as e:
         >>>     print(f"Error: {e}")
         # Salida esperada: Error: start_date and end_date must be datetime objects.
+
+    **Cost:** O(1), constant time for date arithmetic and month calculation.
     """
     if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
         raise TypeError("start_date and end_date must be datetime objects.")
@@ -646,6 +686,8 @@ def days_in_month(year: int, month: int) -> int:
         31
         >>> days_in_month(2023, 4) # April
         30
+
+    **Cost:** O(1), constant time for calendar lookup.
     """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
@@ -687,6 +729,8 @@ def calculate_days_between_dates(start_date: datetime.date, end_date: datetime.d
         >>> date2 = date(2023, 1, 31)
         >>> calculate_days_between_dates(date1, date2)
         30
+
+    **Cost:** O(1), constant time for date arithmetic.
     """
     if not isinstance(start_date, datetime.date) or not isinstance(end_date, datetime.date):
         raise TypeError("Both start_date and end_date must be datetime.date objects.")
@@ -759,6 +803,8 @@ def get_nth_weekday_of_month(year: int, month: int, weekday: int, n: int) -> Opt
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Month must be between 1 and 12.
+
+    **Cost:** O(1), constant time for date calculation.
     """
     # 1. Validación de entradas
     if not all(isinstance(arg, int) for arg in [year, month, weekday, n]):
@@ -835,6 +881,8 @@ def add_days_from_now(days: int) -> datetime:
         >>> future_date = add_days_from_now(30)
         >>> print(f"30 days from now: {future_date}")
         # Expected output (will vary): 30 days from now: 2025-07-12 10:35:03.123456
+
+    **Cost:** O(1), constant time for getting current time and adding days.
     """
     # Get the current datetime. This is the starting point for the calculation.
     current_datetime = datetime.now()
@@ -940,6 +988,51 @@ def add_time_to_date(original_date: datetime | str | date, quantity: int, unit: 
     return processed_date + delta
 
 
+def diff_time(start_date: datetime | str | date, end_date: datetime | str | date, unit: str) -> int:
+    """Returns the whole-unit difference between two dates.
+
+    Description:
+        Uses `time_difference()` to compute the delta and returns the integer
+        number of complete units between `start_date` and `end_date`. Supported
+        units mirror `add_time_to_date`: 'microseconds', 'milliseconds', 'seconds',
+        'minutes', 'hours', 'days', 'weeks'.
+
+    Args:
+        start_date (datetime | str | date): Start date/time.
+        end_date (datetime | str | date): End date/time.
+        unit (str): Unit of time ('microseconds', 'milliseconds', 'seconds',
+                    'minutes', 'hours', 'days', 'weeks').
+
+    Returns:
+        int: Whole-unit difference according to the specified unit.
+
+    Usage Example:
+        >>> from formulite.fxDate.date_operations import diff_time
+        >>> diff_time("2025-01-01", "2025-01-03", "days")
+        2
+        >>> diff_time("2025-01-01 00:00:00", "2025-01-02 12:00:00", "hours")
+        36
+        >>> diff_time("2025-01-01", "2025-01-15", "weeks")
+        2
+
+    Notes:
+        - This function returns whole units (integer truncation). For fractional
+          differences (e.g., 1.5 hours), use `time_difference()` instead.
+
+    Cost: O(1)
+    """
+    iv = unit.lower()
+    supported = {"microseconds", "milliseconds", "seconds", "minutes", "hours", "days", "weeks"}
+    if iv not in supported:
+        raise ValueError(
+            "Unsupported time unit. Use one of microseconds, milliseconds, seconds, "
+            "minutes, hours, days, weeks."
+        )
+
+    # Delegate to time_difference and truncate to whole units
+    return int(time_difference(start_date, end_date, iv))
+
+
 def time_difference(start_date: datetime | str | date, end_date: datetime | str | date, unit: str = 'days') -> float:
     """Calculates the difference between two dates in a specified unit of time.
 
@@ -990,6 +1083,8 @@ def time_difference(start_date: datetime | str | date, end_date: datetime | str 
         -6.0
         >>> time_difference("2023-01-01 00:00:00", "2023-01-01 00:00:01.5", 'milliseconds')
         1500.0
+
+    **Cost:** O(1), constant time for date subtraction and conversion.
     """
     # Use string_to_date to convert inputs to datetime objects
     processed_start_date = string_to_date(start_date)
@@ -1083,6 +1178,8 @@ def date_part(part: str, my_date: datetime | str | date, first_day_of_week: int 
         52
         >>> date_part("ww", "2023-01-02", first_day_of_week=0, first_week_of_year=1) # Lunes, semana 1 de 2023
         1
+
+    **Cost:** O(1), constant time for extracting date components.
     """
     if not isinstance(part, str):
         raise TypeError("El argumento 'part' debe ser una cadena.")
@@ -1156,6 +1253,8 @@ def parts_to_date(year: int, month: int, day: int) -> date:
         Traceback (most recent call last):
         ...
         ValueError: day is out of range for month
+
+    **Cost:** O(1), constant time for date object creation.
     """
     # Validar que los argumentos sean enteros
     if not all(isinstance(arg, int) for arg in [year, month, day]):
@@ -1205,6 +1304,8 @@ def parts_to_datetime(
         datetime.datetime(2025, 1, 1, 0, 0)
         >>> parts_to_datetime(2025, 10, 30, microsecond=123456)
         datetime.datetime(2025, 10, 30, 0, 0, 0, 123456)
+
+    **Cost:** O(1), constant time for datetime object creation.
     """
     # Validar que todos los argumentos sean enteros
     if not all(isinstance(arg, int) for arg in [year, month, day, hour, minute, second, microsecond]):
@@ -1307,6 +1408,8 @@ def is_between_dates(
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: start_date cannot be after end_date.
+
+    **Cost:** O(1), constant time for date comparisons.
     """
 
     # Helper function to parse any single date input
@@ -1394,6 +1497,8 @@ def is_valid_time(hour: int, minute: int, second: int = 0, microsecond: int = 0)
         False
         >>> is_valid_time(10, 0, 'abc') # Tipo de dato incorrecto
         False
+
+    **Cost:** O(1), constant time for validation checks.
     """
     # Validar que todos los componentes sean enteros
     if not all(isinstance(arg, int) for arg in [hour, minute, second, microsecond]):
@@ -1439,6 +1544,8 @@ def time_from_datetime(datetime_object: datetime) -> time:
         datetime.time(15, 30, 45, 123456)
         >>> time_from_datetime(datetime(2024, 1, 1, 9, 0, 0))
         datetime.time(9, 0)
+
+    **Cost:** O(1), constant time for extracting time component.
     """
     if not isinstance(datetime_object, datetime):
         raise TypeError("Input 'datetime_object' must be a datetime object.")
@@ -1480,6 +1587,8 @@ def get_date_component(date_input: datetime, component: Literal["day", "month", 
         30
         >>> get_date_component(my_date, "second")
         45
+
+    **Cost:** O(1), constant time for accessing datetime attributes.
     """
     # Ensure the input date is a datetime object.
     if not isinstance(date_input, datetime):
@@ -1560,6 +1669,8 @@ def set_date_component(date_input: datetime, **kwargs: Any) -> datetime:
         >>> except TypeError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: 'invalid_param' is an invalid keyword argument for this method.
+
+    **Cost:** O(1), constant time for creating new datetime with modified components.
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -1605,6 +1716,8 @@ def is_leap_year(year: int) -> bool:
         True
         >>> is_leap_year(1900) # Divisible by 100 but not by 400, so NOT a leap year
         False
+
+    **Cost:** O(1), constant time for arithmetic operations.
     """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
@@ -1649,6 +1762,8 @@ def get_number_of_days_in_year(year: int) -> int:
         365
         >>> get_number_of_days_in_year(2000) # A leap year (divisible by 400)
         366
+
+    **Cost:** O(1), constant time for leap year check.
     """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
@@ -1665,7 +1780,10 @@ def get_number_of_days_in_year(year: int) -> int:
 
 # Assuming get_week_range function is available from previous turn:
 def get_week_range(year: int, week_number: int) -> Tuple[datetime, datetime]:
-    """Retrieves the start and end dates (Monday to Sunday) for a specific ISO week of a given year."""
+    """Retrieves the start and end dates (Monday to Sunday) for a specific ISO week of a given year.
+
+    **Cost:** O(1), constant time for ISO week date calculation.
+    """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
     if not isinstance(week_number, int):
@@ -1724,6 +1842,8 @@ def get_year_calendar_by_weeks(year: int) -> List[Tuple[int, datetime, datetime]
         # Expected: (53, datetime.datetime(2020, 12, 28, 0, 0), datetime.datetime(2021, 1, 3, 0, 0))
         >>> print(f"Total weeks in 2020: {len(calendar_2020)}")
         # Expected: Total weeks in 2020: 53
+
+    **Cost:** O(n), where n is the number of weeks in the year (typically 52 or 53).
     """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
@@ -1810,6 +1930,8 @@ def get_quarter(date_input: Union[datetime, str], input_format: Optional[str] = 
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Could not parse date string '15-06-2025' with format '%Y-%m-%d'. Error: time data '15-06-2025' does not match format '%Y-%m-%d'
+
+    **Cost:** O(1), constant time for extracting month and calculating quarter.
     """
     
     # Función auxiliar interna para parsear la entrada de fecha (datetime o string)
@@ -1895,6 +2017,8 @@ def get_number_of_days_in_quarter(year: int, quarter: int) -> int:
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Year is out of valid range (1-9999).
+
+    **Cost:** O(1), constant time for summing days in three months.
     """
     # 1. Validación de entradas
     if not isinstance(year, int):
@@ -1968,6 +2092,8 @@ def start_of_month(date_input: Union[datetime, str], input_format: str = None) -
         >>> # Using a string input
         >>> start_of_month("25-11-2024", "%d-%m-%Y")
         datetime.datetime(2024, 11, 1, 0, 0)
+
+    **Cost:** O(1), constant time for date manipulation.
     """
     # Ensure the input is a datetime object, parsing from string if necessary.
     parsed_dt: datetime
@@ -2031,6 +2157,8 @@ def end_of_month(date_input: Union[datetime, str], input_format: str = None) -> 
         >>> # February 2023 (not a leap year)
         >>> end_of_month(datetime(2023, 2, 1))
         datetime.datetime(2023, 2, 28, 23, 59, 59, 999999)
+
+    **Cost:** O(1), constant time for date manipulation and calendar lookup.
     """
     # Ensure the input is a datetime object, parsing from string if necessary.
     parsed_dt: datetime
@@ -2093,6 +2221,8 @@ def start_of_year(date_input: Union[datetime, str], input_format: str = None) ->
         >>> # Using a string input
         >>> start_of_year("15-03-2024", "%d-%m-%Y")
         datetime.datetime(2024, 1, 1, 0, 0)
+
+    **Cost:** O(1), constant time for date manipulation.
     """
     # Ensure the input is a datetime object, parsing from string if necessary.
     parsed_dt: datetime
@@ -2150,6 +2280,8 @@ def end_of_year(date_input: Union[datetime, str], input_format: str = None) -> d
         >>> # Using a string input
         >>> end_of_year("01-01-2024", "%d-%m-%Y")
         datetime.datetime(2024, 12, 31, 23, 59, 59, 999999)
+
+    **Cost:** O(1), constant time for date manipulation.
     """
     # Ensure the input is a datetime object, parsing from string if necessary.
     parsed_dt: datetime
@@ -2191,6 +2323,8 @@ def get_last_friday_of_month(year: int, month: int) -> datetime:
         datetime.datetime(2023, 10, 27, 0, 0)
         >>> get_last_friday_of_month(2024, 2) # February 2024 (leap year)
         datetime.datetime(2024, 2, 23, 0, 0)
+
+    **Cost:** O(1), constant time for date calculation.
     """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
@@ -2241,6 +2375,8 @@ def get_next_friday(date_input: datetime) -> datetime:
         datetime.datetime(2023, 11, 3, 0, 0)
         >>> get_next_friday(datetime(2023, 10, 28)) # Saturday
         datetime.datetime(2023, 11, 3, 0, 0)
+
+    **Cost:** O(1), constant time for date arithmetic.
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -2293,6 +2429,8 @@ def get_previous_friday(date_input: datetime) -> datetime:
         >>> # Starting from a Sunday (June 8, 2025 was a Sunday)
         >>> get_previous_friday(datetime(2025, 6, 8))
         datetime.datetime(2025, 6, 6, 0, 0)
+
+    **Cost:** O(1), constant time for date arithmetic.
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -2381,6 +2519,8 @@ def get_working_days_in_range(start_date: datetime, end_date: datetime, holidays
         >>> except TypeError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: All items in 'holidays' list must be datetime objects.
+
+    **Cost:** O(n), where n is the number of days between start_date and end_date.
     """
     # 1. Validación de entradas
     if not isinstance(start_date, datetime):
@@ -2477,6 +2617,8 @@ def get_first_business_day_of_month(year: int, month: int, holidays: Optional[Li
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Month must be between 1 and 12.
+
+    **Cost:** O(1), constant time for finding first business day (typically requires checking only a few days).
     """
     # 1. Validación de entradas
     if not isinstance(year, int):
@@ -2573,6 +2715,8 @@ def get_last_business_day_of_month(year: int, month: int, holidays: Optional[Lis
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Month must be between 1 and 12.
+
+    **Cost:** O(1), constant time for finding last business day (typically requires checking only a few days).
     """
     # 1. Validación de entradas
     if not isinstance(year, int):
@@ -2676,6 +2820,8 @@ def is_working_day(
         True
         >>> is_working_day("12/06/2025", "%d/%m/%Y", system='anglo')
         True
+
+    **Cost:** O(1), constant time for weekday calculation and comparison.
     """
     # 1. Parse the input into a datetime object
     parsed_dt: datetime
@@ -2772,6 +2918,8 @@ def is_weekend(date_input: Union[datetime, str], input_format: str = None, langu
         >>> # Using 'es' language (parameter included, but output is still boolean)
         >>> is_weekend(datetime(2023, 10, 28), language='es')
         True
+
+    **Cost:** O(1), constant time for weekday check.
     """
     # Ensure the input is a datetime object, parsing from string if necessary.
     parsed_dt: datetime
@@ -2884,6 +3032,8 @@ def get_age_from_dob(
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Date of birth cannot be in the future relative to the reference date.
+
+    **Cost:** O(1), constant time for date arithmetic and comparison.
     """
     # 1. Parse the date of birth (dob) into a datetime object
     parsed_dob: datetime
@@ -2925,9 +3075,6 @@ def get_age_from_dob(
 
     return age
 
-
-from datetime import datetime
-from typing import Union, Optional
 
 # Reutilizamos la función auxiliar interna para parsear la entrada de fecha
 def _parse_date_input_internal(date_val: Union[datetime, str], input_format: Optional[str]) -> datetime:
@@ -3019,6 +3166,8 @@ def get_season(
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Unsupported language. Supported languages are: en, es.
+
+    **Cost:** O(1), constant time for date parsing and season determination.
     """
     # 1. Parsear la fecha de entrada
     parsed_date = _parse_date_input_internal(date_input, format)
@@ -3104,6 +3253,8 @@ def format_datetime_ampm(dt_object: datetime) -> str:
         >>> morning = datetime(2025, 6, 29, 9, 15, 45)
         >>> format_datetime_ampm(morning)
         '2025-06-29 09:15:45 AM'
+
+    **Cost:** O(1), constant time for string formatting.
     """
     if not isinstance(dt_object, datetime.datetime):
         raise TypeError("The input must be a datetime.datetime object.")
@@ -4248,8 +4399,6 @@ def generate_random_datetime(start_dt: Optional[datetime] = None, end_dt: Option
         # but avoids relying on local system time during generation.
         return random_dt_utc.replace(tzinfo=None)
     
-
-from datetime import datetime
 
 def get_week_of_year(date_input: datetime) -> int:
     """Devuelve el número de la semana del año para una fecha dada.

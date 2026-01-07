@@ -1,5 +1,20 @@
+"""
+FormuLite - fxPython: Python Collection Conversions Module
+
+This module provides utility functions for converting between different Python
+collection types (lists, tuples, sets, dictionaries) and strings. It includes
+functions for:
+- Converting between lists, tuples, and sets
+- Converting collections to and from strings
+- Dictionary key/value extractions and transformations
+- Advanced type conversions with customizable formatting
+
+All functions follow PEP standards with complete documentation including
+complexity analysis.
+"""
+
 import json
-from typing import Iterable, Callable, Any, Union, List, Tuple, Set, Dict, Tuple, Union, Type, Optional
+from typing import Iterable, Callable, Any, Union, List, Tuple, Set, Dict, Type, Optional
 
 
 def convert_collection(
@@ -87,6 +102,8 @@ def set_to_string(input_set: Set[Any], separator: str = ' ', use_quotes: bool = 
 
         >>> set_to_string(set())
         None
+
+    **Cost:** O(n), where n is the number of elements in the set.
     """
     # Return None immediately if the set is empty, aligning with the return type.
     if not input_set:
@@ -130,6 +147,8 @@ def set_to_list(input_set: Set[Any]) -> List[Any]:
 
         >>> set_to_list(set())
         []
+
+    **Cost:** O(n), where n is the number of elements in the set.
     """
     # The built-in list() constructor is the most Pythonic and efficient
     # way to convert any iterable (like a set) into a list.
@@ -164,6 +183,8 @@ def set_to_tuple(input_set: Set[Any]) -> Tuple[Any, ...]:
 
         >>> set_to_tuple(set())
         ()
+
+    **Cost:** O(n), where n is the number of elements in the set.
     """
     # The built-in tuple() constructor is the most Pythonic and efficient
     # way to convert any iterable (like a set) into a tuple.
@@ -202,6 +223,8 @@ def tuple_to_string(input_tuple: Tuple[Any, ...], separator: str = ' ', use_quot
 
         >>> tuple_to_string(())
         None
+
+    **Cost:** O(n), where n is the number of elements in the tuple.
     """
     # Return None immediately if the tuple is empty, aligning with the return type.
     if not input_tuple:
@@ -243,6 +266,8 @@ def tuple_to_list(input_tuple: Tuple[Any, ...]) -> List[Any]:
 
         >>> tuple_to_list(())
         []
+
+    **Cost:** O(n), where n is the number of elements in the tuple.
     """
     # The built-in list() constructor is the most Pythonic and efficient
     # way to convert any iterable (like a tuple) into a list.
@@ -277,6 +302,8 @@ def tuple_to_set(input_tuple: Tuple[Any, ...]) -> Set[Any]:
 
         >>> tuple_to_set(())
         set()
+
+    **Cost:** O(n), where n is the number of elements in the tuple.
     """
     # The built-in set() constructor is the most Pythonic and efficient
     # way to convert any iterable (like a tuple) into a set.
@@ -316,6 +343,8 @@ def list_to_string(lst: List[Any], separator: str = ' ', use_quotes: bool = Fals
 
         >>> list_to_string([])
         None
+
+    **Cost:** O(n), where n is the number of elements in the list.
     """
     # Return None immediately if the list is empty, aligning with the return type.
     if not lst:
@@ -358,6 +387,8 @@ def list_to_set(input_list: List[Any]) -> Set[Any]:
 
         >>> list_to_set([])
         set()
+
+    **Cost:** O(n), where n is the number of elements in the list.
     """
     # Create a set from the input list. This automatically handles
     # duplicate removal and provides O(N) average time complexity.
@@ -390,6 +421,8 @@ def list_to_tuple(input_list: List[Any]) -> Tuple[Any, ...]:
 
         >>> list_to_tuple([])
         ()
+
+    **Cost:** O(n), where n is the number of elements in the list.
     """
     # The built-in tuple() constructor is the most Pythonic and efficient
     # way to convert any iterable (like a list) into a tuple.
@@ -490,6 +523,8 @@ def dictionary_keys_to_list(data_dict: Dict[Any, Any]) -> List[Any]:
     Example of use:
         >>> dictionary_keys_to_list({"name": "Alice", "age": 30})
         ['name', 'age']
+
+    **Cost:** O(n), where n is the number of keys in the dictionary.
     """
     return list(data_dict.keys())
 
@@ -506,6 +541,8 @@ def dict_values_to_list(data_dict: Dict[Any, Any]) -> List[Any]:
     Example of use:
         >>> dict_values_to_list({"item": "Laptop", "price": 1200})
         ['Laptop', 1200]
+
+    **Cost:** O(n), where n is the number of values in the dictionary.
     """
     return list(data_dict.values())
 
@@ -522,6 +559,8 @@ def dictionary_items_to_list_of_tuples(data_dict: Dict[Any, Any]) -> List[Tuple[
     Example of use:
         >>> dictionary_items_to_list_of_tuples({"city": "London", "population": 9000000})
         [('city', 'London'), ('population', 9000000)]
+
+    **Cost:** O(n), where n is the number of items in the dictionary.
     """
     return list(data_dict.items())
 
@@ -538,6 +577,8 @@ def dictionary_keys_to_set(data_dict: Dict[Any, Any]) -> Set[Any]:
     Example of use:
         >>> dict_keys_to_set({"color": "red", "value": 50})
         {'color', 'value'} # Order not guaranteed
+
+    **Cost:** O(n), where n is the number of keys in the dictionary.
     """
     return set(data_dict.keys())
 
@@ -554,6 +595,8 @@ def dictionary_values_to_set(data_dict: Dict[Any, Any]) -> Set[Any]:
     Example of use:
         >>> dictionary_values_to_set({"a": 1, "b": 2, "c": 1})
         {1, 2} # Order not guaranteed
+
+    **Cost:** O(n), where n is the number of values in the dictionary.
     """
     return set(data_dict.values())
 
@@ -579,6 +622,8 @@ def dictionary_to_object(dictionary: dict) -> object:
         >>> my_object = dictionary_to_object(my_dict)
         >>> print(my_object.name)
         Alice
+
+    **Cost:** O(n), where n is the number of keys in the dictionary.
     """
 
     if not isinstance(dictionary, dict):
@@ -610,6 +655,8 @@ def dictionary_items_to_set_of_tuples(data_dict: Dict[Any, Any]) -> Set[Tuple[An
     Example of use:
         >>> dictionary_items_to_set_of_tuples({"id": 101, "status": "active"})
         {('id', 101), ('status', 'active')} # Order not guaranteed
+
+    **Cost:** O(n), where n is the number of items in the dictionary.
     """
     return set(data_dict.items())
 
@@ -631,6 +678,8 @@ def list_of_tuples_to_dict(data_list: List[Tuple[Any, Any]]) -> Dict[Any, Any]:
     Example of use:
         >>> list_of_tuples_to_dict([("a", 1), ("b", 2), ("a", 3)])
         {'a': 3, 'b': 2}
+
+    **Cost:** O(n), where n is the number of tuples in the list.
     """
     return dict(data_list)
 
@@ -649,6 +698,8 @@ def list_of_lists_to_dict(data_list: List[List[Any]]) -> Dict[Any, Any]:
     Example of use:
         >>> list_of_lists_to_dict([["name", "Bob"], ["age", 25], ["name", "Robert"]])
         {'name': 'Robert', 'age': 25}
+
+    **Cost:** O(n), where n is the number of lists.
     """
     # The `dict()` constructor also works directly with lists of lists like `[key, value]`.
     return dict(data_list)
@@ -669,6 +720,8 @@ def list_of_dicts_to_merged_dict(list_of_dicts: List[Dict[Any, Any]]) -> Dict[An
     Example of use:
         >>> list_of_dicts_to_merged_dict([{"a": 1, "b": 2}, {"b": 3, "c": 4}, {"d": 5}])
         {'a': 1, 'b': 3, 'c': 4, 'd': 5}
+
+    **Cost:** O(n*m), where n is the number of dictionaries and m is the average number of keys per dictionary.
     """
     merged_dict = {}
     # Iterate through each dictionary and update the `merged_dict`.
@@ -723,6 +776,8 @@ def string_to_list(
 
         >>> convert_string_to_list("word")
         ['w', 'o', 'r', 'd']
+
+    **Cost:** O(n), where n is the length of the input string.
     """
     # Why: Handle None input immediately as there's nothing to convert.
     if input_string is None:

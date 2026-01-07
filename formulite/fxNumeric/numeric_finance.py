@@ -1,5 +1,24 @@
+"""Financial Functions Module.
+
+Contains functions for common financial calculations: future value (FV),
+present value (PV), periodic payment (PMT), number of periods (NPER),
+interest rate (RATE), internal rate of return (IRR), net present value
+(NPV), and depreciation (SLN, DB).
+
+Key Features:
+    - TVM (Time Value of Money) functions
+    - Iterative calculations for IRR and RATE
+    - Depreciation methods
+    - Compatible with ordinary and due annuities
+
+Example:
+    >>> future_value(rate=0.05, nper=5, pmt=0, pv=-1000)
+    1276.2815625000003
+"""
+
 import math
 from typing import Union, List, Optional
+
 
 def future_value(rate: float, nper: Union[int, float], pmt: float, pv: float, type: int = 0) -> float:
     """
@@ -24,7 +43,7 @@ def future_value(rate: float, nper: Union[int, float], pmt: float, pv: float, ty
         TypeError: If any input is not a number or if 'type' is not 0 or 1.
         ValueError: If 'nper' is negative.
 
-    Example of use:
+    Example:
         >>> # FV of $1000 invested for 5 years at 5% annual interest, compounded annually.
         >>> future_value(rate=0.05, nper=5, pmt=0, pv=-1000)
         1276.2815625000003
@@ -32,6 +51,8 @@ def future_value(rate: float, nper: Union[int, float], pmt: float, pv: float, ty
         >>> # FV of $100 payments made at end of each year for 5 years at 5% annual interest.
         >>> future_value(rate=0.05, nper=5, pmt=-100, pv=0)
         552.5631250000001
+
+    **Cost:** O(1), direct future value formula calculation.
     """
     if not all(isinstance(arg, (int, float)) for arg in [rate, nper, pmt, pv]):
         raise TypeError("Rate, NPER, PMT, and PV must be numeric values.")
@@ -73,7 +94,7 @@ def present_value(rate: float, nper: Union[int, float], pmt: float, fv: float = 
         TypeError: If any input is not a number or if 'type' is not 0 or 1.
         ValueError: If 'nper' is negative.
 
-    Example of use:
+    Example:
         >>> # PV of $1276.28 received in 5 years at 5% annual interest.
         >>> present_value(rate=0.05, nper=5, pmt=0, fv=1276.28)
         -999.9989807559194
@@ -81,6 +102,8 @@ def present_value(rate: float, nper: Union[int, float], pmt: float, fv: float = 
         >>> # PV of $100 payments received at end of each year for 5 years at 5% annual interest.
         >>> present_value(rate=0.05, nper=5, pmt=100, fv=0)
         -432.94766060133177
+
+    **Cost:** O(1), direct present value formula calculation.
     """
     if not all(isinstance(arg, (int, float)) for arg in [rate, nper, pmt, fv]):
         raise TypeError("Rate, NPER, PMT, and FV must be numeric values.")
@@ -119,11 +142,13 @@ def pmt(rate: float, nper: Union[int, float], pv: float, fv: float = 0.0, type: 
         TypeError: If any input is not a number or if 'type' is not 0 or 1.
         ValueError: If 'nper' is not positive or if denominator for rate=0 becomes 0.
 
-    Example of use:
+    Example:
         >>> # Monthly payment for a $100,000 loan at 5% annual interest for 30 years.
         >>> # Monthly rate = 0.05 / 12, NPER = 30 * 12 = 360
         >>> round(pmt(rate=0.05/12, nper=360, pv=100000), 2)
         -536.82
+
+    **Cost:** O(1), direct periodic payment formula calculation.
     """
     if not all(isinstance(arg, (int, float)) for arg in [rate, nper, pv, fv]):
         raise TypeError("Rate, NPER, PV, and FV must be numeric values.")
@@ -166,11 +191,13 @@ def nper(rate: float, pmt: float, pv: float, fv: float = 0.0, type: int = 0) -> 
         TypeError: If any input is not a number or if 'type' is not 0 or 1.
         ValueError: If pmt is 0 and rate is not 0, or if arguments lead to invalid log.
 
-    Example of use:
+    Example:
         >>> # Number of months to pay off a $10,000 loan with $100 monthly payments at 5% annual interest.
         >>> # Monthly rate = 0.05 / 12
         >>> round(nper(rate=0.05/12, pmt=-100, pv=10000), 2)
         122.09
+
+    **Cost:** O(1), direct logarithmic calculation.
     """
     if not all(isinstance(arg, (int, float)) for arg in [rate, pmt, pv, fv]):
         raise TypeError("Rate, PMT, PV, and FV must be numeric values.")
@@ -222,6 +249,7 @@ def nper(rate: float, pmt: float, pv: float, fv: float = 0.0, type: int = 0) -> 
         
         return math.log(log_arg) / math.log(1 + rate)
 
+
 def rate(nper: Union[int, float], pmt: float, pv: float, fv: float = 0.0, type: int = 0, guess: float = 0.1) -> float:
     """
     Calculates the interest rate per period of an annuity.
@@ -243,7 +271,7 @@ def rate(nper: Union[int, float], pmt: float, pv: float, fv: float = 0.0, type: 
         TypeError: If any input is not a number or if 'type' is not 0 or 1.
         ValueError: If 'nper' is not positive or if the function fails to converge.
 
-    Example of use:
+    Example:
         >>> # If you pay $536.82 monthly for 360 months on a $100,000 loan, what's the annual rate?
         >>> # Result will be monthly rate, multiply by 12 for annual.
         >>> monthly_rate = rate(nper=360, pmt=-536.82, pv=100000)
@@ -253,6 +281,8 @@ def rate(nper: Union[int, float], pmt: float, pv: float, fv: float = 0.0, type: 
         >>> # If you invest $1000 and it grows to $1276.28 in 5 years with no additional payments.
         >>> round(rate(nper=5, pmt=0, pv=-1000, fv=1276.28), 4)
         0.05
+
+    **Cost:** O(k), where k is the number of iterations (up to 1000). Newton-Raphson/bisection iterative method.
     """
     if not all(isinstance(arg, (int, float)) for arg in [nper, pmt, pv, fv, guess]):
         raise TypeError("NPER, PMT, PV, FV, and guess must be numeric values.")
@@ -376,10 +406,12 @@ def irr(cash_flows: List[float], guess: float = 0.1) -> float:
         ValueError: If cash_flows is empty, all cash flows are positive or negative,
                     or the function fails to converge.
 
-    Example of use:
+    Example:
         >>> # Initial investment of -$100, followed by $20, $30, $40, $50, $60
         >>> irr([-100, 20, 30, 40, 50, 60])
         0.2809484834920677
+
+    **Cost:** O(k*n), where k is the number of iterations (up to 1000) and n is the length of cash_flows. Iterative method.
     """
     if not isinstance(cash_flows, list):
         raise TypeError("Cash flows must be a list.")
@@ -486,10 +518,12 @@ def npv(rate: float, values: List[float]) -> float:
         TypeError: If 'rate' is not numeric or 'values' is not a list of numbers.
         ValueError: If 'values' is empty.
 
-    Example of use:
+    Example:
         >>> # NPV of initial -$100 investment, followed by $20, $30, $40, $50, $60 at 10% discount rate.
         >>> round(npv(rate=0.10, values=[-100, 20, 30, 40, 50, 60]), 2)
         60.85
+
+    **Cost:** O(n), iterates over all cash flows.
     """
     if not isinstance(rate, (int, float)):
         raise TypeError("Rate must be a numeric value.")
@@ -525,10 +559,12 @@ def sln(cost: float, salvage: float, life: Union[int, float]) -> float:
         TypeError: If inputs are not numeric.
         ValueError: If 'life' is zero or negative.
 
-    Example of use:
+    Example:
         >>> # An asset costs $10,000, has a salvage value of $2,000, and a useful life of 5 years.
         >>> sln(cost=10000, salvage=2000, life=5)
         1600.0
+
+    **Cost:** O(1), direct arithmetic calculation.
     """
     if not all(isinstance(arg, (int, float)) for arg in [cost, salvage, life]):
         raise TypeError("Cost, Salvage, and Life must be numeric values.")
@@ -561,7 +597,7 @@ def db(cost: float, salvage: float, life: Union[int, float], period: Union[int, 
         ValueError: If 'cost' or 'salvage' are negative, 'life' or 'period' are non-positive,
                     'period' is greater than 'life', or 'month' is not between 1 and 12.
 
-    Example of use:
+    Example:
         >>> # Asset: Cost $10,000, Salvage $1,000, Life 6 years. Depreciation for year 1.
         >>> db(cost=10000, salvage=1000, life=6, period=1)
         3333.333333333333
@@ -571,6 +607,8 @@ def db(cost: float, salvage: float, life: Union[int, float], period: Union[int, 
         >>> # For an asset acquired mid-year (e.g., 9 months in first year)
         >>> db(cost=10000, salvage=1000, life=6, period=1, month=9)
         2500.0
+
+    **Cost:** O(n), where n is the number of periods (life). Iterates up to the requested period.
     """
     if not all(isinstance(arg, (int, float)) for arg in [cost, salvage, life, period]):
         raise TypeError("Cost, Salvage, Life, and Period must be numeric values.")

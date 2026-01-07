@@ -1,3 +1,22 @@
+"""Numeric Statistics Module.
+
+This module provides comprehensive statistical analysis functions for numeric data,
+including measures of central tendency, dispersion, correlation, and percentiles.
+
+Key Features:
+    - Descriptive statistics (mean, median, mode, range)
+    - Measures of dispersion (variance, standard deviation, IQR)
+    - Correlation and covariance calculations
+    - Percentile and frequency calculations
+    - Sum of squares computation
+
+Example:
+    >>> from formulite.fxNumeric.numeric_statistics import calculate_mean, calculate_median
+    >>> calculate_mean([1, 2, 3, 4, 5])
+    3.0
+    >>> calculate_median([1, 2, 3, 4])
+    2.5
+"""
 import math
 import statistics
 from typing import List, Union
@@ -7,34 +26,35 @@ from typing import List, Union
 # These functions help summarize and describe the main features of a dataset.
 
 def calculate_frecuency(data: List[Union[int, float]]) -> dict:
-    """
-    Calcula la frecuencia de cada valor en una lista de números.
+    """Calculates the frequency of each value in a list of numbers.
 
     Args:
-        data (List[Union[int, float]]): Una lista de valores numéricos.
+        data (List[Union[int, float]]): A list of numeric values.
 
     Returns:
-        dict: Un diccionario donde las claves son los valores únicos y los valores son sus frecuencias.
+        dict: A dictionary where keys are unique values and values are their frequencies.
 
     Raises:
-        ValueError: Si la lista está vacía.
-        TypeError: Si la entrada no es una lista o contiene valores no numéricos.
+        ValueError: If the list is empty.
+        TypeError: If the input is not a list or contains non-numeric values.
 
-    Ejemplo de uso:
+    Example:
         >>> calculate_frecuency([1, 2, 2, 3, 3, 3])
         {1: 1, 2: 2, 3: 3}
+
+    **Cost:** O(n), where n is the number of elements in the list.
     """
     if not isinstance(data, list):
-        raise TypeError("La entrada 'data' debe ser una lista.")
+        raise TypeError("Input 'data' must be a list.")
     if not data:
-        raise ValueError("La lista de entrada no puede estar vacía.")
+        raise ValueError("Input list cannot be empty.")
     if not all(isinstance(item, (int, float)) for item in data):
-        raise TypeError("Todos los elementos en 'data' deben ser numéricos (int o float).")
+        raise TypeError("All elements in 'data' must be numeric (int or float).")
 
     frecuencia = {}
     for item in data:
         frecuencia[item] = frecuencia.get(item, 0) + 1
-    return
+    return frecuencia
 
 
 def calculate_mean(data: List[Union[int, float]]) -> float:
@@ -54,11 +74,13 @@ def calculate_mean(data: List[Union[int, float]]) -> float:
         ValueError: If the input list is empty.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_mean([1, 2, 3, 4, 5])
         3.0
         >>> calculate_mean([10, 20, 30])
         20.0
+
+    **Cost:** O(n), where n is the number of elements.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -88,11 +110,13 @@ def calculate_median(data: List[Union[int, float]]) -> Union[int, float]:
         ValueError: If the input list is empty.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_median([1, 2, 3, 4, 5])
         3
         >>> calculate_median([1, 2, 3, 4])
         2.5
+
+    **Cost:** O(n log n), includes list sorting.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -121,13 +145,15 @@ def calculate_mode(data: List[Union[int, float]]) -> List[Union[int, float]]:
         ValueError: If the input list is empty.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_mode([1, 2, 2, 3, 4])
         [2]
         >>> calculate_mode([1, 2, 2, 3, 3, 4])
         [2, 3]
         >>> calculate_mode([1, 2, 3])
         [1, 2, 3] # or similar depending on statistics.mode behavior for unique elements
+
+    **Cost:** O(n), where n is the number of elements.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -157,11 +183,13 @@ def calculate_range(data: List[Union[int, float]]) -> float:
         ValueError: If the input list is empty.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_range([1, 5, 2, 8, 3])
         7.0
         >>> calculate_range([10, 10, 10])
         0.0
+
+    **Cost:** O(n), searching for maximum and minimum.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -199,11 +227,13 @@ def calculate_variance(data: List[Union[int, float]], sample: bool = True) -> fl
                     or is empty for population variance.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_variance([1, 2, 3, 4, 5]) # Sample variance
         2.5
         >>> calculate_variance([1, 2, 3, 4, 5], sample=False) # Population variance
         2.0
+
+    **Cost:** O(n), variance calculation over the list.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -218,6 +248,7 @@ def calculate_variance(data: List[Union[int, float]], sample: bool = True) -> fl
         return statistics.variance(data)
     else:
         return statistics.pvariance(data)
+
 
 def calculate_standard_deviation(data: List[Union[int, float]], sample: bool = True) -> float:
     """
@@ -243,11 +274,13 @@ def calculate_standard_deviation(data: List[Union[int, float]], sample: bool = T
                     or is empty for population standard deviation.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> round(calculate_standard_deviation([1, 2, 3, 4, 5]), 2) # Sample std dev
         1.58
         >>> round(calculate_standard_deviation([1, 2, 3, 4, 5], sample=False), 2) # Population std dev
         1.41
+
+    **Cost:** O(n), standard deviation calculation.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -262,6 +295,7 @@ def calculate_standard_deviation(data: List[Union[int, float]], sample: bool = T
         return statistics.stdev(data)
     else:
         return statistics.pstdev(data)
+
 
 def calculate_interquartile_range(data: List[Union[int, float]]) -> float:
     """
@@ -281,11 +315,13 @@ def calculate_interquartile_range(data: List[Union[int, float]]) -> float:
         ValueError: If the input list has fewer than 4 elements.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_interquartile_range([1, 2, 3, 4, 5, 6, 7, 8, 9])
         4.0
         >>> calculate_interquartile_range([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         5.0
+
+    **Cost:** O(n log n), includes list sorting.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -347,11 +383,13 @@ def calculate_covariance(data1: List[Union[int, float]], data2: List[Union[int, 
         ValueError: If lists are of different lengths or have fewer than 2 elements for sample covariance.
         TypeError: If inputs are not lists or contain non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_covariance([1, 2, 3], [2, 4, 6]) # Positive correlation
         2.0
         >>> calculate_covariance([1, 2, 3], [6, 4, 2]) # Negative correlation
         -2.0
+
+    **Cost:** O(n), where n is the length of the lists.
     """
     if not isinstance(data1, list) or not isinstance(data2, list):
         raise TypeError("Inputs 'data1' and 'data2' must be lists.")
@@ -378,6 +416,7 @@ def calculate_covariance(data1: List[Union[int, float]], data2: List[Union[int, 
     else:
         return sum_of_products / n
 
+
 def calculate_pearson_correlation(data1: List[Union[int, float]], data2: List[Union[int, float]]) -> float:
     """
     Calculates the Pearson product-moment correlation coefficient between two lists of numbers.
@@ -400,13 +439,15 @@ def calculate_pearson_correlation(data1: List[Union[int, float]], data2: List[Un
                     Also if standard deviation is zero (no variance in one of the datasets).
         TypeError: If inputs are not lists or contain non-numeric values.
 
-    Example of use:
+    Example:
         >>> calculate_pearson_correlation([1, 2, 3], [2, 4, 6])
         1.0
         >>> calculate_pearson_correlation([1, 2, 3], [6, 4, 2])
         -1.0
         >>> round(calculate_pearson_correlation([1, 2, 3, 4, 5], [5, 4, 3, 2, 1]), 10)
         -1.0
+
+    **Cost:** O(n), correlation calculation.
     """
     if not isinstance(data1, list) or not isinstance(data2, list):
         raise TypeError("Inputs 'data1' and 'data2' must be lists.")
@@ -460,11 +501,13 @@ def calculate_percentile(data: List[Union[int, float]], percentile: float) -> fl
         ValueError: If the input list is empty, or if percentile is out of range [0, 100].
         TypeError: If the input is not a list or contains non-numeric values, or if percentile is not numeric.
 
-    Example of use:
+    Example:
         >>> calculate_percentile([10, 20, 30, 40, 50], 50) # Median
         30.0
         >>> calculate_percentile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 90)
         9.0
+
+    **Cost:** O(n log n), includes sorting to calculate percentile.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")
@@ -520,11 +563,13 @@ def sum_of_squares(data: List[Union[int, float]]) -> float:
         ValueError: If the input list is empty.
         TypeError: If the input is not a list or contains non-numeric values.
 
-    Example of use:
+    Example:
         >>> sum_of_squares([1, 2, 3, 4, 5])
         10.0
         >>> sum_of_squares([1, 1, 1])
         0.0
+
+    **Cost:** O(n), sum of squares over the list.
     """
     if not isinstance(data, list):
         raise TypeError("Input 'data' must be a list.")

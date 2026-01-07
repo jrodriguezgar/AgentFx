@@ -1,3 +1,60 @@
+"""fxPython - Python utilities and conversions
+
+Description
+    General purpose Python helper functions for type checking,
+    conversion utilities, itertools, and other operations.
 """
-fxPython - Python utilities and conversions
-"""
+
+from .py_operations import (
+    merge_json_strings,
+    add_to_tuple,
+    unique_list,
+    unique_tuple_list,
+    flatten_list,
+    list_intersection,
+    list_has_list,
+    is_subsequence,
+    filter_elements_by_another,
+    merge_elements,
+    pick_in_collection,
+    collection_filter,
+    dictionary_filter_by_keys,
+    combine_dictionaries,
+    dictionary_rename_keys,
+    execute_os_command,
+    calculate,
+    search,
+    collection_avg,
+    collection_count,
+    collection_max,
+    collection_min,
+    collection_stdev,
+    collection_sum,
+)
+
+__all__ = [
+    "merge_json_strings",
+    "add_to_tuple",
+    "unique_list",
+    "unique_tuple_list",
+    "flatten_list",
+    "list_intersection",
+    "list_has_list",
+    "is_subsequence",
+    "filter_elements_by_another",
+    "merge_elements",
+    "pick_in_collection",
+    "collection_filter",
+    "dictionary_filter_by_keys",
+    "combine_dictionaries",
+    "dictionary_rename_keys",
+    "execute_os_command",
+    "calculate",
+    "search",
+    "collection_avg",
+    "collection_count",
+    "collection_max",
+    "collection_min",
+    "collection_stdev",
+    "collection_sum",
+]

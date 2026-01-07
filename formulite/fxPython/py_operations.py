@@ -1,13 +1,26 @@
+"""
+FormuLite - fxPython: Python Operations Module
+
+This module provides advanced utility functions for Python data structure operations.
+It includes functions for:
+- JSON manipulation and merging
+- List, tuple, and set operations (unique, flatten, intersection)
+- Dictionary operations and filtering
+- Subsequence and sublist checking
+- Collection filtering and merging
+- Command execution and expression evaluation
+- Interactive user selection from collections
+
+All functions follow PEP standards with complete documentation including
+complexity analysis.
+"""
+
 import json
-from typing import Iterable, Callable, Any, Union, List, Tuple, Set, Sequence, Hashable
+from typing import Iterable, Callable, Any, Union, List, Tuple, Set, Sequence, Hashable, Optional
 import sys
 from collections.abc import Iterable
-
 import subprocess
-from typing import Union, Tuple
-
 import operator
-
 import re
 
 
@@ -33,6 +46,8 @@ def merge_json_strings(json_str_1: str, json_str_2: str) -> str:
         '{"name": "Alice", "age": 31, "city": "New York"}'
         >>> merge_json_strings('{"a": 1}', '{"b": 2}')
         '{"a": 1, "b": 2}'
+
+    **Cost:** O(n + m), where n and m are the number of keys in the two dictionaries.
     """
     try:
         # Convert the JSON strings to Python objects (dictionaries).
@@ -86,6 +101,8 @@ def add_to_tuple(p_tuple: Tuple[Any, ...], p_value: Any) -> Tuple[Any, ...]:
         (1, 2, 3)
         >>> add_to_tuple((), "hello")
         ('hello',)
+
+    **Cost:** O(n), where n is the number of elements in the tuple.
     """
     # The '*' operator (unpacking) expands the elements of p_tuple,
     # and p_value is added as the last element of the new tuple.
@@ -110,6 +127,8 @@ def unique_list(p_list: List[Any]) -> List[Any]:
         [1, 2, 3] # Order may vary
         >>> unique_list(["apple", "banana", "apple"])
         ['banana', 'apple'] # Order may vary
+
+    **Cost:** O(n), where n is the number of elements in the list.
     """
     # Convert the list to a set to remove duplicates. Sets inherently do not allow duplicate elements.
     # Then, convert the set back to a list.
@@ -998,9 +1017,6 @@ def calculate(expression_string):
         raise ValueError(f"Invalid or malformed expression provided: {e}")
 
 
-from collections.abc import Iterable
-from typing import Any, Optional
-
 def search(collection: Iterable[Any], target_element: Any) -> Optional[Any]:
     """
     Searches for a target element within an iterable collection.
@@ -1049,6 +1065,276 @@ def search(collection: Iterable[Any], target_element: Any) -> Optional[Any]:
     # If the loop completes without finding the element, we return None
     # to signal that the search was unsuccessful.
     return None
+
+
+def collection_avg(collection: Iterable[Union[int, float]], ignore_none: bool = True) -> Optional[float]:
+    """
+    Calculates the average of the numeric values in an iterable collection.
+
+    This function is equivalent to the SQL aggregate function AVG and allows
+    calculating the average of numeric values in any iterable collection.
+
+    Args:
+        collection (Iterable[Union[int, float]]): Collection of numeric values.
+        ignore_none (bool): If True, ignores None values in the calculation.
+                           Defaults to True.
+
+    Returns:
+        Optional[float]: The average of the values, or None if the collection is empty
+                        or contains no valid values.
+
+    Raises:
+        TypeError: If the collection is not iterable or contains non-numeric values.
+
+    Example of use:
+        >>> collection_avg([1, 2, 3, 4, 5])
+        3.0
+        >>> collection_avg([10, 20, None, 30], ignore_none=True)
+        20.0
+        >>> collection_avg((5.5, 10.5, 15.5))
+        10.5
+
+    **Cost:** O(n), where n is the number of elements in the collection.
+    """
+    if not isinstance(collection, Iterable):
+        raise TypeError("The 'collection' argument must be an iterable.")
+
+    values = []
+    for item in collection:
+        if item is None and ignore_none:
+            continue
+        if not isinstance(item, (int, float)):
+            raise TypeError(f"All elements must be numeric. Found: {type(item).__name__}")
+        values.append(item)
+
+    if not values:
+        return None
+
+    return sum(values) / len(values)
+
+
+def collection_count(collection: Iterable[Any], ignore_none: bool = True) -> int:
+    """
+    Counts the number of elements in an iterable collection.
+
+    This function is equivalent to the SQL aggregate function COUNT and allows
+    counting elements in any iterable collection, with an option to ignore None values.
+
+    Args:
+        collection (Iterable[Any]): The collection to count.
+        ignore_none (bool): If True, does not count None values.
+                           Defaults to True (similar to COUNT(field) in SQL).
+
+    Returns:
+        int: The number of elements in the collection.
+
+    Raises:
+        TypeError: If the argument is not an iterable.
+
+    Example of use:
+        >>> collection_count([1, 2, 3, 4, 5])
+        5
+        >>> collection_count([1, None, 3, None, 5], ignore_none=True)
+        3
+        >>> collection_count([1, None, 3, None, 5], ignore_none=False)
+        5
+
+    **Cost:** O(n), where n is the number of elements in the collection.
+    """
+    if not isinstance(collection, Iterable):
+        raise TypeError("The 'collection' argument must be an iterable.")
+
+    if ignore_none:
+        return sum(1 for item in collection if item is not None)
+    else:
+        return sum(1 for _ in collection)
+
+
+def collection_max(collection: Iterable[Any], ignore_none: bool = True) -> Optional[Any]:
+    """
+    Returns the highest value in an iterable collection.
+
+    This function is equivalent to the SQL aggregate function MAX and allows
+    finding the maximum value in any iterable collection.
+
+    Args:
+        collection (Iterable[Any]): The collection to search for the maximum.
+        ignore_none (bool): If True, ignores None values in the calculation.
+                           Defaults to True.
+
+    Returns:
+        Optional[Any]: The maximum value in the collection, or None if it is empty
+                      or contains only None.
+
+    Raises:
+        TypeError: If the collection is not iterable.
+        ValueError: If the collection is empty after filtering None.
+
+    Example of use:
+        >>> collection_max([1, 5, 3, 9, 2])
+        9
+        >>> collection_max(['apple', 'zebra', 'banana'])
+        'zebra'
+        >>> collection_max([1.5, None, 3.7, 2.1], ignore_none=True)
+        3.7
+
+    **Cost:** O(n), where n is the number of elements in the collection.
+    """
+    if not isinstance(collection, Iterable):
+        raise TypeError("The 'collection' argument must be an iterable.")
+
+    if ignore_none:
+        filtered_values = [item for item in collection if item is not None]
+    else:
+        filtered_values = list(collection)
+
+    if not filtered_values:
+        return None
+
+    return max(filtered_values)
+
+
+def collection_min(collection: Iterable[Any], ignore_none: bool = True) -> Optional[Any]:
+    """
+    Returns the smallest value in an iterable collection.
+
+    This function is equivalent to the SQL aggregate function MIN and allows
+    finding the minimum value in any iterable collection.
+
+    Args:
+        collection (Iterable[Any]): The collection to search for the minimum.
+        ignore_none (bool): If True, ignores None values in the calculation.
+                           Defaults to True.
+
+    Returns:
+        Optional[Any]: The minimum value in the collection, or None if it is empty
+                      or contains only None.
+
+    Raises:
+        TypeError: If the collection is not iterable.
+        ValueError: If the collection is empty after filtering None.
+
+    Example of use:
+        >>> collection_min([5, 1, 9, 3, 2])
+        1
+        >>> collection_min(['zebra', 'apple', 'banana'])
+        'apple'
+        >>> collection_min([3.7, None, 1.5, 2.1], ignore_none=True)
+        1.5
+
+    **Cost:** O(n), where n is the number of elements in the collection.
+    """
+    if not isinstance(collection, Iterable):
+        raise TypeError("The 'collection' argument must be an iterable.")
+
+    if ignore_none:
+        filtered_values = [item for item in collection if item is not None]
+    else:
+        filtered_values = list(collection)
+
+    if not filtered_values:
+        return None
+
+    return min(filtered_values)
+
+
+def collection_stdev(collection: Iterable[Union[int, float]], is_sample: bool = True, ignore_none: bool = True) -> Optional[float]:
+    """
+    Calculates the standard deviation of the values in an iterable collection.
+
+    This function is equivalent to the SQL aggregate functions STDEV (sample) and
+    STDEVP (population), allowing the calculation of standard deviation in any
+    iterable collection.
+
+    Args:
+        collection (Iterable[Union[int, float]]): Collection of numeric values.
+        is_sample (bool): If True, calculates for a sample (n-1).
+                         If False, calculates for a population (n).
+                         Defaults to True (equivalent to SQL's STDEV).
+        ignore_none (bool): If True, ignores None values in the calculation.
+                           Defaults to True.
+
+    Returns:
+        Optional[float]: The standard deviation, or None if there is not enough data.
+
+    Raises:
+        TypeError: If the collection is not iterable or contains non-numeric values.
+        ValueError: If there are fewer than 2 values for a sample calculation.
+
+    Example of use:
+        >>> collection_stdev([2, 4, 4, 4, 5, 5, 7, 9])
+        2.138089935299395
+        >>> collection_stdev([2, 4, 4, 4, 5, 5, 7, 9], is_sample=False)
+        2.0
+        >>> collection_stdev([10, None, 20, 30], ignore_none=True)
+        10.0
+
+    **Cost:** O(n), where n is the number of elements in the collection.
+    """
+    if not isinstance(collection, Iterable):
+        raise TypeError("The 'collection' argument must be an iterable.")
+
+    values = []
+    for item in collection:
+        if item is None and ignore_none:
+            continue
+        if not isinstance(item, (int, float)):
+            raise TypeError(f"All elements must be numeric. Found: {type(item).__name__}")
+        values.append(item)
+
+    if not values:
+        return None
+
+    if is_sample and len(values) < 2:
+        raise ValueError("At least 2 values are required to calculate the standard deviation of a sample.")
+
+    mean = sum(values) / len(values)
+    variance = sum((x - mean) ** 2 for x in values)
+
+    divisor = len(values) - 1 if is_sample else len(values)
+    return (variance / divisor) ** 0.5
+
+
+def collection_sum(collection: Iterable[Union[int, float]], ignore_none: bool = True) -> Union[int, float]:
+    """
+    Calculates the sum of the numeric values in an iterable collection.
+
+    This function is equivalent to the SQL aggregate function SUM and allows
+    summing numeric values in any iterable collection.
+
+    Args:
+        collection (Iterable[Union[int, float]]): Collection of numeric values.
+        ignore_none (bool): If True, ignores None values in the calculation.
+                           Defaults to True.
+
+    Returns:
+        Union[int, float]: The sum of the values. Returns 0 if the collection is empty.
+
+    Raises:
+        TypeError: If the collection is not iterable or contains non-numeric values.
+
+    Example of use:
+        >>> collection_sum([1, 2, 3, 4, 5])
+        15
+        >>> collection_sum([10, None, 20, 30], ignore_none=True)
+        60
+        >>> collection_sum((5.5, 10.5, 15.5))
+        31.5
+
+    **Cost:** O(n), where n is the number of elements in the collection.
+    """
+    if not isinstance(collection, Iterable):
+        raise TypeError("The 'collection' argument must be an iterable.")
+
+    total = 0
+    for item in collection:
+        if item is None and ignore_none:
+            continue
+        if not isinstance(item, (int, float)):
+            raise TypeError(f"All elements must be numeric. Found: {type(item).__name__}")
+        total += item
+
+    return total
 
 
 
