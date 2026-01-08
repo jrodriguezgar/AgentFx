@@ -1,0 +1,770 @@
+# FormuLite - LLM Function Reference
+
+**580+ functions across 6 modules** | Excel/VBA-compatible | Pythonic API | MIT License
+
+**Format**: Module → Python File → Function(params) - Description
+**Navigation**: Use Ctrl+F to search for specific functions or tasks
+
+---
+
+## fxDate - Date/time manipulation
+
+### date_convertions.py
+- `datetime_to_date(datetime_obj)` - Converts datetime to date object
+- `date_to_string(date_input, format_code='%Y-%m-%d')` - Formats datetime as string
+- `datetime_to_integer(date_input)` - Converts to YYYYMMDD integer
+- `datetime_to_timestamp(date_input)` - Converts to Unix timestamp
+- `timestamp_to_datetime(timestamp)` - Converts Unix timestamp to datetime
+- `date_to_iso_format(date_input)` - Converts to ISO 8601 string
+- `from_iso_to_local_datetime(iso_string)` - Parses ISO 8601 to local datetime
+- `list_available_timezones()` - Lists all IANA timezone names
+- `convert_timezone(dt, from_tz, to_tz)` - Converts between timezones
+- `utc_to_datetime(date_input)` - Converts to UTC datetime
+- `utc_to_timezone(dt, target_tz)` - Localizes to target timezone
+- `date_to_julian(date_input)` - Converts to Julian day number
+- `julian_to_date(year, julian_day)` - Converts Julian day to date
+- `datetime_to_milliseconds_timestamp(dt)` - Timestamp in milliseconds
+- `milliseconds_timestamp_to_datetime(ms)` - Parses ms timestamp
+- `utc_to_midnight_iso(dt)` - Converts to midnight UTC
+- `filetime_to_datetime(filetime)` - Windows FILETIME to datetime
+- `datetime_to_filetime(dt)` - Datetime to Windows FILETIME
+- `datetime_to_ad_format(dt)` - Active Directory format string
+- `ad_format_to_datetime(ad_str)` - Parses AD format
+- `datetime_to_unix_timestamp(dt)` - UNIX timestamp (float)
+- `unix_timestamp_to_datetime(ts, tz=None)` - Parses UNIX timestamp
+
+### date_sys.py
+- `current_datetime()` - Current local date and time
+- `current_date()` - Current date only
+- `current_time()` - Current time only
+- `current_year()` - Current year (int)
+- `current_month()` - Current month 1-12
+- `current_day()` - Current day 1-31
+- `current_weekday_number(start_day='european')` - Weekday as number
+- `current_weekday_name(language='en')` - Weekday name in language
+- `current_last_day_of_month()` - Last day of current month
+- `current_last_friday_of_month()` - Last Friday of current month
+- `current_next_friday()` - Next Friday from today
+- `current_previous_friday()` - Previous Friday from today
+- `current_is_working_day()` - True if today is Mon-Fri
+- `current_is_weekend()` - True if today is Sat/Sun
+- `get_local_now(timezone)` - Current datetime in timezone
+
+### date_operations.py
+- `is_date_type(value)` - Checks if value is date/datetime/time
+- `is_valid_date(date_input, format='%Y-%m-%d')` - Validates date
+- `weekday_number(date, start_day='european')` - Day of week number
+- `weekday_name(date, language='en')` - Weekday name
+- `first_day_of_week(date, week_start=0)` - First day of week
+- `last_day_of_week(date, week_start=0)` - Last day of week
+- `month_name(date, language='en')` - Month name in language
+- `months_between_dates(start, end)` - Complete months between dates
+- `days_in_month(year, month)` - Days in specific month
+- `calculate_days_between_dates(start, end)` - Absolute days between
+- `get_nth_weekday_of_month(year, month, weekday, n)` - N-th weekday
+- `add_days_from_now(days)` - Adds days to current datetime
+- `add_time_to_date(date, quantity, unit)` - Adds time units (microseconds/ms/seconds/minutes/hours/days/weeks)
+- `diff_time(start, end, unit)` - Whole-unit difference
+- `time_difference(start, end, unit='days')` - Fractional difference
+- `date_part(part, date, first_day_of_week=0)` - Extracts part (d/y/h/n/s/m/yyyy/w/ww)
+- `parts_to_date(year, month, day)` - Creates date from parts
+- `parts_to_datetime(year, month, day, hour=0, minute=0, second=0)` - Creates datetime
+- `is_between_dates(target, start, end, inclusive=True)` - Checks if in range
+- `is_valid_time(hour, minute, second, microsecond)` - Validates time
+- `time_from_datetime(dt)` - Extracts time component
+- `get_date_component(date, component)` - Gets component (day/month/year)
+- `set_date_component(dt, **kwargs)` - Modifies datetime components
+- `is_leap_year(year)` - Checks leap year
+- `get_number_of_days_in_year(year)` - Returns 365 or 366
+- `get_week_range(year, week)` - ISO week start/end dates
+- `get_year_calendar_by_weeks(year)` - All ISO weeks in year
+- `get_quarter(date)` - Quarter 1-4
+- `get_number_of_days_in_quarter(year, quarter)` - Days in quarter
+- `start_of_month(date)` - First day of month
+- `end_of_month(date)` - Last day of month
+- `start_of_year(date)` - Jan 1st of year
+- `end_of_year(date)` - Dec 31st of year
+- `get_last_friday_of_month(year, month)` - Last Friday
+- `get_next_friday(date)` - Next Friday
+- `get_previous_friday(date)` - Previous Friday
+- `get_working_days_in_range(start, end, holidays=None)` - Business days
+- `get_first_business_day_of_month(year, month)` - First Mon-Fri
+- `get_last_business_day_of_month(year, month)` - Last Mon-Fri
+- `is_working_day(date)` - True if Mon-Fri
+- `is_weekend(date)` - True if Sat/Sun
+- `get_age_from_dob(dob, ref_date=None)` - Age in years
+- `get_season(date, hemisphere='north')` - Season name
+- `format_datetime_ampm(dt)` - 12-hour AM/PM format
+- `timedelta_to_components(td)` - Dict of timedelta parts
+- `intersection_of_date_ranges(r1_start, r1_end, r2_start, r2_end)` - Overlap
+- `dates_between(start, end, inclusive=True)` - List of dates
+- `date_intervals(start, end, interval, granularity)` - Date intervals
+- `add_microseconds(dt, microseconds)` - Adds microseconds
+- `set_microseconds(dt, microseconds)` - Sets microseconds
+- `is_duration_less_than(start, end, threshold, unit)` - Duration check
+- `is_duration_greater_than(start, end, threshold, unit)` - Duration check
+- `full_years_between(start, end)` - Complete years
+- `full_months_between(start, end)` - Complete months
+- `generate_random_date(start, end)` - Random date in range
+- `generate_random_time(start=None, end=None)` - Random time
+- `generate_random_datetime(start, end, tz=None)` - Random datetime
+- `get_week_of_year(date)` - ISO week number
+- `week_of_month(date)` - Week within month
+- `filter_dates_by_weekday(dates, weekday)` - Filters by weekday
+
+### date_evaluations.py
+- `is_dateclass(value)` - Checks if datetime class
+
+---
+
+## fxNumeric - Numeric operations & calculations
+
+### numeric_arithmetic.py
+- `natural_log(x)` - Natural logarithm (base e)
+- `common_log(x)` - Common logarithm (base 10)
+- `log_base_n(x, base)` - Logarithm to base N
+- `log1p(x)` - ln(1+x) with high precision near zero
+- `power(base, exponent)` - Base raised to exponent
+- `square_root(x)` - Square root of non-negative number
+- `cube_root(x)` - Cube root of number
+- `nth_root(x, n)` - Nth root of number
+
+### numeric_convertions.py
+- `float_to_int_truncated(f)` - Float to int truncating decimals
+- `int_to_float(i)` - Integer to float
+- `number_to_complex(x)` - Number to complex with zero imaginary
+- `number_to_bool(x)` - Number to boolean (0=False)
+- `bool_to_int(b)` - Boolean to int (True=1, False=0)
+- `bool_to_float(b)` - Boolean to float (True=1.0, False=0.0)
+- `number_to_string(num)` - Number to string representation
+- `round_float_to_int(f)` - Round float to nearest integer
+- `hex_to_int(hex_str)` - Hexadecimal string to decimal int
+- `bin_to_int(bin_str)` - Binary string to decimal int
+- `octal_to_int(oct_str)` - Octal string to decimal int
+- `int_to_binary_clean(num)` - Int to binary without prefix
+- `int_to_hex_clean(num)` - Int to hex without prefix
+- `int_to_binary_with_prefix(num)` - Int to binary with 0b
+- `int_to_hex_with_prefix(num)` - Int to hex with 0x
+- `int_to_octal_with_prefix(num)` - Int to octal with 0o
+- `to_js_safe_integer(num)` - Convert to JS safe integer range
+- `safe_convert_number(value, fallback=0)` - Safe conversion with fallback
+- `convert_string_to_float_with_locale(s, locale='en_US')` - String to float with locale
+
+### numeric_operations.py
+- `is_numeric_type(value)` - Checks if value is numeric
+- `is_prime(n)` - Verifies if number is prime
+- `get_primes_up_to(limit)` - List of primes up to limit (sieve)
+- `truncate_float(f)` - Truncate float towards zero
+- `round_to_n_decimals(num, n)` - Round to N decimal places
+- `round_up(x)` - Round upward to ceiling
+- `round_down(x)` - Round downward to floor
+- `explicit_truncate(f)` - Eliminate decimals towards zero
+- `manual_round_and_cast(f)` - Manual round to nearest int
+- `manual_round_up_to_int(f)` - Round up to int
+- `manual_round_down_to_int(f)` - Round down to int
+- `round_half_even(num, decimals=0)` - Banker's rounding
+- `round_to_nearest_multiple(num, base)` - Round to multiple of base
+- `add_with_exact_precision(a, b)` - Add using Decimal precision
+- `format_with_leading_zeros(num, width)` - Format with leading zeros
+- `format_as_percentage(num, decimals=2)` - Format as percentage string
+- `format_as_scientific_notation(num, decimals=2)` - Scientific notation
+- `force_float_division(a, b)` - Division always returns float
+- `normalize_to_0_1_range(x, min_val, max_val)` - Normalize to [0,1]
+- `scale_to_new_range(x, old_min, old_max, new_min, new_max)` - Scale to new range
+- `clip_number(x, min_val, max_val)` - Force within min-max range
+- `reduce_to_modulo_range(x, modulo)` - Cyclic range using modulo
+- `quantize_number(x, step)` - Quantize to discrete multiples
+- `add_bool_to_int(i, b)` - Add boolean to int (True=1)
+- `safe_sum_with_none(a, b)` - Sum treating None as zero
+- `count_true_with_sum(bool_list)` - Count True values
+- `true_division(a, b)` - Float division always
+- `floor_division(a, b)` - Integer division floor
+- `safe_division_for_context(a, b)` - Division by context (float/int)
+- `compare_floats_with_tolerance(a, b, rel_tol=1e-9, abs_tol=0.0)` - Compare floats
+
+### numeric_statistics.py
+- `calculate_frecuency(data)` - Frequency of each value
+- `calculate_mean(data)` - Arithmetic mean/average
+- `calculate_median(data)` - Median middle value
+- `calculate_mode(data)` - Mode most frequent values
+- `calculate_range(data)` - Range (max - min)
+- `calculate_variance(data, sample=True)` - Variance (sample/population)
+- `calculate_standard_deviation(data, sample=True)` - Standard deviation
+- `calculate_interquartile_range(data)` - IQR (Q3 - Q1)
+- `calculate_covariance(x, y, sample=True)` - Covariance between lists
+- `calculate_pearson_correlation(x, y)` - Pearson correlation coefficient
+- `calculate_percentile(data, percentile)` - Percentile value
+- `sum_of_squares(data)` - Sum of squares
+
+### numeric_trigonometry.py
+- `sine(x)` - Sine of angle in radians
+- `cosine(x)` - Cosine of angle in radians
+- `tangent(x)` - Tangent of angle in radians
+- `arcsine(x)` - Inverse sine (arcsin)
+- `arccosine(x)` - Inverse cosine (arccos)
+- `arctangent(x)` - Inverse tangent (arctan)
+- `arctangent2(y, x)` - Inverse tangent with quadrant
+- `hypotenuse(x, y)` - Euclidean norm (hypotenuse)
+- `hyperbolic_sine(x)` - Hyperbolic sine (sinh)
+- `hyperbolic_cosine(x)` - Hyperbolic cosine (cosh)
+- `hyperbolic_tangent(x)` - Hyperbolic tangent (tanh)
+- `inverse_hyperbolic_sine(x)` - Inverse sinh (arcsinh)
+- `inverse_hyperbolic_cosine(x)` - Inverse cosh (arccosh)
+- `inverse_hyperbolic_tangent(x)` - Inverse tanh (arctanh)
+- `inverse_secant(x)` - Inverse secant (arcsec)
+- `inverse_cosecant(x)` - Inverse cosecant (arccsc)
+- `inverse_cotangent(x)` - Inverse cotangent (arccot)
+- `inverse_hyperbolic_secant(x)` - Inverse sech (arcsech)
+- `inverse_hyperbolic_cosecant(x)` - Inverse csch (arccsch)
+- `inverse_hyperbolic_cotangent(x)` - Inverse coth (arccoth)
+- `degrees_to_radians(degrees)` - Degrees to radians
+- `radians_to_degrees(radians)` - Radians to degrees
+- `secant(x)` - Secant (1/cos)
+- `cosecant(x)` - Cosecant (1/sin)
+- `cotangent(x)` - Cotangent (1/tan)
+
+### numeric_finance.py
+- `future_value(rate, nper, pmt, pv=0, type=0)` - Future value of investment
+- `present_value(rate, nper, pmt, fv=0, type=0)` - Present value of payments
+- `pmt(rate, nper, pv, fv=0, type=0)` - Payment for loan
+- `nper(rate, pmt, pv, fv=0, type=0)` - Number of periods
+- `rate(nper, pmt, pv, fv=0, type=0)` - Interest rate per period
+- `irr(values)` - Internal rate of return
+- `npv(rate, values)` - Net present value
+- `sln(cost, salvage, life)` - Straight-line depreciation
+- `db(cost, salvage, life, period, month=12)` - Fixed-declining balance depreciation
+
+---
+
+## fxString - String manipulation & validation
+
+### string_convertions.py
+- `replace_void(value, replacement='')` - Replace None/empty with value
+- `none_to_string(value)` - Convert None to empty string
+- `string_to_integer(s)` - String to int or None
+- `string_to_float(s)` - String to float or None
+- `string_to_number(s)` - String to int/float by type
+- `string_to_date(s, format='%Y-%m-%d')` - String to date/datetime
+- `string_to_datetime(s, format='%Y-%m-%d %H:%M:%S')` - String to datetime
+- `split_all(text)` - Split by delimiters, remove empty
+- `split_by_substrings(text, seps)` - Split by list, preserve separators
+- `split_limited(text, limit)` - Split by whitespace with word limit
+- `extract_and_decode_json(text)` - Extract and decode JSON from fenced block
+
+### string_operations.py
+- `ascii_from_char(char)` - Unicode/ASCII code of first char
+- `char_from_ascii(code)` - Character from ASCII/Unicode code
+- `count_words(text)` - Count words in string
+- `count_characters(text, char)` - Count occurrences of character
+- `position_in_string(text, substring)` - All positions of substring (1-indexed)
+- `random_string(length, chars=None)` - Generate random string
+- `reverse_string(text)` - Reverse character order
+- `replace_string(text, old, new)` - Replace all occurrences
+- `replace_first_occurrence(text, old, new)` - Replace first only
+- `replace_last_occurrence(text, old, new)` - Replace last only
+- `truncate_string(text, max_length, suffix='...')` - Truncate with ellipsis
+- `substring(text, start, length)` - Extract substring
+- `left_substring(text, n)` - Leftmost N characters
+- `right_substring(text, n)` - Rightmost N characters
+- `common_substring(s1, s2)` - Longest common substring
+- `substring_on_left(text, pattern)` - Left of first pattern
+- `substring_on_right(text, pattern)` - Right of first pattern
+- `substring_between_pattern(text, start, end)` - Between two patterns
+- `substring_from_delimiters(text, start_del, end_del)` - Between delimiters
+- `extract_first_number(text)` - First number (int/float)
+- `extract_last_number(text)` - Last number (int/float)
+- `extract_numbers(text)` - All numbers as list
+- `join_to_string(iterable, sep=' ')` - Join strings with separator
+- `erase_specialchar(text, allow_spaces=True, allow_underscores=False)` - Remove special chars
+- `erase_digits(text)` - Remove all digits
+- `erase_lrspaces(text)` - Remove leading/trailing spaces
+- `erase_allspaces(text)` - Remove all spaces
+- `distinct_words(text)` - Unique words list
+- `move_word(text, from_pos, to_pos)` - Move word position
+- `concatenate_strings(s1, s2)` - Concatenate two strings
+- `add_quotes(text, quote_type='single')` - Add quotes around string
+
+### string_format.py
+- `sql_quote(text)` - Escape single quotes for SQL
+- `format_date(date, format='%Y-%m-%d')` - Format date to string
+- `format_number(num, decimals=2, thousands_sep=',', decimal_sep='.')` - Format number
+- `capitalize_string(text, mode='first')` - Capitalize by mode
+- `pad_string(text, length, char=' ', side='left')` - Pad to length
+- `to_upper(text)` - Convert to uppercase
+- `to_lower(text)` - Convert to lowercase
+- `normalize_spaces(text)` - Multiple spaces to single, trim
+- `normalize_symbols(text)` - Normalize symbol spacing
+- `flat_vowels(text)` - Remove accents from vowels
+- `ascii_string(text)` - Convert to ASCII, remove non-ASCII
+- `format_email_address(email)` - Normalize email (lowercase, trim)
+- `format_url(url)` - Normalize URL
+- `format_name(name, mode='title')` - Format person name
+- `format_fullname(fullname)` - Format full name, remove titles
+- `format_company_name(name)` - Format company, handle legal forms
+
+### string_evaluations.py
+- `contains_digit(text)` - Has at least one digit
+- `is_alphabetic(text)` - Only alphabetic characters
+- `is_numeric(text)` - Valid number format
+- `is_internet_domain_format(domain)` - Valid domain format
+- `is_email_format(email)` - Valid email format
+- `is_url_format(url)` - Valid URL format
+- `has_date_format(text, format='%Y-%m-%d')` - Can parse as date
+- `has_numbers(text)` - Contains numeric digits
+- `has_substring(text, substring)` - Contains substring
+- `starts_with_substring(text, prefix)` - Starts with prefix
+- `ends_with_substring(text, suffix)` - Ends with suffix
+- `parse_email(email)` - Parse to username/domain dict
+- `username_from_email(email)` - Extract username
+- `domain_from_email(email)` - Extract domain
+
+### string_similarity.py
+- `calculate_similarity(s1, s2, algorithm='levenshtein')` - Similarity by algorithm
+- `has_same_words(s1, s2)` - Same words (order-independent)
+- `find_common_words(s1, s2)` - Words in both strings
+- `has_same_characters(s1, s2)` - Same chars (anagram check)
+- `string_hamming_score(s1, s2)` - Hamming distance
+- `string_levenshtein_score(s1, s2)` - Levenshtein distance
+- `string_jarowinkler_score(s1, s2)` - Jaro-Winkler similarity
+- `string_jaccard_score(s1, s2)` - Jaccard coefficient
+- `string_similarity_score(s1, s2)` - All algorithms comparison
+
+### string_spanish.py
+- `remove_spanish_stop_words(text)` - Remove common Spanish stop words
+- `reduce_spanish_letters(text)` - Phonetic representation
+- `nif_padding(nif)` - Pad NIF/CIF to standard format
+- `nif_parse(nif)` - Parse and normalize NIF/NIE/CIF
+- `nif_letter(number)` - Calculate DNI control letter
+- `is_valid_dni(dni)` - Validate Spanish DNI
+- `is_valid_nie(nie)` - Validate Spanish NIE
+- `is_valid_cif(cif)` - Validate Spanish CIF
+- `validate_spanish_nif(nif)` - Validate NIF by type
+- `fix_spanish(text)` - Fix Spanish encoding issues
+
+### string_validations.py
+- `contains_digit(text)` - Has at least one digit
+- `same_letters(s1, s2)` - Exact same characters (anagram)
+
+### string_spellcheck.py
+- `normalize_text(text)` - Lowercase and remove accents
+
+---
+
+## fxPython - Python collections & itertools utilities
+
+### py_convertions.py
+- `convert_collection(collection, target_type)` - Convert to target collection type
+- `set_to_string(s, sep=', ')` - Set to string with separator
+- `set_to_list(s)` - Set to list
+- `set_to_tuple(s)` - Set to tuple
+- `tuple_to_string(t, sep=', ')` - Tuple to string with separator
+- `tuple_to_list(t)` - Tuple to list
+- `tuple_to_set(t)` - Tuple to set
+- `list_to_string(lst, sep=', ')` - List to string with separator
+- `list_to_set(lst)` - List to set
+- `list_to_tuple(lst)` - List to tuple
+- `dictionary_to_string(d)` - Serialize dict to string
+- `string_to_dictionary(s)` - Deserialize string to dict
+- `dictionary_keys_to_list(d)` - Dict keys as list
+- `dict_values_to_list(d)` - Dict values as list
+- `dictionary_items_to_list_of_tuples(d)` - Dict items as list of tuples
+- `dictionary_keys_to_set(d)` - Dict keys as set
+- `dictionary_values_to_set(d)` - Dict values as set
+- `dictionary_to_object(d)` - Dict to object with attributes
+- `dictionary_items_to_set_of_tuples(d)` - Dict items as set of tuples
+- `list_of_tuples_to_dict(lst)` - List of tuples to dict
+- `list_of_lists_to_dict(lst)` - List of lists to dict
+- `list_of_dicts_to_merged_dict(lst)` - Merge list of dicts
+- `string_to_list(s, sep=None)` - String to list of chars/substrings
+
+### py_operations.py
+- `merge_json_strings(json1, json2)` - Merge two JSON strings
+- `add_to_tuple(t, element)` - Add element to tuple end
+- `unique_list(lst)` - List of unique elements only
+- `unique_tuple_list(lst)` - Remove duplicate tuples by first element
+- `flatten_list(lst)` - Flatten list of lists
+- `list_intersection(list1, list2)` - Intersection as set
+- `list_has_list(list1, list2)` - All elements exist in other
+- `is_subsequence(sequence, sub_sequence)` - Check if subsequence exists
+- `filter_elements_by_another(coll1, coll2)` - Filter present in both
+- `pick_in_collection(collection, prompt='Select')` - Interactive selection
+- `merge_elements(coll1, coll2, target_type='list')` - Merge collections
+- `collection_filter(iterable, filter_func)` - Filter by function
+- `dictionary_filter_by_keys(d, keys)` - Filter dict by keys
+- `combine_dictionaries(dict1, dict2, mode='union')` - Union/intersection
+- `dictionary_rename_keys(d, mapping)` - Rename dict keys
+- `execute_os_command(command)` - Execute OS command
+- `calculate(expression)` - Evaluate arithmetic expression
+- `search(collection, target)` - Search for target element
+- `collection_avg(collection, ignore_none=True)` - Average of numeric values
+- `collection_count(collection, ignore_none=True)` - Count elements
+- `collection_max(collection, ignore_none=True)` - Maximum value
+- `collection_min(collection, ignore_none=True)` - Minimum value
+- `collection_stdev(collection, sample=True, ignore_none=True)` - Standard deviation
+- `collection_sum(collection, ignore_none=True)` - Sum of numeric values
+
+### py_logic.py
+- `and_all(*args)` - True if all True
+- `or_any(*args)` - True if any True
+- `not_value(value)` - Reverse logical value
+- `xor_all(*args)` - True if odd number True
+- `if_then_else(condition, value_if_true, value_if_false)` - Ternary operator
+- `if_error(value, value_if_error)` - Value or alternative if error
+- `is_blank(value)` - True if None/empty
+- `is_error(value)` - True if evaluation produces error
+- `is_text(value)` - True if string
+- `is_number(value)` - True if int/float (not bool)
+- `is_logical(value)` - True if boolean
+- `switch_case(expression, *cases)` - Switch-case statement
+
+### py_tools.py
+- `create_key_value_dictionary(*args)` - Create dict from key-value pairs
+- `function_call(func, *args, **kwargs)` - Execute callable
+- `loop_for(iterable, func)` - Execute func for each item
+- `loop_while(condition, func, max_iterations=1000)` - Execute while condition
+- `rotate(iterable, steps=1)` - Rotate elements by steps
+- `shift(iterable, steps=1, fill=None)` - Shift adding/removing elements
+- `apply_expression(iterable, expression)` - Apply expression to each item
+
+### py_itertools.py
+- `take(n, iterable)` - First N items as list
+- `prepend(value, iterable)` - Prepend value to front
+- `tabulate(func, start=0)` - func(0), func(1), ...
+- `repeatfunc(func, times=None, *args)` - Repeat function calls
+- `flatten(list_of_lists)` - Flatten one level
+- `ncycles(iterable, n)` - Repeat sequence N times
+- `loops(n)` - Loop N times without creating ints
+- `tail(n, iterable)` - Last N items iterator
+- `consume(iterator, n=None)` - Advance N steps
+- `nth(iterable, n, default=None)` - Nth item or default
+- `quantify(iterable, pred=bool)` - Count True results
+- `first_true(iterable, default=False, pred=None)` - First true value
+- `all_equal(iterable)` - All elements equal
+- `unique_justseen(iterable, key=None)` - Unique consecutive
+- `unique_everseen(iterable, key=None)` - Unique all seen
+- `unique(iterable, key=None)` - Unique in sorted order
+- `sliding_window(iterable, n)` - Overlapping chunks
+- `grouper(iterable, n, fillvalue=None)` - Non-overlapping chunks
+- `roundrobin(*iterables)` - Visit iterables in cycle
+- `subslices(seq)` - All contiguous non-empty subslices
+- `iter_index(iterable, value, start=0)` - Indices of value
+- `iter_except(func, exception)` - Call until exception
+- `multinomial(data)` - Distinct multiset arrangements
+- `powerset(iterable)` - All subsequences
+- `sum_of_squares(iterable)` - Sum of squared values
+- `reshape(data, cols)` - Reshape 2D matrix
+- `transpose(data)` - Swap rows and columns
+- `matmul(m1, m2)` - Matrix multiplication
+- `convolve(signal, kernel)` - Discrete convolution
+- `polynomial_from_roots(roots)` - Polynomial coefficients from roots
+- `polynomial_eval(coefficients, x)` - Evaluate polynomial at x
+- `polynomial_derivative(coefficients)` - First derivative
+- `sieve(n)` - Primes less than N
+- `factor(n)` - Prime factors of N
+- `is_prime(n)` - True if prime
+- `totient(n)` - Count coprimes to N
+
+---
+
+## fxExcel - Excel-compatible formulas
+
+### date_formulas.py
+Date/time serial numbers and calculations: DATE, DATEDIF, DATEVALUE, DAY, DAYS, DAYS360, EDATE, EOMONTH, HOUR, ISOWEEKNUM, MINUTE, MONTH, NETWORKDAYS, NETWORKDAYS_INTL, NOW, SECOND, TIME, TIMEVALUE, TODAY, WEEKDAY, WEEKNUM, WORKDAY, WORKDAY_INTL, YEAR, YEARFRAC, excel_serial_to_year, excel_serial_to_month, excel_serial_to_day, excel_serial_to_weekday, excel_serial_to_hour, excel_serial_to_minute
+
+### engineering_formulas.py
+Bessel functions, base conversions, bitwise operations, complex numbers, error functions: BESSELI, BESSELJ, BESSELK, BESSELY, BIN2DEC, BIN2HEX, BIN2OCT, DEC2BIN, DEC2HEX, DEC2OCT, HEX2BIN, HEX2DEC, HEX2OCT, OCT2BIN, OCT2DEC, OCT2HEX, BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, COMPLEX, IMABS, IMAGINARY, IMREAL, IMARGUMENT, IMCONJUGATE, IMCOS, IMCOSH, IMSIN, IMSINH, IMTAN, IMCOT, IMCSC, IMCSCH, IMSEC, IMSECH, IMEXP, IMLN, IMLOG10, IMLOG2, IMPOWER, IMSQRT, IMDIV, IMPRODUCT, IMSUB, IMSUM, ERF, ERFC, ERF_PRECISE, ERFC_PRECISE, CONVERT, DELTA, GESTEP
+
+### database_formulas.py
+Database field operations: DCOUNT, DCOUNTA, DAVERAGE, DSUM, DPRODUCT, DMAX, DMIN, DSTDEV, DSTDEVP, DVAR, DVARP, DGET
+
+### financial_formulas.py
+Bond pricing, depreciation, loans, yields: ACCRINT, ACCRINTM, AMORLINC, COUPDAYS, COUPDAYBS, COUPDAYSNC, COUPPCD, COUPNCD, COUPNUM, CUMIPMT, CUMPRINC, DB, DDB, DISC, DOLLARDE, DOLLARFR, DURATION, EFFECT, FV, FVSCHEDULE, INTRATE, IPMT, IRR, ISPMT, MDURATION, MIRR, NOMINAL, NPER, NPV, ODDFPRICE, ODDFYIELD, ODDLPRICE, ODDLYIELD, PDURATION, PMT, PPMT, PRICE, PRICEDISC, PRICEMAT, PV, RATE, RECEIVED, RRI, SLN, SYD, TBILLEQ, TBILLPRICE, TBILLYIELD, VDB, XIRR, XNPV, YIELD, YIELDDISC, YIELDMAT
+
+### information_formulas.py
+Type validation and error handling: CELL, INFO, ISBLANK, ISERR, ISERROR, ISEVEN, ISLOGICAL, ISNA, ISNONTEXT, ISNUMBER, ISODD, ISOMITTED, ISTEXT, ERROR_TYPE, N (added)
+
+### logic_formulas.py
+Logical operations, conditionals, lambdas: AND, OR, NOT, XOR, TRUE, FALSE, IF, IFS, IFERROR, IFNA, SWITCH, LAMBDA, LET, BYCOL, BYROW, MAP, MAKEARRAY
+
+### math_formulas.py
+Math operations, trig, rounding, aggregates: ABS, ACOS, ACOSH, ACOT, ACOTH, AGGREGATE, ARABIC, ASIN, ASINH, ATAN, ATAN2, ATANH, AVERAGE, AVERAGEIF, BASE, CEILING, CEILING_MATH, CEILING_PRECISE, COMBIN, COMBINA, COS, COSH, COT, COTH, CSC, CSCH, DECIMAL, DEGREES, EVEN, EXP, FACT, FACTDOUBLE, FLOOR, FLOOR_MATH, FLOOR_PRECISE, GCD, INT, ISO_CEILING, LCM, LN, LOG, LOG10, MAX, MAXIFS, MDETERM, MIN, MINIFS, MINVERSE, MMULT, MOD, MROUND, MULTINOMIAL, MUNIT, ODD, PRODUCT, QUOTIENT, PI, POWER, RADIANS, RAND, RANDBETWEEN, RANDARRAY, ROMAN, ROUND, ROUNDDOWN, ROUNDUP, SEC, SECH, SEQUENCE, SERIESSUM, SIGN, SIN, SINH, SQRT, SQRTPI, SUBTOTAL, SUM, SUMIF, SUMIFS, SUMPRODUCT, SUMSQ, SUMX2MY2, SUMX2PY2, SUMXMY2, TAN, TANH, TRUNC
+
+### statistic_formulas.py
+Distributions, correlations, forecasting, regression: AVEDEV, AVERAGE, AVERAGEA, AVERAGEIF, AVERAGEIFS, BETA_DIST, BETA_INV, BINOM_DIST, BINOM_DIST_RANGE, BINOM_INV, CHISQ_DIST, CHISQ_DIST_RT, CHISQ_INV, CHISQ_INV_RT, CHISQ_TEST, CONFIDENCE, CONFIDENCE_NORM, CONFIDENCE_T, CORREL, COUNT, COUNTA, COUNTBLANK, COUNTIF, COUNTIFS, COVAR, COVARIANCE_P, COVARIANCE_S, DEVSQ, EXPON_DIST, F_DIST, F_DIST_RT, F_INV, F_INV_RT, F_TEST, FISHER, FISHERINV, FORECAST, FORECAST_LINEAR, FORECAST_ETS, FORECAST_ETS_CONFINT, FORECAST_ETS_SEASONALITY, FORECAST_ETS_STAT, FREQUENCY, GAMMA, GAMMALN, GAMMALN_PRECISE, GAMMA_DIST, GAMMA_INV, GAUSS, GEOMEAN, GROWTH, HARMEAN, HYPGEOM_DIST, INTERCEPT, KURT, LARGE, LINEST, LOGEST, LOGNORM_DIST, LOGNORM_INV, MAX, MAXA, MAXIFS, MEDIAN, MIN, MINA, MINIFS, MODE, MODE_MULT, MODE_SNGL, NEGBINOM_DIST, NORM_DIST, NORM_INV, NORM_S_DIST, NORM_S_INV, PERCENTILE, PERCENTILE_EXC, PERCENTILE_INC, PERCENTRANK, PERCENTRANK_EXC, PERCENTRANK_INC, PERMUT, PERMUTATIONA, PHI, POISSON_DIST, SKEW, SKEW_P, SLOPE, SMALL, STANDARDIZE, STDEV, STDEV_P, STDEV_S, STDEVA, STDEVPA, STEYX, T_DIST, T_DIST_2T, T_DIST_RT, T_INV, T_INV_2T, T_TEST, TRIMMEAN, VAR, VAR_P, VAR_S, VARA, VARPA, WEIBULL_DIST, Z_TEST
+
+### text_formulas.py
+Text manipulation, search, formatting: ASC, BAHTTEXT, CHAR, CLEAN, CODE, CONCAT, CONCATENATE, DOLLAR, EXACT, FIND, FINDB, FIXED, LEFT, LEFTB, LEN, LENB, LOWER, MID, MIDB, NUMBERVALUE, PROPER, REGEXEXTRACT, REGEXREPLACE, REGEXTEST, REPLACE, REPLACEB, REPT, RIGHT, RIGHTB, SEARCH, SEARCHB, SUBSTITUTE, T, TEXT, TEXTAFTER, TEXTBEFORE, TEXTJOIN, TEXTSPLIT, TRIM, UNICHAR, UNICODE, UPPER, VALUE, VALUETOTEXT
+
+### lookup_formulas.py
+VLOOKUP, HLOOKUP, INDEX, MATCH, CHOOSE, XLOOKUP, XMATCH, LOOKUP
+
+---
+
+## fxVBA - VBA/Access-compatible functions
+
+### array_functions.py
+- `Split(expression, delimiter=' ')` - Split string into array
+- `Join_(arr, delimiter=' ')` - Join array elements with delimiter
+- `Filter_(arr, match, include=True)` - Filter array by string match
+- `LBound(arr, dimension=1)` - Lower bound of array dimension
+- `UBound(arr, dimension=1)` - Upper bound of array dimension
+- `Array_(*args)` - Create array from values
+
+### conversion_functions.py
+- `CBool(expression)` - Convert to Boolean
+- `CByte(number)` - Convert to Byte (0-255)
+- `CCur(number)` - Convert to Currency (4 decimals)
+- `CDate(expression)` - Convert to datetime
+- `CDbl(expression)` - Convert to Double
+- `CDec(expression)` - Convert to Decimal
+- `CInt(expression)` - Convert to Integer (with rounding)
+- `CLng(expression)` - Convert to Long Integer
+- `CSng(expression)` - Convert to Single precision float
+- `CStr(expression)` - Convert to String
+- `CVar(expression)` - Convert to Variant (Any)
+- `DateValue(date_string)` - String to date
+- `TimeValue(time_string)` - String to time
+- `Val(string)` - Extract numeric value from string
+
+### date_functions.py
+- `Date_()` - Current system date
+- `DateAdd(interval, number, date)` - Add interval to date
+- `DateDiff(interval, date1, date2)` - Difference between dates
+- `DatePart(interval, date)` - Extract date part
+- `DateSerial(year, month, day)` - Create date from parts
+- `Day(date)` - Day of month from date
+- `Hour(datetime)` - Hour from datetime
+- `Minute(datetime)` - Minute from datetime
+- `Month(date)` - Month from date
+- `MonthName(month, abbreviate=False)` - Name of month
+- `Now()` - Current date and time
+- `Second(datetime)` - Second from datetime
+- `Time_()` - Current system time
+- `Timer()` - Seconds since midnight
+- `TimeSerial(hour, minute, second)` - Create time from parts
+- `WeekDay(date, firstdayofweek=1)` - Day of week number
+- `WeekDayName(weekday, abbreviate=False)` - Name of weekday
+- `Year(date)` - Year from date
+
+### financial_functions.py
+- `DDB(cost, salvage, life, period, factor=2)` - Double-declining balance depreciation
+- `FV(rate, nper, pmt, pv=0, type=0)` - Future value
+- `IPmt(rate, per, nper, pv, fv=0, type=0)` - Interest payment
+- `IRR(values, guess=0.1)` - Internal rate of return
+- `MIRR(values, finance_rate, reinvest_rate)` - Modified IRR
+- `NPer(rate, pmt, pv, fv=0, type=0)` - Number of periods
+- `NPV(rate, values)` - Net present value
+- `Pmt(rate, nper, pv, fv=0, type=0)` - Loan payment
+- `PPmt(rate, per, nper, pv, fv=0, type=0)` - Principal payment
+- `PV(rate, nper, pmt, fv=0, type=0)` - Present value
+- `Rate(nper, pmt, pv, fv=0, type=0, guess=0.1)` - Interest rate per period
+- `SLN(cost, salvage, life)` - Straight-line depreciation
+- `SYD(cost, salvage, life, period)` - Sum-of-years' digits depreciation
+
+### format_functions.py
+- `Format_(expression, format_string='')` - Format by format string
+- `FormatCurrency(number, decimals=2, symbol='$')` - Format as currency
+- `FormatDateTime(date, named_format=0)` - Format datetime with named format
+- `FormatNumber(number, decimals=2, thousands_sep=True)` - Format number
+- `FormatPercent(number, decimals=2)` - Format as percentage
+
+### logic_functions.py
+- `Choose(index, *choices)` - Value from list by index
+- `IIf(condition, true_value, false_value)` - Ternary operator
+- `IsArray(variable)` - Test if array
+- `IsDate(expression)` - Test if convertible to date
+- `IsEmpty(variable)` - Test if empty/None
+- `IsError(expression)` - Test if error value
+- `IsMissing(arg)` - Test if optional arg provided
+- `IsNull(expression)` - Test if None
+- `IsNumeric(expression)` - Test if convertible to number
+- `IsObject(variable)` - Test if object
+- `Switch(*args)` - Evaluate expressions, return matching value
+
+### math_functions.py
+- `Abs_(number)` - Absolute value
+- `Atn(number)` - Arctangent in radians
+- `Cos(number)` - Cosine of angle
+- `Exp(number)` - e raised to power
+- `Fix(number)` - Integer truncating toward zero
+- `Int_(number)` - Integer truncating toward negative infinity
+- `Log(number)` - Natural logarithm
+- `Rnd(number=None)` - Random number 0-1
+- `Round_(number, decimals=0)` - Round to decimals
+- `Sgn(number)` - Sign (-1, 0, or 1)
+- `Sin(number)` - Sine of angle
+- `Sqr(number)` - Square root
+- `Tan(number)` - Tangent of angle
+
+### misc_functions.py
+- `AccessError(error_number)` - Access error description
+- `CurrentUser()` - Current user name
+- `Eval_(expression)` - Evaluate string expression
+- `Hex_(number)` - Number to hexadecimal string
+- `HexS(number)` - Hex string (String version)
+- `Oct_(number)` - Number to octal string
+- `OctS(number)` - Octal string (String version)
+- `QBColor(color)` - RGB color for QBasic color
+- `RGB(red, green, blue)` - RGB color value
+- `SysCmd(action, *args)` - Execute system command
+
+### string_functions.py
+- `Asc(string)` - Character code of first char
+- `AscB(string)` - Code of first byte
+- `Chr_(charcode)` - Character from code
+- `ChrS(charcode)` - Char from code (String)
+- `ChrW(charcode)` - Unicode char from code
+- `ChrWS(charcode)` - Unicode char (String)
+- `InStr(start, string, substring, compare=0)` - Position of substring
+- `InStrRev(string, substring, start=-1, compare=0)` - Position from end
+- `LCase(string)` - Convert to lowercase
+- `LCaseS(string)` - Lowercase (String)
+- `Left(string, length)` - Leftmost characters
+- `LeftS(string, length)` - Leftmost (String)
+- `LeftB(string, length)` - Leftmost bytes
+- `LeftBS(string, length)` - Leftmost bytes (String)
+- `Len_(string)` - Length of string
+- `LenB(string)` - Length in bytes
+- `LTrim(string)` - Remove leading spaces
+- `LTrimS(string)` - Leading spaces (String)
+- `Mid(string, start, length=None)` - Substring from middle
+- `MidS(string, start, length=None)` - Substring (String)
+- `MidB(string, start, length=None)` - Bytes from middle
+- `MidBS(string, start, length=None)` - Bytes (String)
+- `Replace(expression, find, replace, start=1, count=-1, compare=0)` - Replace substring
+- `Right(string, length)` - Rightmost characters
+- `RightS(string, length)` - Rightmost (String)
+- `RightB(string, length)` - Rightmost bytes
+- `RightBS(string, length)` - Rightmost bytes (String)
+- `RTrim(string)` - Remove trailing spaces
+- `RTrimS(string)` - Trailing spaces (String)
+- `Space(number)` - String of spaces
+- `Str_(number)` - Number to string
+- `StrS(number)` - Number to string (String)
+- `StrComp(string1, string2, compare=0)` - Compare strings
+- `StrConv(string, conversion)` - Convert with conversion type
+- `String(number, character)` - Repeated character
+- `StrReverse(string)` - Reverse string
+- `Trim(string)` - Remove leading/trailing spaces
+- `TrimS(string)` - Trim (String)
+- `UCase(string)` - Convert to uppercase
+- `UCaseS(string)` - Uppercase (String)
+
+### system_functions.py
+- `BuildCriteria(field, field_type, expression)` - SQL WHERE clause
+- `Command()` - Command line arguments
+- `CurDir(drive=None)` - Current directory path
+- `Dir_(pathname='', attributes=0)` - File/directory matching pattern
+- `Environ(envstring)` - Environment variable value
+- `EnvironS(envstring)` - Environment var (String)
+- `Error(errornumber)` - Error message for error number
+- `FileDateTime(pathname)` - File modification datetime
+- `FileLen(pathname)` - File size in bytes
+- `GetAttr_(pathname)` - File attributes
+- `InputBox(prompt, title='', default='')` - User input dialog
+- `MsgBox(prompt, buttons=0, title='')` - Message box
+- `Nz(value, value_if_null=None)` - Value or alternative if null
+- `Partition(number, start, stop, interval)` - Range string
+- `TypeName(varname)` - String describing type
+- `VarType(varname)` - Integer indicating type
+
+---
+
+**Import Examples**:
+```python
+# fxDate
+from formulite.fxDate.date_operations import add_time_to_date, diff_time
+from formulite.fxDate.date_convertions import datetime_to_timestamp
+
+# fxNumeric
+from formulite.fxNumeric.numeric_statistics import calculate_mean, calculate_variance
+from formulite.fxNumeric.numeric_trigonometry import sine, cosine
+
+# fxString
+from formulite.fxString.string_operations import substring, replace_string
+from formulite.fxString.string_format import capitalize_string, normalize_spaces
+
+# fxPython
+from formulite.fxPython.py_operations import collection_avg, collection_sum
+from formulite.fxPython.py_itertools import flatten, unique_everseen
+
+# fxExcel
+from formulite.fxExcel.math_formulas import SUM, AVERAGE, ROUND
+from formulite.fxExcel.text_formulas import CONCATENATE, LEFT, RIGHT
+
+# fxVBA
+from formulite.fxVBA.string_functions import InStr, Replace, Trim
+from formulite.fxVBA.date_functions import DateAdd, DateDiff, Now
+```
+
+---
+
+## Module Structure
+
+```
+formulite/
+├── __init__.py
+├── fxDate/
+│   ├── __init__.py
+│   ├── date_convertions.py    # Date/time conversions and formatting
+│   ├── date_sys.py             # Current date/time system functions
+│   ├── date_operations.py      # Date arithmetic and manipulation
+│   └── date_evaluations.py     # Date validation and checks
+│
+├── fxNumeric/
+│   ├── __init__.py
+│   ├── numeric_arithmetic.py   # Logarithms, powers, roots
+│   ├── numeric_convertions.py  # Type conversions, base conversions
+│   ├── numeric_operations.py   # Rounding, scaling, precision
+│   ├── numeric_statistics.py   # Mean, median, variance, correlation
+│   ├── numeric_trigonometry.py # Trig and hyperbolic functions
+│   └── numeric_finance.py      # Financial calculations (FV, PV, IRR, NPV)
+│
+├── fxString/
+│   ├── __init__.py
+│   ├── string_convertions.py   # String to other types conversions
+│   ├── string_operations.py    # Substring, replace, split, extract
+│   ├── string_format.py        # Capitalize, pad, normalize
+│   ├── string_evaluations.py   # Validation and pattern matching
+│   ├── string_similarity.py    # Similarity algorithms (Levenshtein, Jaro-Winkler)
+│   ├── string_spanish.py       # Spanish NIF/NIE/CIF validation
+│   ├── string_validations.py   # Character and pattern checks
+│   └── string_spellcheck.py    # Text normalization
+│
+├── fxPython/
+│   ├── __init__.py
+│   ├── py_convertions.py       # Collection type conversions
+│   ├── py_operations.py        # Collection operations and aggregates
+│   ├── py_logic.py             # Logical operations and conditionals
+│   ├── py_tools.py             # Utility functions and control flow
+│   └── py_itertools.py         # Advanced iterator patterns
+│
+├── fxExcel/
+│   ├── __init__.py
+│   ├── date_formulas.py        # Excel date/time functions
+│   ├── engineering_formulas.py # Bessel, complex numbers, bitwise ops
+│   ├── database_formulas.py    # Database aggregate operations
+│   ├── financial_formulas.py   # Bond pricing, depreciation, loans
+│   ├── information_formulas.py # Type validation and error handling
+│   ├── logic_formulas.py       # Logical operations and LAMBDA
+│   ├── math_formulas.py        # Math, trig, rounding, aggregates
+│   ├── statistic_formulas.py   # Distributions, forecasting, regression
+│   ├── text_formulas.py        # Text manipulation and formatting
+│   └── lookup_formulas.py      # VLOOKUP, INDEX, MATCH functions
+│
+└── fxVBA/
+    ├── __init__.py
+    ├── array_functions.py      # Array manipulation (Split, Join, Filter)
+    ├── conversion_functions.py # VBA type conversions (CInt, CStr, CDate)
+    ├── date_functions.py       # VBA date/time functions
+    ├── financial_functions.py  # VBA financial functions
+    ├── format_functions.py     # VBA formatting functions
+    ├── logic_functions.py      # VBA logical operations (IIf, Choose)
+    ├── math_functions.py       # VBA math functions
+    ├── misc_functions.py       # VBA utility functions
+    ├── string_functions.py     # VBA string manipulation
+    └── system_functions.py     # VBA system and file operations
+```
+
+**Version**: Jan 2026 | MIT License | 580+ functions across 6 modules
+

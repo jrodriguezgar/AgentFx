@@ -1,3 +1,21 @@
+"""String Operations and Manipulation Functions.
+
+This module provides a comprehensive set of functions for string manipulation
+and operations. It includes utilities for extracting, splitting, joining,
+transforming, and analyzing strings in various ways.
+
+Key Features:
+- Character and word counting
+- Substring extraction and manipulation
+- Position finding and pattern matching
+- String splitting and joining
+- Number extraction from strings
+- Content extraction between delimiters
+- String cleaning and formatting
+- Word manipulation and reordering
+
+"""
+
 import collections
 from typing import Optional, Dict, List, Iterable
 import re
@@ -57,6 +75,8 @@ def ascii_from_char(character: str) -> int:
         8364
         >>> ascii_from_char("Python") # Solo toma el primer carácter 'P'
         80
+
+    **Cost:** O(1), constant time operation
     """
     if not isinstance(character, str):
         raise TypeError("La entrada debe ser una cadena de texto (str).")
@@ -138,6 +158,8 @@ def count_words(input_string: str) -> int:
 
         >>> count_words("  ") # Only spaces
         0
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if not isinstance(input_string, str):
         raise TypeError("Input 'input_string' must be a string.")
@@ -2747,4 +2769,5 @@ def string_merge(string1: str, string2: str, base: Optional[str] = None) -> str:
         output.append(base[base_idx:])
 
     return "".join(output)
+
 

@@ -1,3 +1,19 @@
+"""
+FormuLite - fxPython: Itertools Recipes Module
+
+This module provides advanced iterator utility functions based on Python's itertools
+documentation recipes. It includes functions for:
+- Iterator manipulation (take, prepend, flatten, sliding_window)
+- Sequence generation (tabulate, repeatfunc, ncycles)
+- Unique element filtering (unique_justseen, unique_everseen)
+- Grouping and batching (grouper, roundrobin, batched)
+- Mathematical operations (polynomial_eval, matmul, convolve)
+- Prime number utilities (sieve, factor, is_prime, totient)
+
+All functions are optimized for memory efficiency using lazy evaluation where possible.
+Based on: https://docs.python.org/3/library/itertools.html
+"""
+
 # itertools recipes
 # https://docs.python.org/3/library/itertools.html
 
@@ -27,6 +43,8 @@ def take(n, iterable):
 
     Usage Example:
         take(3, [1,2,3,4,5]) -> [1,2,3]
+
+    **Cost:** O(n), where n is the number of items to take.
     """
     return list(islice(iterable, n))
 
@@ -47,6 +65,8 @@ def prepend(value, iterable):
 
     Usage Example:
         list(prepend(1, [2, 3, 4])) -> [1, 2, 3, 4]
+
+    **Cost:** O(1) for creation, O(n) when consumed.
     """
     return chain([value], iterable)
 
@@ -66,6 +86,8 @@ def tabulate(function, start=0):
 
     Usage Example:
         list(tabulate(lambda x: x**2, 3)) -> [9, 16, 25, ...]
+
+    **Cost:** O(1) per element generated.
     """
     return map(function, count(start))
 
@@ -87,6 +109,8 @@ def repeatfunc(function, times=None, *args):
 
     Usage Example:
         list(repeatfunc(lambda: random.random(), 3))
+
+    **Cost:** O(1) per function call.
     """
     if times is None:
         return starmap(function, repeat(args))

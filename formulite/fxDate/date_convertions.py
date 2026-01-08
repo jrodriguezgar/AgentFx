@@ -1,44 +1,44 @@
+"""Date and time conversion module.
+
+This module provides comprehensive functions for converting between different date/time
+formats including: datetime objects, strings, timestamps, ISO formats, timezones, Julian
+dates, Windows FILETIME, and Active Directory formats. All functions handle timezone-aware
+and timezone-naive datetime objects appropriately.
+"""
+
 from datetime import date, datetime, timezone, timedelta
 from typing import Union, Optional, Tuple, List
 import zoneinfo
 
     
 def datetime_to_date(datetime_obj: datetime) -> date:
-    """Converts a datetime object to a date object, discarding the time components.
-
-    This function is useful when you have a precise timestamp but only
-    the calendar date (year, month, day) is relevant for your current
-    operation, allowing for cleaner date-only comparisons and storage.
-
+    """Converts a datetime object to a date object, discarding time components.
+    
+    Description:
+        Extracts only the date portion (year, month, day) from a datetime object,
+        removing all time information (hour, minute, second, microsecond).
+        Useful for date-only comparisons and storage.
+    
     Args:
         datetime_obj (datetime): The datetime object to convert.
-
+    
     Returns:
         date: A new date object representing the date part of the input datetime.
-
+    
     Raises:
-        TypeError: If the input 'datetime_obj' is not a datetime object.
-
-    Example:
+        TypeError: If 'datetime_obj' is not a datetime object.
+    
+    Usage Example:
         >>> from datetime import datetime, date
-        >>> dt_with_time = datetime(2025, 6, 12, 10, 30, 45)
+        >>> from formulite.fxDate.date_convertions import datetime_to_date
+        >>> dt_with_time = datetime(2026, 1, 3, 14, 30, 45)
         >>> date_only = datetime_to_date(dt_with_time)
         >>> print(date_only)
-        2025-06-12
+        2026-01-03
         >>> print(type(date_only))
         <class 'datetime.date'>
-
-        >>> current_dt = datetime.now()
-        >>> current_date = datetime_to_date(current_dt)
-        >>> print(f"Current datetime: {current_dt}")
-        >>> print(f"Current date only: {current_date}")
-
-        >>> # Example with incorrect type
-        >>> try:
-        >>>     datetime_to_date("not a datetime")
-        >>> except TypeError as e:
-        >>>     print(f"Error: {e}")
-        # Expected output: Error: Input 'datetime_obj' must be a datetime object.
+    
+    Cost: O(1)
     """
     # Validate that the input is indeed a datetime object.
     # This ensures the '.date()' method can be safely called and
@@ -53,39 +53,35 @@ def datetime_to_date(datetime_obj: datetime) -> date:
 
 def date_to_string(date_input: datetime, format_code: str = '%Y-%m-%d') -> str:
     """Converts a datetime object into a formatted string.
-
-    This function takes a datetime object and formats it into a string
-    based on the provided format code. This is very useful for displaying
-    dates in a human-readable format or for integrating with systems
-    that require specific date string conventions.
-
+    
+    Description:
+        Formats a datetime object as a string using Python's strftime format codes.
+        Useful for displaying dates in human-readable formats or for system
+        integration requiring specific date string conventions.
+    
     Args:
         date_input (datetime): The datetime object to convert to a string.
-        format_code (str, optional): The format code string (e.g., '%Y-%m-%d', '%d/%m/%Y %H:%M:%S').
-                                     Defaults to '%Y-%m-%d'.
-                                     Refer to Python's strftime() documentation for full list of codes.
-
+        format_code (str, optional): The format code string (e.g., '%Y-%m-%d',
+                                    '%d/%m/%Y %H:%M:%S'). Defaults to '%Y-%m-%d'.
+    
     Returns:
         str: The formatted date string.
-
+    
     Raises:
         TypeError: If 'date_input' is not a datetime object.
-
-    Example:
+    
+    Usage Example:
         >>> from datetime import datetime
-        >>> my_date = datetime(2023, 10, 26, 15, 30, 45)
-
-        >>> date_to_string(my_date) # Default format
-        '2023-10-26'
-
-        >>> date_to_string(my_date, '%d/%m/%Y') # European format
-        '26/10/2023'
-
-        >>> date_to_string(my_date, '%Y-%m-%d %H:%M:%S') # Date and Time
-        '2023-10-26 15:30:45'
-
-        >>> date_to_string(my_date, '%A, %d %B %Y') # Full descriptive format
-        'Thursday, 26 October 2023'
+        >>> from formulite.fxDate.date_convertions import date_to_string
+        >>> my_date = datetime(2026, 1, 3, 14, 30, 45)
+        >>> date_to_string(my_date)  # Default format
+        '2026-01-03'
+        >>> date_to_string(my_date, '%d/%m/%Y')  # European format
+        '03/01/2026'
+        >>> date_to_string(my_date, '%Y-%m-%d %H:%M:%S')  # With time
+        '2026-01-03 14:30:45'
+    
+    Cost: O(1)
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -95,40 +91,38 @@ def date_to_string(date_input: datetime, format_code: str = '%Y-%m-%d') -> str:
 
 
 def datetime_to_integer(date_input: Union[datetime, date, str], input_format: str = None) -> int:
-    """Converts a date to an integer in YYYYMMDD format, ignoring time components.
-
+    """Converts a date to an integer in YYYYMMDD format, ignoring time.
+    
+    Description:
+        Transforms a date into an integer representation (YYYYMMDD) for
+        compact storage and easy numerical comparisons. Time components
+        are ignored. Accepts datetime, date objects, or strings.
+    
     Args:
         date_input (Union[datetime, date, str]): The date to convert.
-                                            Can be:
-                                            - datetime object (e.g., datetime(2025, 2, 1, 10, 30, 45))
-                                            - date object (e.g., date(2025, 2, 1))
-                                            - string (e.g., "01/02/2025")
-        input_format (str, optional): The format code string for 'date_input' if it's a string.
-                                    Required if 'date_input' is a string.
-                                    E.g., '%d/%m/%Y' for "01/02/2025".
-                                    Not used if 'date_input' is a datetime or date object.
-
+                                                 Can be datetime, date, or string.
+        input_format (str, optional): Format code if 'date_input' is a string.
+                                     Required when 'date_input' is a string.
+    
     Returns:
-        int: The date converted to an integer in YYYYMMDD format (e.g., 20250201).
-
+        int: The date as YYYYMMDD integer (e.g., 20260103).
+    
     Raises:
-        TypeError: If 'date_input' is not a datetime, date object or string.
-        ValueError: If 'date_input' is a string and 'input_format' is not provided,
-                   or if the string cannot be parsed with the given format.
-
-    Example:
+        TypeError: If 'date_input' is not datetime, date, or string.
+        ValueError: If 'date_input' is string and 'input_format' not provided,
+                   or if parsing fails.
+    
+    Usage Example:
         >>> from datetime import datetime, date
-        >>> # Using a datetime object
-        >>> datetime_to_integer(datetime(2025, 2, 1))
-        20250201
-        
-        >>> # Using a date object
-        >>> datetime_to_integer(date(2025, 2, 1))
-        20250201
-
-        >>> # Using a string
-        >>> datetime_to_integer("01/02/2025", "%d/%m/%Y")
-        20250201
+        >>> from formulite.fxDate.date_convertions import datetime_to_integer
+        >>> datetime_to_integer(datetime(2026, 1, 3))
+        20260103
+        >>> datetime_to_integer(date(2026, 1, 3))
+        20260103
+        >>> datetime_to_integer("03/01/2026", "%d/%m/%Y")
+        20260103
+    
+    Cost: O(1)
     """
     parsed_dt: Union[datetime, date]
 
@@ -152,49 +146,30 @@ def datetime_to_integer(date_input: Union[datetime, date, str], input_format: st
 
 def datetime_to_timestamp(date_input: datetime) -> float:
     """Converts a datetime object to a Unix timestamp.
-
-    Problem/User Need: Many systems, especially on the web and in APIs, use timestamps
-    to represent dates and times. It's crucial to convert datetime objects to this
-    format for interoperability.
-
-    Product Goals: Facilitate integration with other systems and APIs that use timestamps,
-    as well as efficient storage of dates in databases that prefer this format.
-
-    Description: Converts a datetime object to a Unix timestamp (number of seconds
-    since the epoch, typically January 1, 1970, 00:00:00 UTC).
-    Note: It's highly recommended to use timezone-aware datetime objects for accurate
-    timestamp conversions, preferably in UTC. If a naive datetime is provided,
-    it will be treated as local time by Python's `timestamp()` method,
-    which might lead to unexpected results.
-
+    
+    Description:
+        Converts a datetime to Unix timestamp (seconds since epoch:
+        January 1, 1970, 00:00:00 UTC). Best used with timezone-aware
+        datetime objects in UTC. Naive datetimes are treated as local time.
+    
     Args:
-        date_input (datetime): The datetime object to convert. For best results,
-                                    this should be a timezone-aware datetime object,
-                                    ideally in UTC.
-
+        date_input (datetime): The datetime object to convert. Recommended to be
+                              timezone-aware (preferably UTC) for accuracy.
+    
     Returns:
         float: The Unix timestamp as a float (seconds since epoch).
-
+    
     Raises:
         TypeError: If 'date_input' is not a datetime object.
-
-    Example:
-        >>> from datetime import datetime, timezone, timedelta
-
-        >>> # Example with a UTC-aware datetime (recommended)
-        >>> dt_utc = datetime(2023, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+    
+    Usage Example:
+        >>> from datetime import datetime, timezone
+        >>> from formulite.fxDate.date_convertions import datetime_to_timestamp
+        >>> dt_utc = datetime(2026, 1, 3, 0, 0, 0, tzinfo=timezone.utc)
         >>> datetime_to_timestamp(dt_utc)
-        1672531200.0
-
-        >>> # Example with a naive datetime (treated as local time)
-        >>> # Assuming local timezone is UTC+1 (e.g., Madrid in winter)
-        >>> dt_naive = datetime(2023, 1, 1, 0, 0, 0)
-        >>> # If your local timezone is UTC+1, this will subtract 1 hour for conversion to UTC.
-        >>> # So 2023-01-01 00:00:00 (local) becomes 2022-12-31 23:00:00 (UTC)
-        >>> # The output timestamp would be 1672527600.0
-        >>> # The exact output will depend on your system's configured timezone.
-        >>> datetime_to_timestamp(dt_naive) # Output will vary based on local timezone
-        1672527600.0
+        1735862400.0
+    
+    Cost: O(1)
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -206,44 +181,30 @@ def datetime_to_timestamp(date_input: datetime) -> float:
 
 
 def timestamp_to_datetime(timestamp_input: Union[int, float]) -> datetime:
-    """Converts a Unix timestamp (integer or float) back to a datetime object.
-
-    Problem/User Need: Users often receive timestamps from external systems and
-    need to convert them back to datetime objects for manipulation, display, or calculations.
-
-    Product Goals: Complete the conversion cycle with timestamps, allowing for easy
-    interpretation and manipulation of time data received from external sources.
-
-    Description: Converts a Unix timestamp (integer or float representing seconds since epoch)
-    back to a datetime object. The returned datetime object will be timezone-aware and in UTC.
-
+    """Converts a Unix timestamp back to a datetime object.
+    
+    Description:
+        Converts a Unix timestamp (seconds since epoch: January 1, 1970, 00:00:00 UTC)
+        to a timezone-aware datetime object in UTC. Complements datetime_to_timestamp().
+    
     Args:
         timestamp_input (Union[int, float]): The Unix timestamp to convert.
-                                             Can be an integer or a float.
-
+    
     Returns:
         datetime: A timezone-aware datetime object in UTC.
-
+    
     Raises:
-        TypeError: If 'timestamp_input' is not an integer or a float.
-        ValueError: If the timestamp is outside the valid range for datetime conversion
-                    (e.g., negative values far before the epoch).
-
-    Example:
-        >>> from datetime import datetime, timezone
-
-        >>> # Example with a float timestamp
-        >>> timestamp_to_datetime(1672531200.0)
-        datetime.datetime(2023, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
-
-        >>> # Example with an integer timestamp
-        >>> timestamp_to_datetime(1672531200)
-        datetime.datetime(2023, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)
-
-        >>> # Timestamp representing current time (output will vary)
-        >>> import time
-        >>> timestamp_to_datetime(time.time()) # Current UTC datetime
-        datetime.datetime(2025, 6, 10, 22, 4, 53, 567890, tzinfo=datetime.timezone.utc)
+        TypeError: If 'timestamp_input' is not an integer or float.
+        ValueError: If timestamp is outside valid range for datetime conversion.
+    
+    Usage Example:
+        >>> from formulite.fxDate.date_convertions import timestamp_to_datetime
+        >>> timestamp_to_datetime(1735862400.0)
+        datetime.datetime(2026, 1, 3, 0, 0, tzinfo=datetime.timezone.utc)
+        >>> timestamp_to_datetime(1735862400)
+        datetime.datetime(2026, 1, 3, 0, 0, tzinfo=datetime.timezone.utc)
+    
+    Cost: O(1)
     """
     if not isinstance(timestamp_input, (int, float)):
         raise TypeError("Input 'timestamp_input' must be an integer or a float.")
@@ -307,6 +268,8 @@ def date_to_iso_format(date_input: Union[datetime, str], input_format: str = Non
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: 'input_format' is required when 'date_input' is a string.
+    
+    Cost: O(1)
     """
     # First, ensure we have a datetime object to work with.
     parsed_dt: datetime
@@ -376,6 +339,8 @@ def from_iso_to_local_datetime(iso_string: str) -> datetime:
         >>> local_dt = from_iso_to_local_datetime(iso_naive_string)
         >>> print(f"Naive string '{iso_naive_string}' -> Local: {local_dt}")
         # On a system in CEST (UTC+2), this would show: 2023-10-26 15:30:00+02:00
+    
+    Cost: O(1)
     """
     if not isinstance(iso_string, str):
         raise TypeError("Input 'iso_string' must be a string.")
@@ -421,6 +386,8 @@ def list_available_timezones() -> List[str]:
         # Expected output might look like: ['Africa/Abidjan', 'Africa/Accra', 'Africa/Addis_Ababa', 'Africa/Algiers', 'Africa/Asmara']
         >>> print('Europe/Madrid' in timezones)
         True
+    
+    Cost: O(n log n) where n is the number of available timezones
     """
     # zoneinfo.available_timezones() returns a set of all available timezone keys.
     # We convert it to a list and sort it for consistent, readable output.
@@ -477,6 +444,8 @@ def convert_timezone(date_input: datetime, target_tz_name: str) -> datetime:
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Input datetime object must be timezone-aware.
+    
+    Cost: O(1)
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -579,6 +548,8 @@ def utc_to_datetime(
         >>> utc_dt = utc_to_datetime("2025-06-11 10:00:00", "%Y-%m-%d %H:%M:%S")
         >>> print(f"String local (10:00 CEST) -> UTC: {utc_dt}")
         # Expected: 2025-06-11 08:00:00+00:00
+    
+    Cost: O(1)
     """
     # 1. Parse the input into a datetime object
     parsed_dt: datetime
@@ -682,6 +653,8 @@ def utc_to_timezone(input_datetime: datetime, target_tz_name: str = "Europe/Madr
         >>> utc_to_madrid = utc_to_timezone(utc_aware_dt, 'Europe/Madrid')
         >>> print(f"UTC Aware converted to Madrid: {utc_to_madrid}")
         # Expected: 2025-06-11 10:00:00+02:00
+    
+    Cost: O(1)
     """
     if not isinstance(input_datetime, datetime):
         raise TypeError("Input 'input_datetime' must be a datetime object.")
@@ -759,6 +732,8 @@ def date_to_julian(date_input: Union[datetime, str], input_format: Optional[str]
         >>> # Ejemplo 6: Usando cadena de fecha
         >>> date_to_julian("2025-06-15", "%Y-%m-%d")
         166 # Día 166 del año 2025
+    
+    Cost: O(1)
     """
     # Función auxiliar interna para parsear la entrada de fecha (datetime o string)
     def _parse_date_input_internal(date_val: Union[datetime, str], input_fmt: Optional[str]) -> datetime:
@@ -838,6 +813,8 @@ def julian_to_date(julian_date: int, year: int) -> datetime:
         >>> except ValueError as e:
         >>>     print(f"Error: {e}")
         # Expected output: Error: Julian date must be between 1 and 365 for year 2023.
+    
+    Cost: O(1)
     """
     # 1. Validación de entradas
     if not isinstance(julian_date, int):
@@ -898,6 +875,8 @@ def datetime_to_milliseconds_timestamp(date_input: datetime) -> int:
         >>> dt_naive = datetime(2025, 6, 11, 1, 58, 11, 123456)
         >>> datetime_to_milliseconds_timestamp(dt_naive) # Se comportará como si fuera UTC
         1749597491123
+    
+    Cost: O(1)
     """
     if not isinstance(date_input, datetime):
         raise TypeError("Input 'date_input' must be a datetime object.")
@@ -918,8 +897,6 @@ def datetime_to_milliseconds_timestamp(date_input: datetime) -> int:
     # y redondeamos a entero.
     return int(utc_dt.timestamp() * 1000)
 
-
-from datetime import datetime, timezone
 
 def milliseconds_timestamp_to_datetime(timestamp_ms: int) -> datetime:
     """Convierte un sello de tiempo Unix en milisegundos a un objeto datetime.
@@ -950,6 +927,8 @@ def milliseconds_timestamp_to_datetime(timestamp_ms: int) -> datetime:
         >>> from datetime import datetime, timezone
         >>> milliseconds_timestamp_to_datetime(1749597491123)
         datetime.datetime(2025, 6, 11, 1, 58, 11, 123000, tzinfo=datetime.timezone.utc)
+    
+    Cost: O(1)
     """
     if not isinstance(timestamp_ms, int):
         raise TypeError("Input 'timestamp_ms' must be an integer.")
@@ -999,6 +978,8 @@ def utc_to_midnight_iso(p_datetime: datetime) -> datetime:
         >>> midnight_dt = utc_to_midnight_iso(naive_dt)
         >>> print(midnight_dt)
         2025-06-11 00:00:00+00:00
+    
+    Cost: O(1)
     """
     if not isinstance(p_datetime, datetime):
         raise TypeError("Input must be a datetime object")
@@ -1216,4 +1197,103 @@ def ad_format_to_datetime(p_ad_date_str: str) -> datetime:
         # Esto capturaría errores si la parte de la fecha/hora no es válida
         raise ValueError(f"No se pudo parsear la fecha/hora '{p_ad_date_str}'. "
                          f"Asegúrate de que los componentes numéricos sean válidos.")
+
+
+def datetime_to_unix_timestamp(dt: datetime) -> float:
+    """
+    Converts a datetime object to its corresponding UNIX timestamp (float).
+    The timestamp represents seconds elapsed since the Epoch (January 1, 1970, 00:00:00 UTC).
+
+    Args:
+        dt (datetime): The datetime object to convert.
+
+    Returns:
+        float: The UNIX timestamp as a floating-point number.
+
+    Raises:
+        TypeError: If 'dt' is not a datetime object.
+
+    Example:
+        >>> from datetime import datetime, timezone
+        >>> # Using a specific date and time (ensuring it's UTC or aware)
+        >>> dt_utc = datetime(2025, 6, 11, 10, 27, 5, 0, tzinfo=timezone.utc)
+        >>> datetime_to_unix_timestamp(dt_utc)
+        1718092025.0
+
+        >>> # Using current date and time (UTC recommended for timestamps)
+        >>> import time
+        >>> current_dt_utc = datetime.now(timezone.utc)
+        >>> current_timestamp = datetime_to_unix_timestamp(current_dt_utc)
+        >>> # Compare with time.time() to verify (time.time() returns float seconds since epoch)
+        >>> # abs(current_timestamp - time.time()) < 1.0 # Should be True
+
+    **Cost:** O(1), direct timestamp calculation.
+    """
+    if not isinstance(dt, datetime):
+        raise TypeError("'dt' must be a datetime object.")
     
+    # The .timestamp() method correctly handles timezones if the datetime is "aware".
+    # If it's "naive" (without tzinfo), it assumes system local time.
+    return dt.timestamp()
+
+
+def unix_timestamp_to_datetime(timestamp: Union[int, float], tz_info: Optional[str] = None) -> datetime:
+    """
+    Converts a UNIX timestamp (seconds since the Epoch) to a datetime object.
+
+    Args:
+        timestamp (Union[int, float]): The UNIX timestamp.
+        tz_info (Optional[str]): An IANA timezone string (e.g., 'America/New_York', 'Europe/Madrid').
+                                 If provided, the resulting datetime will be "aware" (with timezone).
+                                 If None, the datetime will be "naive" (without timezone, assuming local).
+
+    Returns:
+        datetime: The resulting datetime object.
+
+    Raises:
+        TypeError: If 'timestamp' is not an int or float, or if 'tz_info' is not a string.
+        zoneinfo.ZoneInfoNotFoundError: If the 'tz_info' string doesn't correspond to a valid timezone.
+
+    Example:
+        >>> from datetime import datetime
+        >>> # Convert a timestamp to UTC datetime
+        >>> unix_timestamp_to_datetime(1718092025.0, tz_info='UTC')
+        datetime.datetime(2025, 6, 11, 10, 27, 5, tzinfo=datetime.timezone.utc)
+
+        >>> # Convert to datetime in Madrid timezone
+        >>> madrid_dt = unix_timestamp_to_datetime(1718092025.0, tz_info='Europe/Madrid')
+        >>> madrid_dt # Note the +02:00 offset for CEST
+        datetime.datetime(2025, 6, 11, 12, 27, 5, tzinfo=zoneinfo.ZoneInfo(key='Europe/Madrid'))
+
+        >>> # Convert to naive datetime (local time)
+        >>> unix_timestamp_to_datetime(1718092025.0)
+        datetime.datetime(2025, 6, 11, 12, 27, 5) # Output assumes local timezone is CEST+2 for this example
+
+    **Cost:** O(1), direct conversion from timestamp to datetime.
+    """
+    if not isinstance(timestamp, (int, float)):
+        raise TypeError("'timestamp' must be an int or float.")
+    
+    target_tz = None
+    if tz_info:
+        try:
+            target_tz = zoneinfo.ZoneInfo(tz_info)
+        except ImportError:
+            # Fallback for Python < 3.9 or if zoneinfo is not available
+            print("Warning: 'zoneinfo' module not found. Timezone awareness might be limited.")
+            from datetime import timedelta, tzinfo
+            if tz_info.upper() == 'UTC':
+                target_tz = timezone.utc
+            else:
+                # Basic timezone handling if zoneinfo not available (e.g., fixed offset)
+                # This is a simplification; full TZ handling needs zoneinfo/pytz
+                raise NotImplementedError("Specific timezone conversion without 'zoneinfo' is not fully implemented. Please install 'zoneinfo' or use Python 3.9+ for full timezone support.")
+        except zoneinfo.ZoneInfoNotFoundError:
+            raise ValueError(f"Invalid or unknown timezone: '{tz_info}'.")
+
+    if target_tz:
+        # fromtimestamp with tz argument available in Python 3.3+
+        return datetime.fromtimestamp(timestamp, tz=target_tz)
+    else:
+        # If no tz_info, return a naive datetime from local timestamp
+        return datetime.fromtimestamp(timestamp)

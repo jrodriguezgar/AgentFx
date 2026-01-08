@@ -1,3 +1,19 @@
+"""Spanish Language String Functions.
+
+This module provides specialized functions for processing Spanish language
+strings, including phonetic reductions, NIF/CIF/NIE validation, and text
+normalization according to Spanish language rules.
+
+Key Features:
+- Spanish stop words removal
+- Phonetic reduction algorithms
+- NIF/CIF/NIE validation with checksums
+- NIF format parsing and standardization
+- Accent removal and text normalization
+- Spanish-specific character handling
+
+"""
+
 from typing import Optional
 import re
 
@@ -144,6 +160,8 @@ def remove_spanish_stop_words(input_string: str) -> str | None:
         Traceback (most recent call last):
             ...
         TypeError: Input 'input_string' must be a string.
+
+    **Cost:** O(n), where n is the length of the input string (regex operations)
     """
     # 1. Handle None input gracefully.
     if input_string is None:

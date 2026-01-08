@@ -1,3 +1,20 @@
+"""String Similarity and Comparison Functions.
+
+This module provides advanced algorithms for measuring similarity between
+strings using various metrics. It includes both exact and fuzzy matching
+techniques, phonetic algorithms, and edit distance calculations.
+
+Key Features:
+- Multiple similarity algorithms (Levenshtein, Jaro-Winkler, Jaccard, etc.)
+- Phonetic matching (Metaphone, MRA)
+- Edit distance calculations
+- Word and character comparison
+- Longest common subsequence
+- Configurable similarity thresholds
+- Batch comparison utilities
+
+"""
+
 import sys
 import importlib
 import difflib

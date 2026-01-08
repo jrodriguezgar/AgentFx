@@ -1,3 +1,24 @@
+"""Numeric Conversions Module.
+
+This module provides comprehensive functionality for numeric type conversions,
+including conversions between numeric types, string representations, different
+number bases, and specialized conversions for JavaScript interoperability.
+
+Key Features:
+    - Basic type conversions (int, float, bool, complex, string)
+    - Number base conversions (binary, hexadecimal, octal)
+    - Timestamp and datetime conversions
+    - Locale-aware string to number conversions
+    - JavaScript safe integer handling
+    - IEEE 754 and bytes conversions
+
+Example:
+    >>> from formulite.fxNumeric.numeric_convertions import hex_to_int, float_to_int_truncated
+    >>> hex_to_int("0xFF")
+    255
+    >>> float_to_int_truncated(3.9)
+    3
+"""
 import json
 from decimal import Decimal, getcontext
 import locale
@@ -11,13 +32,13 @@ from datetime import datetime, timezone
 
 def float_to_int_truncated(number: float) -> int:
     """
-    Convierte un número flotante a un entero, truncando los decimales (hacia cero).
+    Converts a float to an integer by truncating the decimal part (towards zero).
 
     Args:
-        number (float): El número flotante a convertir.
+        number (float): The float number to convert.
 
     Returns:
-        int: El número entero resultante, sin la parte decimal.
+        int: The resulting integer without the decimal part.
 
     Example:
         >>> float_to_int_truncated(3.9)
@@ -26,58 +47,64 @@ def float_to_int_truncated(number: float) -> int:
         -3
         >>> float_to_int_truncated(5.0)
         5
+
+    **Cost:** O(1), direct type conversion via truncation.
     """
     return int(number)
 
 
 def int_to_float(number: int) -> float:
     """
-    Convierte un número entero a un número de punto flotante.
+    Converts an integer to a floating-point number.
 
     Args:
-        number (int): El número entero a convertir.
+        number (int): The integer number to convert.
 
     Returns:
-        float: El número decimal resultante.
+        float: The resulting float number.
 
     Example:
         >>> int_to_float(5)
         5.0
         >>> int_to_float(-10)
         -10.0
+
+    **Cost:** O(1), direct integer to float conversion.
     """
     return float(number)
 
 
 def number_to_complex(number: Union[int, float]) -> complex:
     """
-    Convierte un número entero o flotante a un número complejo con parte imaginaria cero.
+    Converts an integer or float to a complex number with zero imaginary part.
 
     Args:
-        number (Union[int, float]): El número a convertir.
+        number (Union[int, float]): The number to convert.
 
     Returns:
-        complex: El número complejo resultante.
+        complex: The resulting complex number.
 
     Example:
         >>> number_to_complex(4.2)
         (4.2+0j)
         >>> number_to_complex(7)
         (7+0j)
+
+    **Cost:** O(1), direct conversion to complex number.
     """
     return complex(number)
 
 
 def number_to_bool(number: Union[int, float]) -> bool:
     """
-    Convierte un número entero o flotante a un valor booleano.
-    0 o 0.0 se convierten en False; cualquier otro número se convierte en True.
+    Converts an integer or float to a boolean value.
+    0 or 0.0 converts to False; any other number converts to True.
 
     Args:
-        number (Union[int, float]): El número a convertir.
+        number (Union[int, float]): The number to convert.
 
     Returns:
-        bool: El valor booleano resultante.
+        bool: The resulting boolean value.
 
     Example:
         >>> number_to_bool(0)
@@ -88,59 +115,65 @@ def number_to_bool(number: Union[int, float]) -> bool:
         True
         >>> number_to_bool(0.0)
         False
+
+    **Cost:** O(1), direct conversion to boolean value.
     """
     return bool(number)
 
 
 def bool_to_int(value: bool) -> int:
     """
-    Convierte un valor booleano a un entero.
-    True se convierte en 1; False se convierte en 0.
+    Converts a boolean value to an integer.
+    True converts to 1; False converts to 0.
 
     Args:
-        value (bool): El valor booleano a convertir.
+        value (bool): The boolean value to convert.
 
     Returns:
-        int: El entero resultante.
+        int: The resulting integer.
 
     Example:
         >>> bool_to_int(True)
         1
         >>> bool_to_int(False)
         0
+
+    **Cost:** O(1), direct boolean to integer conversion.
     """
     return int(value)
 
 
 def bool_to_float(value: bool) -> float:
     """
-    Convierte un valor booleano a un número de punto flotante.
-    True se convierte en 1.0; False se convierte en 0.0.
+    Converts a boolean value to a floating-point number.
+    True converts to 1.0; False converts to 0.0.
 
     Args:
-        value (bool): El valor booleano a convertir.
+        value (bool): The boolean value to convert.
 
     Returns:
-        float: El número decimal resultante.
+        float: The resulting float number.
 
     Example:
         >>> bool_to_float(True)
         1.0
         >>> bool_to_float(False)
         0.0
+
+    **Cost:** O(1), direct boolean to float conversion.
     """
     return float(value)
 
 
 def number_to_string(number: Union[int, float]) -> str:
     """
-    Convierte un número entero o flotante a su representación de cadena.
+    Converts an integer or float to its string representation.
 
     Args:
-        number (Union[int, float]): El número a convertir.
+        number (Union[int, float]): The number to convert.
 
     Returns:
-        str: La cadena de texto resultante.
+        str: The resulting string.
 
     Example:
         >>> number_to_string(3.14)
@@ -149,49 +182,52 @@ def number_to_string(number: Union[int, float]) -> str:
         '100'
         >>> number_to_string(-0.5)
         '-0.5'
+
+    **Cost:** O(1), direct string conversion.
     """
     return str(number)
 
 
 def round_float_to_int(number: float) -> int:
     """
-    Redondea un número flotante al entero más cercano.
+    Rounds a float to the nearest integer.
 
     Args:
-        number (float): El número flotante a redondear.
+        number (float): The float number to round.
 
     Returns:
-        int: El entero más cercano al número dado.
-             Si el número está exactamente a mitad de camino entre dos enteros (ej. X.5),
-             Python 3.x redondea al entero par más cercano (redondeo "al par más cercano" o "bancario").
+        int: The nearest integer to the given number.
+             If the number is exactly halfway between two integers (e.g., X.5),
+             Python 3.x rounds to the nearest even integer ("banker's rounding").
 
     Example:
         >>> round_float_to_int(3.6)
         4
         >>> round_float_to_int(3.2)
         3
-        >>> round_float_to_int(3.5) # Redondea al par más cercano (3 es impar, 4 es par)
+        >>> round_float_to_int(3.5)  # Rounds to nearest even (4)
         4
-        >>> round_float_to_int(2.5) # Redondea al par más cercano (2 es par)
+        >>> round_float_to_int(2.5)  # Rounds to nearest even (2)
         2
         >>> round_float_to_int(-3.6)
         -4
-        >>> round_float_to_int(-3.5) # Redondea al par más cercano (-4 es par)
+        >>> round_float_to_int(-3.5)  # Rounds to nearest even (-4)
         -4
+
+    **Cost:** O(1), rounding via built-in function.
     """
     return round(number)
 
 
-
 def hex_to_int(hex_string: str) -> int:
     """
-    Convierte una cadena hexadecimal a un número entero.
+    Converts a hexadecimal string to an integer.
 
     Args:
-        hex_string (str): La cadena hexadecimal (puede tener prefijo '0x').
+        hex_string (str): The hexadecimal string (may have '0x' prefix).
 
     Returns:
-        int: El número entero decimal.
+        int: The decimal integer.
 
     Example:
         >>> hex_to_int("0xff")
@@ -200,258 +236,178 @@ def hex_to_int(hex_string: str) -> int:
         255
         >>> hex_to_int("a")
         10
+
+    **Cost:** O(n), where n is the length of the hexadecimal string.
     """
     return int(hex_string, 16)
 
 
 def bin_to_int(bin_string: str) -> int:
     """
-    Convierte una cadena binaria a un número entero.
+    Converts a binary string to an integer.
 
     Args:
-        bin_string (str): La cadena binaria (puede tener prefijo '0b').
+        bin_string (str): The binary string (may have '0b' prefix).
 
     Returns:
-        int: El número entero decimal.
+        int: The decimal integer.
 
     Example:
         >>> bin_to_int("0b1010")
         10
         >>> bin_to_int("111")
         7
+
+    **Cost:** O(n), where n is the length of the binary string.
     """
     return int(bin_string, 2)
 
 
 def octal_to_int(octal_string: str) -> int:
     """
-    Convierte una cadena octal a un número entero.
+    Converts an octal string to an integer.
 
     Args:
-        octal_string (str): La cadena octal (puede tener prefijo '0o').
+        octal_string (str): The octal string (may have '0o' prefix).
 
     Returns:
-        int: El número entero decimal.
+        int: The decimal integer.
 
     Example:
         >>> octal_to_int("0o17")
         15
         >>> octal_to_int("77")
         63
+
+    **Cost:** O(n), where n is the length of the octal string.
     """
     return int(octal_string, 8)
 
+
 def int_to_binary_clean(number: int) -> str:
     """
-    Convierte un número entero a su representación binaria como cadena, sin el prefijo '0b'.
+    Converts an integer to its binary representation as a string, without the '0b' prefix.
 
     Args:
-        number (int): El número entero a convertir.
+        number (int): The integer to convert.
 
     Returns:
-        str: La cadena binaria.
+        str: The binary string.
 
     Example:
         >>> int_to_binary_clean(10)
         '1010'
         >>> int_to_binary_clean(5)
         '101'
+
+    **Cost:** O(log n), where n is the value of the number.
     """
     return format(number, 'b')
 
 
 def int_to_hex_clean(number: int) -> str:
     """
-    Convierte un número entero a su representación hexadecimal como cadena, sin el prefijo '0x'.
+    Converts an integer to its hexadecimal representation as a string, without the '0x' prefix.
 
     Args:
-        number (int): El número entero a convertir.
+        number (int): The integer to convert.
 
     Returns:
-        str: La cadena hexadecimal (en minúsculas).
+        str: The hexadecimal string (lowercase).
 
     Example:
         >>> int_to_hex_clean(255)
         'ff'
         >>> int_to_hex_clean(10)
         'a'
+
+    **Cost:** O(log n), where n is the value of the number.
     """
     return format(number, 'x')
 
 
 def int_to_binary_with_prefix(number: int) -> str:
     """
-    Convierte un número entero a su representación binaria como cadena, incluyendo el prefijo '0b'.
+    Converts an integer to its binary representation as a string, including the '0b' prefix.
 
     Args:
-        number (int): El número entero a convertir.
+        number (int): The integer to convert.
 
     Returns:
-        str: La cadena binaria con prefijo.
+        str: The binary string with prefix.
 
     Example:
         >>> int_to_binary_with_prefix(255)
         '0b11111111'
         >>> int_to_binary_with_prefix(10)
         '0b1010'
+
+    **Cost:** O(log n), where n is the value of the number.
     """
     return format(number, '#b')
 
 
 def int_to_hex_with_prefix(number: int) -> str:
     """
-    Convierte un número entero a su representación hexadecimal como cadena, incluyendo el prefijo '0x'.
+    Converts an integer to its hexadecimal representation as a string, including the '0x' prefix.
 
     Args:
-        number (int): El número entero a convertir.
+        number (int): The integer to convert.
 
     Returns:
-        str: La cadena hexadecimal con prefijo (en minúsculas).
+        str: The hexadecimal string with prefix (lowercase).
 
     Example:
         >>> int_to_hex_with_prefix(255)
         '0xff'
         >>> int_to_hex_with_prefix(10)
         '0xa'
+
+    **Cost:** O(log n), where n is the value of the number.
     """
     return format(number, '#x')
 
 
 def int_to_octal_with_prefix(number: int) -> str:
     """
-    Convierte un número entero a su representación octal como cadena, incluyendo el prefijo '0o'.
+    Converts an integer to its octal representation as a string, including the '0o' prefix.
 
     Args:
-        number (int): El número entero a convertir.
+        number (int): The integer to convert.
 
     Returns:
-        str: La cadena octal con prefijo.
+        str: The octal string with prefix.
 
     Example:
         >>> int_to_octal_with_prefix(255)
         '0o377'
         >>> int_to_octal_with_prefix(15)
         '0o17'
+
+    **Cost:** O(log n), where n is the value of the number.
     """
     return format(number, '#o')
 
 
-def datetime_to_unix_timestamp(dt: datetime) -> float:
-    """
-    Convierte un objeto datetime a su correspondiente timestamp numérico UNIX (flotante).
-    El timestamp representa los segundos transcurridos desde el Epoch (1 de enero de 1970, 00:00:00 UTC).
-
-    Args:
-        dt (datetime): El objeto datetime a convertir.
-
-    Returns:
-        float: El timestamp UNIX como un número flotante.
-
-    Raises:
-        TypeError: Si 'dt' no es un objeto datetime.
-
-    Example:
-        >>> from datetime import datetime, timezone
-        >>> # Usando una fecha y hora específica (asegurando que sea UTC o aware)
-        >>> dt_utc = datetime(2025, 6, 11, 10, 27, 5, 0, tzinfo=timezone.utc)
-        >>> datetime_to_unix_timestamp(dt_utc)
-        1718092025.0
-
-        >>> # Usando la fecha y hora actual (se recomienda UTC para timestamps)
-        >>> import time
-        >>> current_dt_utc = datetime.now(timezone.utc)
-        >>> current_timestamp = datetime_to_unix_timestamp(current_dt_utc)
-        >>> # Comparar con time.time() para verificar (time.time() devuelve float de segundos desde epoch)
-        >>> # abs(current_timestamp - time.time()) < 1.0 # Debería ser True
-    """
-    if not isinstance(dt, datetime):
-        raise TypeError("'dt' must be a datetime object.")
-    
-    # El método .timestamp() maneja correctamente las zonas horarias si el datetime es "aware".
-    # Si es "naive" (sin tzinfo), se asume que está en la hora local del sistema.
-    return dt.timestamp()
-
-
-def unix_timestamp_to_datetime(timestamp: Union[int, float], tz_info: Optional[str] = None) -> datetime:
-    """
-    Convierte un timestamp numérico UNIX (segundos desde el Epoch) a un objeto datetime.
-
-    Args:
-        timestamp (Union[int, float]): El timestamp UNIX.
-        tz_info (Optional[str]): Un string IANA timezone (ej. 'America/New_York', 'Europe/Madrid').
-                                 Si se proporciona, el datetime resultante será "aware" (con zona horaria).
-                                 Si es None, el datetime será "naive" (sin zona horaria, asumiendo local).
-
-    Returns:
-        datetime: El objeto datetime resultante.
-
-    Raises:
-        TypeError: Si 'timestamp' no es un int o float, o si 'tz_info' no es un string.
-        zoneinfo.ZoneInfoNotFoundError: Si el string 'tz_info' no corresponde a una zona horaria válida.
-
-    Example:
-        >>> from datetime import datetime
-        >>> # Convertir un timestamp a un datetime UTC
-        >>> unix_timestamp_to_datetime(1718092025.0, tz_info='UTC')
-        datetime.datetime(2025, 6, 11, 10, 27, 5, tzinfo=datetime.timezone.utc)
-
-        >>> # Convertir a un datetime en la zona horaria de Madrid
-        >>> madrid_dt = unix_timestamp_to_datetime(1718092025.0, tz_info='Europe/Madrid')
-        >>> madrid_dt # Note the +02:00 offset for CEST
-        datetime.datetime(2025, 6, 11, 12, 27, 5, tzinfo=zoneinfo.ZoneInfo(key='Europe/Madrid'))
-
-        >>> # Convertir a un datetime naive (local time)
-        >>> unix_timestamp_to_datetime(1718092025.0)
-        datetime.datetime(2025, 6, 11, 12, 27, 5) # Output assumes local timezone is CEST+2 for this example
-    """
-    if not isinstance(timestamp, (int, float)):
-        raise TypeError("'timestamp' must be an int or float.")
-    
-    target_tz = None
-    if tz_info:
-        try:
-            import zoneinfo # Requires Python 3.9+
-            target_tz = zoneinfo.ZoneInfo(tz_info)
-        except ImportError:
-            # Fallback for Python < 3.9 or if zoneinfo is not available
-            print("Warning: 'zoneinfo' module not found. Timezone awareness might be limited.")
-            from datetime import timedelta, tzinfo
-            if tz_info.upper() == 'UTC':
-                target_tz = timezone.utc
-            else:
-                # Basic timezone handling if zoneinfo not available (e.g., fixed offset)
-                # This is a simplification; full TZ handling needs zoneinfo/pytz
-                raise NotImplementedError("Specific timezone conversion without 'zoneinfo' is not fully implemented. Please install 'zoneinfo' or use Python 3.9+ for full timezone support.")
-        except zoneinfo.ZoneInfoNotFoundError:
-            raise ValueError(f"Invalid or unknown timezone: '{tz_info}'.")
-
-    if target_tz:
-        # fromtimestamp with tz argument available in Python 3.3+
-        return datetime.fromtimestamp(timestamp, tz=target_tz)
-    else:
-        # If no tz_info, return a naive datetime from local timestamp
-        return datetime.fromtimestamp(timestamp)
-
-
 def to_js_safe_integer(number: Union[int, float]) -> Union[int, str]:
     """
-    Convierte un número a un entero seguro para JavaScript.
+    Converts a number to a JavaScript-safe integer.
 
-    Si el número está dentro del rango seguro de enteros de JavaScript (-(2^53-1) a 2^53-1),
-    se devuelve como un int de Python. Si excede este rango, se devuelve como una cadena
-    para evitar la pérdida de precisión en JavaScript, lo que requerirá que JavaScript lo maneje
-    como un BigInt u otra representación de número grande.
+    If the number is within JavaScript's safe integer range (-(2^53-1) to 2^53-1),
+    it returns a Python int. If it exceeds this range, it returns a string to avoid
+    precision loss in JavaScript, requiring JavaScript to handle it as BigInt or
+    another large number representation.
 
     Args:
-        number (Union[int, float]): El número entero o flotante a convertir.
-                                    Si es flotante, se truncará a entero antes de la comprobación.
+        number (Union[int, float]): The integer or float to convert.
+                                    If float, it will be truncated to integer before checking.
 
     Returns:
-        Union[int, str]: El número como un int si está dentro del rango seguro de JS,
-                         o como una cadena si excede ese rango.
+        Union[int, str]: The number as int if within JS safe range,
+                         or as string if it exceeds that range.
 
     Raises:
-        TypeError: Si 'number' no es un int o float.
+        TypeError: If 'number' is not an int or float.
 
     Example:
         >>> to_js_safe_integer(100)
@@ -464,15 +420,17 @@ def to_js_safe_integer(number: Union[int, float]) -> Union[int, str]:
         -9007199254740991
         >>> to_js_safe_integer(-9007199254740992) # JS_MIN_SAFE_INTEGER - 1
         '-9007199254740992'
-        >>> to_js_safe_integer(3.14) # Flotantes se truncan a enteros
+        >>> to_js_safe_integer(3.14) # Floats are truncated to integers
         3
         >>> to_js_safe_integer(9007199254740991.99)
         9007199254740991
+
+    **Cost:** O(1), integer comparison and conversion.
     """
     if not isinstance(number, (int, float)):
         raise TypeError("'number' must be an int or float.")
     
-    # Truncar flotantes a enteros para la comprobación
+    # Truncate floats to integers for checking
     num_int = int(number)
 
     if JS_MIN_SAFE_INTEGER <= num_int <= JS_MAX_SAFE_INTEGER:
@@ -483,67 +441,44 @@ def to_js_safe_integer(number: Union[int, float]) -> Union[int, str]:
 
 def convert_string_to_float_with_locale(number_string: str, target_locale: Optional[str] = None) -> float:
     """
-    Convierte una cadena numérica a un flotante, interpretando los separadores decimales
-    y de miles según una configuración regional (locale) específica.
+    Converts a numeric string to a float, interpreting decimal and thousands separators
+    according to a specific regional configuration (locale).
 
-    Problema/Necesidad del Usuario: Manejar la entrada de números desde diferentes regiones
-    del mundo, donde el separador decimal y de miles puede variar (ej. ',' vs '.').
-
-    Objetivos del Producto: Proporcionar una conversión robusta de cadenas numéricas
-    a flotantes que respete los formatos regionales, evitando errores y facilitando
-    la internacionalización de aplicaciones.
-
-    Descripción: Esta función utiliza el módulo `locale` de Python. Opcionalmente,
-    permite establecer un `target_locale` específico para la conversión. Si se
-    proporciona `target_locale`, la función guarda el locale actual del sistema,
-    establece temporalmente el nuevo locale, realiza la conversión con `locale.atof()`,
-    y luego restaura el locale original. Si no se proporciona `target_locale`,
-    la conversión se realiza con el locale actualmente configurado en el sistema.
+    This function handles number input from different world regions where decimal and
+    thousands separators may vary (e.g., ',' vs '.'). It uses Python's `locale` module
+    to optionally set a specific `target_locale` for conversion. If `target_locale` is
+    provided, the function saves the current system locale, temporarily sets the new
+    locale, performs the conversion with `locale.atof()`, and then restores the
+    original locale.
 
     Args:
-        number_string (str): La cadena que representa el número a convertir.
-        target_locale (Optional[str]): El string del locale a usar para la conversión
-                                       (ej. 'es_ES', 'de_DE', 'en_US'). Si es None,
-                                       usa el locale actual del sistema.
+        number_string (str): The string representing the number to convert.
+        target_locale (Optional[str]): The locale string to use for conversion
+                                       (e.g., 'es_ES', 'de_DE', 'en_US'). If None,
+                                       uses the current system locale.
 
     Returns:
-        float: El número de punto flotante resultante.
+        float: The resulting floating-point number.
 
     Raises:
-        TypeError: Si 'number_string' no es una cadena.
-        ValueError: Si la cadena no puede ser interpretada como un número válido
-                    dentro del locale especificado, o si el locale no es válido.
+        TypeError: If 'number_string' is not a string.
+        ValueError: If the string cannot be interpreted as a valid number within
+                    the specified locale, or if the locale is not valid.
 
     Example:
-        >>> # Configuración para un locale que usa coma como decimal (ej. español de España)
+        >>> # Configuration for a locale using comma as decimal (e.g., Spanish from Spain)
         >>> convert_string_to_float_with_locale("1.234,56", 'es_ES')
         1234.56
         >>> convert_string_to_float_with_locale("123,45", 'es_ES')
         123.45
 
-        >>> # Configuración para un locale que usa punto como decimal (ej. inglés de EE.UU.)
+        >>> # Configuration for a locale using dot as decimal (e.g., US English)
         >>> convert_string_to_float_with_locale("1,234.56", 'en_US')
         1234.56
         >>> convert_string_to_float_with_locale("123.45", 'en_US')
         123.45
 
-        >>> # Usando el locale actual del sistema (puede variar según la configuración de tu OS)
-        >>> # Para esta demostración, simularemos un locale 'es_ES' si no está configurado.
-        >>> current_locale = locale.getlocale(locale.LC_NUMERIC) # Obtener el locale actual para LC_NUMERIC
-        >>> try:
-        >>>     # Intentar configurar a es_ES para el ejemplo si no está ya
-        >>>     locale.setlocale(locale.LC_ALL, 'es_ES')
-        >>>     print(f"Usando locale: {locale.getlocale(locale.LC_NUMERIC)}")
-        >>>     print(f"'{1.234,56}' con locale actual (es_ES): {convert_string_to_float_with_locale('1.234,56')}")
-        >>> finally:
-        >>>     locale.setlocale(locale.LC_ALL, current_locale) # Restaurar el locale original
-
-        >>> # Cadena no numérica (levantará ValueError)
-        >>> try:
-        >>>     convert_string_to_float_with_locale("abc", 'es_ES')
-        >>> except ValueError as e:
-        >>>     print(f"Error: {e}")
-        # Salida esperada: Error: could not convert string to float: 'abc'
+    **Cost:** O(n), where n is the length of the string. Includes locale operations.
     """
     if not isinstance(number_string, str):
         raise TypeError("'number_string' must be a string.")
@@ -576,39 +511,28 @@ def convert_string_to_float_with_locale(number_string: str, target_locale: Optio
 
 def safe_convert_number(value: Any, default_value: Union[int, float] = 0, target_type: type = float) -> Union[int, float]:
     """
-    Convierte un valor de entrada a un tipo numérico (float o int) de forma segura,
-    utilizando un patrón try-except para manejar errores y proporcionar un valor de fallback.
+    Safely converts an input value to a numeric type (float or int), using a
+    try-except pattern to handle errors and provide a fallback value.
 
-    Problema/Necesidad del Usuario: La entrada de datos de usuario o fuentes externas
-    a menudo contiene valores que no se pueden convertir directamente a números,
-    causando errores en el programa. Se necesita una manera de manejar estos casos
-    graciosamente, proporcionando un valor por defecto.
-
-    Objetivos del Producto: Ofrecer una función flexible y robusta para la conversión de tipos
-    numéricos, que prevenga caídas del programa y mejore la resiliencia al procesar datos inciertos.
-
-    Descripción: Esta función intenta convertir el `value` de entrada al `target_type` especificado
-    (por defecto float). Si la conversión es exitosa, devuelve el valor convertido.
-    Si la conversión falla (por ejemplo, si el valor es una cadena no numérica, None,
-    o una cadena vacía), la función captura la excepción y devuelve el `default_value` proporcionado.
-    Se puede especificar si el valor de fallback debe ser int o float, y también el tipo
-    al que se intenta convertir (int o float).
+    This function handles data input from users or external sources that often
+    contains values that cannot be directly converted to numbers. It prevents
+    program crashes and improves resilience when processing uncertain data.
 
     Args:
-        value (Any): El valor de entrada a intentar convertir (puede ser str, int, float, None, etc.).
-        default_value (Union[int, float]): El valor a devolver si la conversión falla.
-                                          Por defecto es 0.
-        target_type (type): El tipo numérico al que se desea convertir (int o float).
-                            Por defecto es float.
+        value (Any): The input value to attempt conversion (can be str, int, float, None, etc.).
+        default_value (Union[int, float]): The value to return if conversion fails.
+                                          Default is 0.
+        target_type (type): The numeric type to convert to (int or float).
+                            Default is float.
 
     Returns:
-        Union[int, float]: El valor convertido o el `default_value` si la conversión falla.
+        Union[int, float]: The converted value or `default_value` if conversion fails.
 
     Raises:
-        ValueError: Si 'target_type' no es ni 'int' ni 'float'.
+        ValueError: If 'target_type' is neither 'int' nor 'float'.
 
     Example:
-        >>> # Conversión a float
+        >>> # Conversion to float
         >>> safe_convert_number("3.14")
         3.14
         >>> safe_convert_number("10")
@@ -622,7 +546,7 @@ def safe_convert_number(value: Any, default_value: Union[int, float] = 0, target
         >>> safe_convert_number("hello", default_value=-1.0)
         -1.0
 
-        >>> # Conversión a int
+        >>> # Conversion to int
         >>> safe_convert_number("5", target_type=int)
         5
         >>> safe_convert_number("7.8", target_type=int)
@@ -631,8 +555,10 @@ def safe_convert_number(value: Any, default_value: Union[int, float] = 0, target
         99
         >>> safe_convert_number(None, default_value=1, target_type=int)
         1
-        >>> safe_convert_number(True, target_type=int) # Booleanos funcionan
+        >>> safe_convert_number(True, target_type=int) # Booleans work
         1
+
+    **Cost:** O(1), type conversion with exception handling.
     """
     if target_type not in [int, float]:
         raise ValueError("target_type must be 'int' or 'float'.")
@@ -647,131 +573,139 @@ def safe_convert_number(value: Any, default_value: Union[int, float] = 0, target
 
 def ieee754_hex_representation(numero: float) -> str:
     """
-    Devuelve la representación hexadecimal de un número de punto flotante
-    según el estándar IEEE 754.
+    Returns the hexadecimal representation of a floating-point number
+    according to the IEEE 754 standard.
 
-    Este método muestra el valor IEEE real (binario subyacente) de un float,
-    lo cual puede ser útil para depuración o para entender cómo se almacenan
-    los números de punto flotante.
+    This method shows the actual IEEE (underlying binary) value of a float,
+    which can be useful for debugging or understanding how floating-point
+    numbers are stored.
 
     Args:
-        numero (float): El número de punto flotante del que se desea obtener
-                        la representación hexadecimal.
+        numero (float): The floating-point number for which to obtain
+                        the hexadecimal representation.
 
     Returns:
-        str: Una cadena que representa el valor IEEE 754 hexadecimal del número.
-             El formato es '0x<mantisa>p<exponente>'.
+        str: A string representing the IEEE 754 hexadecimal value of the number.
+             The format is '0x<mantissa>p<exponent>'.
 
-    Ejemplo de uso:
-    >>> ieee754_hex_representation(3.14)
-    '0x1.91eb851eb851fp+1'
-    >>> ieee754_hex_representation(0.5)
-    '0x1.0p-1'
-    >>> ieee754_hex_representation(1.0)
-    '0x1.0p+0'
-    >>> ieee754_hex_representation(-1.0)
-    '-0x1.0p+0'
-    >>> ieee754_hex_representation(float('inf'))
-    'inf'
-    >>> ieee754_hex_representation(float('-inf'))
-    '-inf'
-    >>> ieee754_hex_representation(float('nan'))
-    'nan'
+    Example:
+        >>> ieee754_hex_representation(3.14)
+        '0x1.91eb851eb851fp+1'
+        >>> ieee754_hex_representation(0.5)
+        '0x1.0p-1'
+        >>> ieee754_hex_representation(1.0)
+        '0x1.0p+0'
+        >>> ieee754_hex_representation(-1.0)
+        '-0x1.0p+0'
+        >>> ieee754_hex_representation(float('inf'))
+        'inf'
+        >>> ieee754_hex_representation(float('-inf'))
+        '-inf'
+        >>> ieee754_hex_representation(float('nan'))
+        'nan'
+
+    **Cost:** O(1), call to the float's hex() method.
     """
     return numero.hex()
 
 
 def int_a_bytes(numero_entero: int, num_bytes: int, byteorder: str = 'big') -> bytes:
     """
-    Convierte un número entero a una secuencia de bytes.
+    Converts an integer to a byte sequence.
 
-    Útil para la transmisión de datos binarios, protocolos de comunicación
-    o almacenamiento de datos en formatos binarios.
+    Useful for binary data transmission, communication protocols,
+    or storing data in binary formats.
 
     Args:
-        numero_entero (int): El número entero a convertir.
-        num_bytes (int): El número de bytes deseado para la representación.
-                         Debe ser suficiente para contener el entero.
-        byteorder (str): El orden de los bytes ('big' para network byte order,
-                         'little' para el orden inverso). Por defecto, 'big'.
+        numero_entero (int): The integer to convert.
+        num_bytes (int): The desired number of bytes for the representation.
+                         Must be sufficient to contain the integer.
+        byteorder (str): The byte order ('big' for network byte order,
+                         'little' for reverse order). Default is 'big'.
 
     Returns:
-        bytes: La representación en bytes del número entero.
+        bytes: The byte representation of the integer.
 
     Raises:
-        OverflowError: Si el entero es demasiado grande para el número de bytes especificado.
+        OverflowError: If the integer is too large for the specified number of bytes.
 
-    Ejemplo de uso:
-    >>> int_a_bytes(123, 2, byteorder='big')
-    b'\x00{'
-    >>> int_a_bytes(256, 2, byteorder='little')
-    b'\x00\x01'
-    >>> int_a_bytes(65535, 2, byteorder='big') # Max value for 2 bytes unsigned
-    b'\xff\xff'
+    Example:
+        >>> int_a_bytes(123, 2, byteorder='big')
+        b'\x00{'
+        >>> int_a_bytes(256, 2, byteorder='little')
+        b'\x00\x01'
+        >>> int_a_bytes(65535, 2, byteorder='big') # Max value for 2 bytes unsigned
+        b'\xff\xff'
+
+    **Cost:** O(1), conversion to bytes.
     """
     return numero_entero.to_bytes(num_bytes, byteorder=byteorder)
 
 
 def bytes_a_int(secuencia_bytes: bytes, byteorder: str = 'big') -> int:
     """
-    Convierte una secuencia de bytes a un número entero.
+    Converts a byte sequence to an integer.
 
-    Útil para decodificar datos recibidos a través de un protocolo binario
-    o leer valores numéricos de archivos binarios.
+    Useful for decoding data received through a binary protocol
+    or reading numeric values from binary files.
 
     Args:
-        secuencia_bytes (bytes): La secuencia de bytes a convertir.
-        byteorder (str): El orden de los bytes ('big' para network byte order,
-                         'little' para el orden inverso). Por defecto, 'big'.
+        secuencia_bytes (bytes): The byte sequence to convert.
+        byteorder (str): The byte order ('big' for network byte order,
+                         'little' for reverse order). Default is 'big'.
 
     Returns:
-        int: El número entero representado por la secuencia de bytes.
+        int: The integer represented by the byte sequence.
 
-    Ejemplo de uso:
-    >>> bytes_a_int(b'\x00{', 'big')
-    123
-    >>> bytes_a_int(b'\x00\x01', 'little')
-    256
-    >>> bytes_a_int(b'\xff\xff', 'big')
-    65535
+    Example:
+        >>> bytes_a_int(b'\x00{', 'big')
+        123
+        >>> bytes_a_int(b'\x00\x01', 'little')
+        256
+        >>> bytes_a_int(b'\xff\xff', 'big')
+        65535
+
+    **Cost:** O(1), conversion from bytes.
     """
     return int.from_bytes(secuencia_bytes, byteorder=byteorder)
 
 
 def float_a_json_safe(numero_float: float) -> str:
     """
-    Convierte un número de punto flotante a una representación segura para JSON.
+    Converts a floating-point number to a JSON-safe representation.
 
-    Los estándares JSON no admiten directamente valores como NaN (Not a Number)
-    o Infinity. Esta función los convierte a su representación de cadena
-    correspondiente ('NaN', 'Infinity', '-Infinity') antes de la serialización JSON,
-    mientras que los números regulares se manejan como floats JSON estándar.
+    JSON standards do not directly support values like NaN (Not a Number)
+    or Infinity. This function converts them to their corresponding string
+    representation ('NaN', 'Infinity', '-Infinity') before JSON serialization,
+    while regular numbers are handled as standard JSON floats.
 
     Args:
-        numero_float (float): El número de punto flotante de entrada.
+        numero_float (float): The input floating-point number.
 
     Returns:
-        str: La representación del número como una cadena JSON válida.
+        str: The representation of the number as a valid JSON string.
 
-    Ejemplo de uso:
-    >>> float_a_json_safe(3.14)
-    '3.14'
-    >>> float_a_json_safe(float('nan'))
-    '"NaN"'
-    >>> float_a_json_safe(float('inf'))
-    '"Infinity"'
-    >>> float_a_json_safe(float('-inf'))
-    '"-Infinity"'
+    Example:
+        >>> float_a_json_safe(3.14)
+        '3.14'
+        >>> float_a_json_safe(float('nan'))
+        '"NaN"'
+        >>> float_a_json_safe(float('inf'))
+        '"Infinity"'
+        >>> float_a_json_safe(float('-inf'))
+        '"-Infinity"'
+
+    **Cost:** O(1), verification and JSON serialization.
     """
     if math.isnan(numero_float):
-        # Convertir NaN a la cadena "NaN"
+        # Convert NaN to the string "NaN"
         return json.dumps(str(numero_float))
     elif math.isinf(numero_float):
-        # Convertir Infinity a la cadena "Infinity" o "-Infinity"
+        # Convert Infinity to the string "Infinity" or "-Infinity"
         return json.dumps(str(numero_float))
     else:
-        # Para números normales, dejar que json.dumps los maneje directamente
-        # o convertirlos a Decimal primero para mayor precisión si se desea
+        # For normal numbers, let json.dumps handle them directly
+        # or convert to Decimal first for greater precision if desired
         return json.dumps(numero_float)
 
 
@@ -795,7 +729,7 @@ def convert_bytes_to(unit: str, value: Union[int, float, str]) -> float:
         TypeError: If 'value' cannot be converted to a numeric type.
         ValueError: If 'unit' is not a recognized conversion unit.
 
-    Example of use:
+    Example:
         >>> convert_bytes_to('KB', 1024)
         1.024
         >>> convert_bytes_to('GiB', 1073741824) # 1 GiB
@@ -810,6 +744,8 @@ def convert_bytes_to(unit: str, value: Union[int, float, str]) -> float:
         2.0
         >>> convert_bytes_to('KiB', "2048")
         2.0
+
+    **Cost:** O(1), conversión aritmética simple.
     """
     # Why: Attempt to convert the input value to a float.
     # This makes the function robust to string inputs that represent numbers.
@@ -840,7 +776,7 @@ def convert_bytes_to(unit: str, value: Union[int, float, str]) -> float:
     # This avoids long if/elif chains and is easily extensible.
     conversion_factors = {
         'KB': KILO, 'MB': MEGA, 'GB': GIGA, 'TB': TERA, 'PB': PETA,
-        'KIB': KIBI, 'MIB': MEBI, 'GIB': GIBI, 'TIB': TEBI, 'PIB': PIBI
+        'KIB': KIBI, 'MIB': MEBI, 'GIB': GIBI, 'TIB': TEBI, 'PIB': PEBI
     }
 
     # Why: Retrieve the appropriate divisor. If the unit is not found, raise a ValueError.
@@ -875,7 +811,7 @@ def number_to_hexadecimal(number_input: Union[int, float]) -> str:
         ValueError: If the input number is too large to be converted to an integer
                     for hexadecimal representation (relevant for very large floats).
 
-    Example of use:
+    Example:
         >>> number_to_hexadecimal(255)
         '0xff'
         >>> number_to_hexadecimal(10)
@@ -886,6 +822,8 @@ def number_to_hexadecimal(number_input: Union[int, float]) -> str:
         '0x19'
         >>> number_to_hexadecimal(-10)
         '-0xa'
+
+    **Cost:** O(log n), donde n es el valor absoluto del número.
     """
     if not isinstance(number_input, (int, float)):
         raise TypeError("Input must be an integer or a float.")
@@ -925,7 +863,7 @@ def number_to_octal(number_input: Union[int, float]) -> str:
         ValueError: If the input number is too large to be converted to an integer
                     for octal representation (relevant for very large floats).
 
-    Example of use:
+    Example:
         >>> number_to_octal(8)
         '0o10'
         >>> number_to_octal(15)
@@ -936,6 +874,8 @@ def number_to_octal(number_input: Union[int, float]) -> str:
         '0o12'
         >>> number_to_octal(-7)
         '-0o7'
+
+    **Cost:** O(log n), donde n es el valor absoluto del número.
     """
     if not isinstance(number_input, (int, float)):
         raise TypeError("Input must be an integer or a float.")
@@ -978,7 +918,7 @@ def power(base: Union[int, float], exponent: Union[int, float]) -> float:
                     (which results in a complex number, not handled here),
                     or if 0 is raised to a negative or zero exponent.
 
-    Example of use:
+    Example:
         >>> power(2, 3)
         8.0
         >>> power(9, 0.5) # Square root
@@ -987,6 +927,8 @@ def power(base: Union[int, float], exponent: Union[int, float]) -> float:
         -8.0
         >>> power(10, -2)
         0.01
+
+    **Cost:** O(1), operación de exponenciación.
     """
     if not isinstance(base, (int, float)) or not isinstance(exponent, (int, float)):
         raise TypeError("Both base and exponent must be numeric values (int or float).")
@@ -1026,13 +968,15 @@ def square_root(x: Union[int, float]) -> float:
         TypeError: If x is not numeric.
         ValueError: If x is negative.
 
-    Example of use:
+    Example:
         >>> square_root(9)
         3.0
         >>> square_root(25.0)
         5.0
         >>> square_root(0)
         0.0
+
+    **Cost:** O(1), cálculo de raíz cuadrada mediante función math.sqrt.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input 'x' must be a numeric value (int or float).")
@@ -1058,7 +1002,7 @@ def cube_root(x: Union[int, float]) -> float:
     Raises:
         TypeError: If x is not numeric.
 
-    Example of use:
+    Example:
         >>> cube_root(8)
         2.0
         >>> cube_root(27)
@@ -1067,6 +1011,8 @@ def cube_root(x: Union[int, float]) -> float:
         -2.0
         >>> cube_root(0)
         0.0
+
+    **Cost:** O(1), cálculo de raíz cúbica.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input 'x' must be a numeric value (int or float).")
@@ -1104,7 +1050,7 @@ def nth_root(x: Union[int, float], n: Union[int, float]) -> float:
         ValueError: If n is 0, or if x is negative and n is an even number,
                     or if x is 0 and n is negative.
 
-    Example of use:
+    Example:
         >>> nth_root(81, 4) # Fourth root of 81
         3.0
         >>> nth_root(1000, 3) # Cube root of 1000
@@ -1112,6 +1058,8 @@ def nth_root(x: Union[int, float], n: Union[int, float]) -> float:
         >>> nth_root(-27, 3) # Cube root of -27
         -3.0
         >>> # nth_root(-16, 2) would raise ValueError (even root of negative number)
+
+    **Cost:** O(1), cálculo de raíz n-ésima mediante exponenciación.
     """
     if not isinstance(x, (int, float)) or not isinstance(n, (int, float)):
         raise TypeError("Both x and n must be numeric values (int or float).")

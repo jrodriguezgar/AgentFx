@@ -1,3 +1,18 @@
+"""
+FormuLite - fxPython: Python Tools Module
+
+This module provides high-level utility functions for Python programming patterns.
+It includes functions for:
+- Dictionary creation from key-value pairs
+- Higher-order function execution (function_call, loop_for, loop_while)
+- Switch-case pattern implementation
+- Collection rotation and shifting operations
+- Dynamic expression evaluation on iterables
+
+All functions follow PEP standards with complete documentation including
+complexity analysis.
+"""
+
 from collections import deque
 from typing import Iterable, Any
 
@@ -28,6 +43,8 @@ def create_key_value_dictionary(p_key_columns, p_values):
         {'id': 1, 'name': 'Alice'}
         >>> create_key_value_dictionary(["product_id"], "P123")
         {'product_id': 'P123'}
+
+    **Cost:** O(n), where n is the number of key columns.
     """
     # Validate inputs to ensure they are not empty.
     if not p_key_columns or not p_values:
@@ -65,47 +82,69 @@ def create_key_value_dictionary(p_key_columns, p_values):
     return dict_keys
 
 
-def function_call(rutina: callable) -> None:
+def function_call(func: callable, *args, **kwargs) -> Any:
     """
-    Función de orden superior que ejecuta una rutina pasada como argumento.
+    Higher-order function that executes a callable with optional arguments.
+
+    This function provides a simple abstraction for executing any callable object,
+    allowing you to pass both positional and keyword arguments. It's useful for
+    building functional programming patterns and creating flexible execution flows.
 
     Args:
-        rutina (callable): La función a ejecutar.
+        func (callable): The function to execute.
+        *args: Positional arguments to pass to the function.
+        **kwargs: Keyword arguments to pass to the function.
+
+    Returns:
+        Any: The return value of the executed function.
+
+    Raises:
+        TypeError: If func is not callable.
+
+    Example of use:
+        >>> def greet(name, greeting="Hello"):
+        ...     return f"{greeting}, {name}!"
+        >>> function_call(greet, "Alice")
+        'Hello, Alice!'
+        >>> function_call(greet, "Bob", greeting="Hi")
+        'Hi, Bob!'
+
+    **Cost:** O(1) plus the cost of executing the provided function.
     """
-    print("Iniciando la ejecución de una rutina...")
+    if not callable(func):
+        raise TypeError("First argument must be a callable object.")
 
-    # Ejecuta la función que se le pasó como parámetro.
-    rutina()
-
-    print("La rutina ha finalizado su ejecución.")
+    return func(*args, **kwargs)
 
 
-def swtich_case(value, *cases, default=None):
-    """
-    Acts like a generic switch-case statement.
-
-    Iterates through a sequence of cases and returns the corresponding value
-    if a match is found. If no match is found, it returns the default value.
-
+def switch_case(value, *cases, default=None):
+    """Acts like a generic switch-case statement.
+    
+    Description:
+        Iterates through a sequence of cases and returns the corresponding value
+        if a match is found. If no match is found, returns the default value.
+    
     Args:
         value: The value to be evaluated.
         *cases: A sequence of cases where each pair consists of a key and a value.
                 Example: key1, value1, key2, value2, ...
         default: The value to return if no match is found. Defaults to None.
-
+    
     Returns:
         The value associated with the matching key, or the default value if no match.
-
+    
     Raises:
         ValueError: If the number of items in *cases is not an even number.
-
-    Example of use:
-        >>> month_name = swtich_case(2, 1, "January", 2, "February", 3, "March", default="Unknown Month")
+    
+    Usage Example:
+        >>> month_name = switch_case(2, 1, "January", 2, "February", 3, "March", default="Unknown Month")
         >>> print(month_name)
         February
-        >>> result = swtich_case("apple", "orange", 1, "apple", 2, "banana", 3)
+        >>> result = switch_case("apple", "orange", 1, "apple", 2, "banana", 3)
         >>> print(result)
         2
+    
+    Cost: O(n) where n is the number of case pairs
     """
     if len(cases) % 2 != 0:
         raise ValueError("Cases must be provided in key-value pairs.")
@@ -136,6 +175,7 @@ def loop_for(iterable, func):
         Current item: 2
         Current item: 3
 
+    **Cost:** O(n), where n is the number of items in the iterable.
     """
     for item in iterable:
         func(item)
@@ -171,6 +211,8 @@ def loop_while(condition, func, *args, **kwargs):
         Current count: 2
         Current count: 3
         Current count: 4
+
+    **Cost:** O(k), where k is the number of iterations until condition becomes False.
     """
     while condition(*args, **kwargs):
         func(*args, **kwargs)
@@ -210,6 +252,8 @@ def rotate(iterable, steps=1):
         >>> rotate_right_three = rotate(my_list, steps=3)
         >>> print(f"Rotate right three: {rotate_right_three}")
         Rotate right three: [2, 3, 4, 1]
+
+    **Cost:** O(n), where n is the number of elements in the iterable.
     """
     if not iterable:
         return []
@@ -265,6 +309,8 @@ def shift(iterable: Iterable[Any], direction: str = None, new_elements: Iterable
         >>> shifted_right = shift(my_list, direction='right', new_elements=[0, -1])
         >>> print(f"Shift right and add: {shifted_right}")
         Shift right and add: [0, -1, 1, 2, 3]
+
+    **Cost:** O(n + m), where n is the size of the iterable and m is the number of new elements.
     """
     if not iterable:
         return []
@@ -322,6 +368,8 @@ def apply_expression(expression: str, iterable: Iterable[Any]) -> list[Any]:
         >>> capitalized_strings = apply_expression('x.capitalize()', my_strings)
         >>> print(capitalized_strings)
         ['Hello', 'World']
+
+    **Cost:** O(n), where n is the number of items in the iterable.
     """
     try:
         # We use eval() to dynamically create a lambda function from the string.

@@ -1,3 +1,16 @@
+"""String Validation Functions.
+
+This module provides functions for validating and checking various properties
+of strings. It includes functions to verify the presence of specific character
+types (like digits) and to compare strings for character-level equality.
+
+Key Features:
+- Character presence validation (digits, letters)
+- Anagram detection and character comparison
+- Type-safe validation with proper error handling
+"""
+
+
 def contains_digit(input_string: str) -> bool:
     """
     Checks if the given string contains at least one digit.
@@ -24,6 +37,8 @@ def contains_digit(input_string: str) -> bool:
         False
         >>> contains_digit("123")
         True
+
+    **Cost:** O(n), where n is the length of the input string
     """
     if not isinstance(input_string, str):
         raise TypeError("Input must be a string.")
@@ -68,6 +83,8 @@ def same_letters(string_a: str, string_b: str) -> bool:
 
         >>> same_letters("", "")
         True
+
+    **Cost:** O(n log n), where n is the maximum length of the two input strings (due to sorting)
     """
     if not isinstance(string_a, str):
         raise TypeError("Input 'string_a' must be a string.")

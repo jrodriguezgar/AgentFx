@@ -1,3 +1,18 @@
+"""
+FormuLite - fxString: String Conversions Module
+
+This module provides comprehensive string conversion utilities for the FormuLite framework.
+It includes functions for:
+- Value replacement and null handling (replace_void, none_to_string)
+- String to numeric conversions (string_to_integer, string_to_float, string_to_number)
+- String to date/datetime conversions (string_to_date, string_to_datetime)
+- String splitting utilities (split_all, split_by_substrings, split_limited)
+- JSON extraction and decoding (extract_and_decode_json)
+
+All conversion functions handle edge cases, invalid inputs, and return None on failure,
+ensuring safe and predictable behavior in data processing pipelines.
+"""
+
 from datetime import datetime as dt, date
 from typing import Any, List, Optional
 import re
@@ -82,6 +97,8 @@ def none_to_string(value: str | None) -> str:
     # If 'value' is an empty string (falsy), it also returns "" as it's the second operand.
     return value or ""
 
+    # **Cost:** O(1) - constant time operation
+
 
 def string_to_integer(input_string: str) -> int | None:
     """Converts a string to an integer, returning None if conversion fails.
@@ -135,7 +152,7 @@ def string_to_integer(input_string: str) -> int | None:
         # This handles cases like multiple signs or invalid formats.
         return None
 
-    # Cost: O(N) where N is the length of the input string, due to regex and string parsing.
+    # **Cost:** O(n), where n is the length of the input string, due to regex processing
 
 
 def string_to_float(input_string: str) -> float | None:
@@ -197,7 +214,7 @@ def string_to_float(input_string: str) -> float | None:
         # This covers cases like multiple dots or invalid formats.
         return None
 
-    # Cost: O(N) where N is the number of characters in the string, due to regex and string parsing.
+    # **Cost:** O(n), where n is the length of the input string, due to regex processing
 
 
 def string_to_number(input_string: str, target_type: str = 'string') -> int | float | None:
@@ -251,8 +268,7 @@ def string_to_number(input_string: str, target_type: str = 'string') -> int | fl
         # This handles the default 'string' case or any other unrecognized type.
         return None
 
-    # Cost: O(N) where N is the length of input_string, as it calls either
-    # string_to_integer or string_to_float.
+    # **Cost:** O(n), where n is the length of input_string (delegates to string_to_integer or string_to_float)
 
 
 # Consider if you want to use a third-party library like 'dateutil.parser'
@@ -346,11 +362,7 @@ def string_to_date(input_value: str | date | dt) -> date | dt | None:
     # If the loop completes without finding a matching format, the string cannot be parsed.
     return None
 
-    # Cost: The cost of this function is approximately O(N * M), where N is the number
-    # of formats in `POSSIBLE_DATE_FORMATS` and M is the length of the `input_value`.
-    # In the worst-case scenario, the function iterates through all possible formats,
-    # and for each format, `strptime` performs operations proportional to the
-    # length of the input string.    
+    # **Cost:** O(k * m), where k is the number of formats in POSSIBLE_DATE_FORMATS and m is the length of input_value    
 
 def string_to_datetime(input_value: str | date | dt) -> dt | None:
     """
@@ -454,6 +466,8 @@ def split_all(input_string: str, delimiter_pattern: str = r'[.\-_\s,/():;\'"\\]+
     # The list comprehension efficiently filters these out.
     return [part for part in re.split(delimiter_pattern, input_string) if part]
 
+    # **Cost:** O(n), where n is the length of the input string
+
 
 def split_by_substrings(input_string: str, separators: list[str]) -> list[str]:
     """
@@ -540,6 +554,8 @@ def split_by_substrings(input_string: str, separators: list[str]) -> list[str]:
 
     return result_segments
 
+    # **Cost:** O(n + m * k), where n is the string length, m is the number of separators, and k is the number of segments
+
 
 def split_limited(input_string: str, limit: int) -> list[str]:
     """
@@ -598,6 +614,8 @@ def split_limited(input_string: str, limit: int) -> list[str]:
         # take the first 'limit' words and join the rest back into a single string.
         # This creates the desired output where excess words are grouped.
         return words[:limit] + [" ".join(words[limit:])]
+
+    # **Cost:** O(n), where n is the length of the input string
 
 
 def extract_and_decode_json(text_content: str) -> Optional[dict]:
@@ -665,4 +683,6 @@ def extract_and_decode_json(text_content: str) -> Optional[dict]:
     # If the regex pattern doesn't find a match in the input string,
     # it means no JSON block was present.
     return None
+
+    # **Cost:** O(n), where n is the length of the text content, due to regex search
 

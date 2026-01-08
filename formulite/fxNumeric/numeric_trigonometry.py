@@ -1,9 +1,32 @@
+"""Numeric Trigonometry Module.
+
+This module provides comprehensive trigonometric and hyperbolic functions,
+including standard trig functions, inverse functions, and angle conversions.
+
+Key Features:
+    - Basic trigonometric functions (sin, cos, tan)
+    - Inverse trigonometric functions (arcsin, arccos, arctan)
+    - Hyperbolic functions (sinh, cosh, tanh) and their inverses
+    - Reciprocal functions (sec, csc, cot)
+    - Angle conversions (degrees ↔ radians)
+    - Distance calculations (hypotenuse)
+
+Example:
+    >>> from formulite.fxNumeric.numeric_trigonometry import sine, degrees_to_radians
+    >>> import math
+    >>> sine(math.pi / 2)
+    1.0
+    >>> degrees_to_radians(180)
+    3.141592653589793
+"""
 import math
 from typing import Union
 
 # Constants often useful in trigonometry
 PI = math.pi
 E = math.e
+
+
 def sine(angle_radians: float) -> float:
     """
     Calculates the sine of an angle.
@@ -21,15 +44,18 @@ def sine(angle_radians: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> sine(math.pi / 2) # sin(90 degrees)
         1.0
         >>> sine(0)
         0.0
+
+    **Cost:** O(1), standard trigonometric function.
     """
     if not isinstance(angle_radians, (int, float)):
         raise TypeError("Angle must be a numeric value (int or float).")
     return math.sin(angle_radians)
+
 
 def cosine(angle_radians: float) -> float:
     """
@@ -48,15 +74,18 @@ def cosine(angle_radians: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> cosine(0) # cos(0 degrees)
         1.0
         >>> cosine(math.pi) # cos(180 degrees)
         -1.0
+
+    **Cost:** O(1), standard trigonometric function.
     """
     if not isinstance(angle_radians, (int, float)):
         raise TypeError("Angle must be a numeric value (int or float).")
     return math.cos(angle_radians)
+
 
 def tangent(angle_radians: float) -> float:
     """
@@ -77,17 +106,20 @@ def tangent(angle_radians: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the tangent is undefined (angle is an odd multiple of pi/2).
 
-    Example of use:
+    Example:
         >>> tangent(0)
         0.0
         >>> round(tangent(math.pi / 4), 10) # tan(45 degrees)
         1.0
+
+    **Cost:** O(1), standard trigonometric function.
     """
     if not isinstance(angle_radians, (int, float)):
         raise TypeError("Angle must be a numeric value (int or float).")
     # Tangent is undefined when cosine is zero (at odd multiples of pi/2).
     # We'll rely on math.tan to raise the ValueError if needed.
     return math.tan(angle_radians)
+
 
 def arcsine(x: float) -> float:
     """
@@ -107,15 +139,18 @@ def arcsine(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is outside the range [-1, 1].
 
-    Example of use:
+    Example:
         >>> arcsine(1.0) # asin(1) should be pi/2
         1.5707963267948966
         >>> arcsine(0.0)
         0.0
+
+    **Cost:** O(1), inverse trigonometric function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.asin(x)
+
 
 def arccosine(x: float) -> float:
     """
@@ -135,15 +170,18 @@ def arccosine(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is outside the range [-1, 1].
 
-    Example of use:
+    Example:
         >>> arccosine(1.0) # acos(1) should be 0
         0.0
         >>> arccosine(-1.0) # acos(-1) should be pi
         3.141592653589793
+
+    **Cost:** O(1), inverse trigonometric function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.acos(x)
+
 
 def arctangent(x: float) -> float:
     """
@@ -162,15 +200,18 @@ def arctangent(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> arctangent(1.0) # atan(1) should be pi/4
         0.7853981633974483
         >>> arctangent(0.0)
         0.0
+
+    **Cost:** O(1), inverse trigonometric function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.atan(x)
+
 
 def arctangent2(y: float, x: float) -> float:
     """
@@ -190,17 +231,20 @@ def arctangent2(y: float, x: float) -> float:
     Raises:
         TypeError: If x or y are not floats or integers.
 
-    Example of use:
+    Example:
         >>> arctangent2(1, 1) # atan2(1, 1) should be pi/4
         0.7853981633974483
         >>> arctangent2(-1, 1) # atan2(-1, 1) should be -pi/4
         -0.7853981633974483
         >>> arctangent2(1, -1) # atan2(1, -1) should be 3*pi/4
         2.356194490192345
+
+    **Cost:** O(1), atan2 function for quadrant handling.
     """
     if not all(isinstance(arg, (int, float)) for arg in [y, x]):
         raise TypeError("Both y and x must be numeric values (int or float).")
     return math.atan2(y, x)
+
 
 def hypotenuse(x: float, y: float) -> float:
     """
@@ -217,15 +261,18 @@ def hypotenuse(x: float, y: float) -> float:
     Raises:
         TypeError: If x or y are not floats or integers.
 
-    Example of use:
+    Example:
         >>> hypotenuse(3, 4)
         5.0
         >>> hypotenuse(5, 12)
         13.0
+
+    **Cost:** O(1), hypotenuse calculation using math.hypot.
     """
     if not all(isinstance(arg, (int, float)) for arg in [x, y]):
         raise TypeError("Both x and y must be numeric values (int or float).")
     return math.hypot(x, y)
+
 
 def hyperbolic_sine(x: float) -> float:
     """
@@ -243,15 +290,18 @@ def hyperbolic_sine(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> hyperbolic_sine(0)
         0.0
         >>> round(hyperbolic_sine(1), 5)
         1.1752
+
+    **Cost:** O(1), standard hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.sinh(x)
+
 
 def hyperbolic_cosine(x: float) -> float:
     """
@@ -269,15 +319,18 @@ def hyperbolic_cosine(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> hyperbolic_cosine(0)
         1.0
         >>> round(hyperbolic_cosine(1), 5)
         1.54308
+
+    **Cost:** O(1), standard hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.cosh(x)
+
 
 def hyperbolic_tangent(x: float) -> float:
     """
@@ -295,15 +348,18 @@ def hyperbolic_tangent(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> hyperbolic_tangent(0)
         0.0
         >>> round(hyperbolic_tangent(1), 5)
         0.76159
+
+    **Cost:** O(1), standard hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.tanh(x)
+
 
 def inverse_hyperbolic_sine(x: float) -> float:
     """
@@ -321,15 +377,18 @@ def inverse_hyperbolic_sine(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> inverse_hyperbolic_sine(0)
         0.0
         >>> round(inverse_hyperbolic_sine(1.1752), 5) # approximately asinh(sinh(1))
         1.0
+
+    **Cost:** O(1), inverse hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.asinh(x)
+
 
 def inverse_hyperbolic_cosine(x: float) -> float:
     """
@@ -348,15 +407,18 @@ def inverse_hyperbolic_cosine(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is less than 1.
 
-    Example of use:
+    Example:
         >>> inverse_hyperbolic_cosine(1.0)
         0.0
         >>> round(inverse_hyperbolic_cosine(1.54308), 5) # approximately acosh(cosh(1))
         1.0
+
+    **Cost:** O(1), inverse hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.acosh(x)
+
 
 def inverse_hyperbolic_tangent(x: float) -> float:
     """
@@ -375,15 +437,18 @@ def inverse_hyperbolic_tangent(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is outside the range (-1, 1).
 
-    Example of use:
+    Example:
         >>> inverse_hyperbolic_tangent(0)
         0.0
         >>> round(inverse_hyperbolic_tangent(0.76159), 5) # approximately atanh(tanh(1))
         1.0
+
+    **Cost:** O(1), inverse hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.atanh(x)
+
 
 def degrees_to_radians(degrees: float) -> float:
     """
@@ -398,15 +463,18 @@ def degrees_to_radians(degrees: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> degrees_to_radians(180)
         3.141592653589793
         >>> degrees_to_radians(90)
         1.5707963267948966
+
+    **Cost:** O(1), simple angle conversion.
     """
     if not isinstance(degrees, (int, float)):
         raise TypeError("Input must be a numeric value (int or float).")
     return math.radians(degrees)
+
 
 def radians_to_degrees(radians: float) -> float:
     """
@@ -421,11 +489,13 @@ def radians_to_degrees(radians: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> radians_to_degrees(math.pi)
         180.0
         >>> radians_to_degrees(math.pi / 2)
         90.0
+
+    **Cost:** O(1), simple angle conversion.
     """
     if not isinstance(radians, (int, float)):
         raise TypeError("Input must be a numeric value (int or float).")
@@ -433,6 +503,7 @@ def radians_to_degrees(radians: float) -> float:
 
 
 # nonintrinsic math functions that can be derived from the intrinsic math functions
+
 
 def secant(angle_radians: float) -> float:
     """
@@ -449,11 +520,13 @@ def secant(angle_radians: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If cosine(angle_radians) is zero (secant is undefined).
 
-    Example of use:
+    Example:
         >>> round(secant(0), 10) # sec(0 degrees)
         1.0
         >>> round(secant(math.pi), 10) # sec(180 degrees)
         -1.0
+
+    **Cost:** O(1), derived trigonometric function.
     """
     if not isinstance(angle_radians, (int, float)):
         raise TypeError("Angle must be a numeric value (int or float).")
@@ -461,6 +534,7 @@ def secant(angle_radians: float) -> float:
     if abs(cos_val) < 1e-9:  # Check for near-zero to avoid ZeroDivisionError
         raise ValueError("Secant is undefined for angles where cosine is zero (e.g., pi/2, 3pi/2).")
     return 1 / cos_val
+
 
 def cosecant(angle_radians: float) -> float:
     """
@@ -477,11 +551,13 @@ def cosecant(angle_radians: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If sine(angle_radians) is zero (cosecant is undefined).
 
-    Example of use:
+    Example:
         >>> round(cosecant(math.pi / 2), 10) # cosec(90 degrees)
         1.0
         >>> round(cosecant(3 * math.pi / 2), 10) # cosec(270 degrees)
         -1.0
+
+    **Cost:** O(1), derived trigonometric function.
     """
     if not isinstance(angle_radians, (int, float)):
         raise TypeError("Angle must be a numeric value (int or float).")
@@ -489,6 +565,7 @@ def cosecant(angle_radians: float) -> float:
     if abs(sin_val) < 1e-9:  # Check for near-zero to avoid ZeroDivisionError
         raise ValueError("Cosecant is undefined for angles where sine is zero (e.g., 0, pi, 2pi).")
     return 1 / sin_val
+
 
 def cotangent(angle_radians: float) -> float:
     """
@@ -505,10 +582,12 @@ def cotangent(angle_radians: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If tangent(angle_radians) is zero or undefined (cotangent is undefined).
 
-    Example of use:
+    Example:
         >>> round(cotangent(math.pi / 4), 10) # cot(45 degrees)
         1.0
         >>> # cotangent(0) would raise ValueError
+
+    **Cost:** O(1), derived trigonometric function.
     """
     if not isinstance(angle_radians, (int, float)):
         raise TypeError("Angle must be a numeric value (int or float).")
@@ -516,6 +595,7 @@ def cotangent(angle_radians: float) -> float:
     if abs(tan_val) < 1e-9:  # Check for near-zero to avoid ZeroDivisionError, also handles tan undefined cases
         raise ValueError("Cotangent is undefined for angles where tangent is zero or undefined (e.g., 0, pi, pi/2).")
     return 1 / tan_val
+
 
 def inverse_secant(x: float) -> float:
     """
@@ -536,13 +616,15 @@ def inverse_secant(x: float) -> float:
         ValueError: If the input value x is outside the domain |x| >= 1
                     or if x*x - 1 is negative (square root of negative number).
 
-    Example of use:
+    Example:
         >>> round(inverse_secant(1.0), 10) # arcsec(1) should be 0
         0.0
         >>> round(inverse_secant(-1.0), 10) # arcsec(-1) should be pi
         3.1415926536
         >>> round(inverse_secant(2.0), 10) # arcsec(2) should be pi/3 (60 degrees)
         1.0471975512
+
+    **Cost:** O(1), inverse trigonometric function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -577,6 +659,7 @@ def inverse_secant(x: float) -> float:
     #     if x == -1.0: return math.pi
     #     raise
 
+
 def inverse_cosecant(x: float) -> float:
     """
     Calculates the inverse cosecant (arccosec) of a value.
@@ -596,13 +679,15 @@ def inverse_cosecant(x: float) -> float:
         ValueError: If the input value x is outside the domain |x| >= 1
                     or if x*x - 1 is negative (square root of negative number).
 
-    Example of use:
+    Example:
         >>> round(inverse_cosecant(1.0), 10) # arccosec(1) should be pi/2
         1.5707963268
         >>> round(inverse_cosecant(-1.0), 10) # arccosec(-1) should be -pi/2
         -1.5707963268
         >>> round(inverse_cosecant(2.0), 10) # arccosec(2) should be pi/6 (30 degrees)
         0.5235987756
+
+    **Cost:** O(1), inverse trigonometric function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -632,6 +717,7 @@ def inverse_cosecant(x: float) -> float:
     #     if x == -1.0: return -math.pi / 2
     #     raise
 
+
 def inverse_cotangent(x: float) -> float:
     """
     Calculates the inverse cotangent (arccotan) of a value.
@@ -649,13 +735,15 @@ def inverse_cotangent(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> round(inverse_cotangent(1.0), 10) # arccot(1) should be pi/4 (0.785...)
         0.7853981634
         >>> round(inverse_cotangent(0.0), 10) # arccot(0) should be pi/2
         1.5707963268
         >>> round(inverse_cotangent(-1.0), 10) # arccot(-1) should be 3pi/4
         2.3561944902
+
+    **Cost:** O(1), inverse trigonometric function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -667,6 +755,7 @@ def inverse_cotangent(x: float) -> float:
     # The provided formula Arccotan(X) = Atn(X) + 2 * Atn(1) = atan(x) + pi/2
     # This formula gives results in (0, pi) for all x.
     # return math.atan(x) + math.pi / 2
+
 
 # Hyperbolic Functions (already present in math module, but defined for completeness following your list)
 def hyperbolic_sine_derived(x: float) -> float:
@@ -684,15 +773,18 @@ def hyperbolic_sine_derived(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> hyperbolic_sine_derived(0)
         0.0
         >>> round(hyperbolic_sine_derived(1), 5)
         1.17520
+
+    **Cost:** O(1), hyperbolic function derived from exponentials.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return (math.exp(x) - math.exp(-x)) / 2
+
 
 def hyperbolic_cosine_derived(x: float) -> float:
     """
@@ -709,15 +801,18 @@ def hyperbolic_cosine_derived(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> hyperbolic_cosine_derived(0)
         1.0
         >>> round(hyperbolic_cosine_derived(1), 5)
         1.54308
+
+    **Cost:** O(1), hyperbolic function derived from exponentials.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return (math.exp(x) + math.exp(-x)) / 2
+
 
 def hyperbolic_tangent_derived(x: float) -> float:
     """
@@ -736,11 +831,13 @@ def hyperbolic_tangent_derived(x: float) -> float:
         ValueError: If the denominator is zero (which only happens for specific complex values,
                     not for real numbers).
 
-    Example of use:
+    Example:
         >>> hyperbolic_tangent_derived(0)
         0.0
         >>> round(hyperbolic_tangent_derived(1), 5)
         0.76159
+
+    **Cost:** O(1), hyperbolic function derived from exponentials.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -749,6 +846,7 @@ def hyperbolic_tangent_derived(x: float) -> float:
     if abs(denominator) < 1e-9: # Should not happen for real x
         raise ValueError("Hyperbolic tangent is undefined.")
     return numerator / denominator
+
 
 def hyperbolic_secant(x: float) -> float:
     """
@@ -766,11 +864,13 @@ def hyperbolic_secant(x: float) -> float:
         ValueError: If the denominator is zero (which only happens for specific complex values,
                     not for real numbers).
 
-    Example of use:
+    Example:
         >>> round(hyperbolic_secant(0), 10)
         1.0
         >>> round(hyperbolic_secant(1), 5)
         0.64805
+
+    **Cost:** O(1), derived hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -778,6 +878,7 @@ def hyperbolic_secant(x: float) -> float:
     if abs(denominator) < 1e-9: # Should not happen for real x
         raise ValueError("Hyperbolic secant is undefined.")
     return 2 / denominator
+
 
 def hyperbolic_cosecant(x: float) -> float:
     """
@@ -794,10 +895,12 @@ def hyperbolic_cosecant(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If x is 0 (hyperbolic cosecant is undefined).
 
-    Example of use:
+    Example:
         >>> round(hyperbolic_cosecant(1), 5)
         0.85091
         >>> # hyperbolic_cosecant(0) would raise ValueError
+
+    **Cost:** O(1), derived hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -805,6 +908,7 @@ def hyperbolic_cosecant(x: float) -> float:
     if abs(denominator) < 1e-9: # This happens if x is very close to 0
         raise ValueError("Hyperbolic cosecant is undefined when x is 0.")
     return 2 / denominator
+
 
 def hyperbolic_cotangent(x: float) -> float:
     """
@@ -821,10 +925,12 @@ def hyperbolic_cotangent(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If x is 0 (hyperbolic cotangent is undefined).
 
-    Example of use:
+    Example:
         >>> round(hyperbolic_cotangent(1), 5)
         1.31303
         >>> # hyperbolic_cotangent(0) would raise ValueError
+
+    **Cost:** O(1), derived hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -833,6 +939,7 @@ def hyperbolic_cotangent(x: float) -> float:
     if abs(denominator) < 1e-9: # This happens if x is very close to 0
         raise ValueError("Hyperbolic cotangent is undefined when x is 0.")
     return numerator / denominator
+
 
 # Inverse Hyperbolic Functions (some already present in math module)
 def inverse_hyperbolic_sine_derived(x: float) -> float:
@@ -850,15 +957,18 @@ def inverse_hyperbolic_sine_derived(x: float) -> float:
     Raises:
         TypeError: If the input is not a float or an integer.
 
-    Example of use:
+    Example:
         >>> inverse_hyperbolic_sine_derived(0)
         0.0
         >>> round(inverse_hyperbolic_sine_derived(1), 10)
         0.881373587
+
+    **Cost:** O(1), inverse hyperbolic function derived from logarithm.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     return math.log(x + math.sqrt(x * x + 1))
+
 
 def inverse_hyperbolic_cosine_derived(x: float) -> float:
     """
@@ -877,17 +987,20 @@ def inverse_hyperbolic_cosine_derived(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is less than 1.
 
-    Example of use:
+    Example:
         >>> inverse_hyperbolic_cosine_derived(1.0)
         0.0
         >>> round(inverse_hyperbolic_cosine_derived(2.0), 10)
         1.3169578969
+
+    **Cost:** O(1), inverse hyperbolic function derived from logarithm.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
     if x < 1:
         raise ValueError("Domain error: Input for inverse hyperbolic cosine must be X >= 1.")
     return math.log(x + math.sqrt(x * x - 1))
+
 
 def inverse_hyperbolic_tangent_derived(x: float) -> float:
     """
@@ -906,11 +1019,13 @@ def inverse_hyperbolic_tangent_derived(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is outside the range (-1, 1).
 
-    Example of use:
+    Example:
         >>> inverse_hyperbolic_tangent_derived(0)
         0.0
         >>> round(inverse_hyperbolic_tangent_derived(0.5), 10)
         0.5493061443
+
+    **Cost:** O(1), inverse hyperbolic function derived from logarithm.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -923,6 +1038,7 @@ def inverse_hyperbolic_tangent_derived(x: float) -> float:
         raise ValueError("Domain error: Input for inverse hyperbolic tangent cannot be 1 or -1.")
         
     return math.log((1 + x) / (1 - x)) / 2
+
 
 def inverse_hyperbolic_secant(x: float) -> float:
     """
@@ -942,11 +1058,13 @@ def inverse_hyperbolic_secant(x: float) -> float:
                     Also if -X*X + 1 is negative (square root of negative number)
                     or if X is zero (division by zero).
 
-    Example of use:
+    Example:
         >>> round(inverse_hyperbolic_secant(1.0), 10)
         0.0
         >>> round(inverse_hyperbolic_secant(0.5), 10)
         1.3169578969
+
+    **Cost:** O(1), inverse hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -962,6 +1080,7 @@ def inverse_hyperbolic_secant(x: float) -> float:
         raise ValueError("Division by zero: Input X cannot be zero.")
 
     return math.log((math.sqrt(-x * x + 1) + 1) / x)
+
 
 def inverse_hyperbolic_cosecant(x: float) -> float:
     """
@@ -979,11 +1098,13 @@ def inverse_hyperbolic_cosecant(x: float) -> float:
         TypeError: If the input is not a float or an integer.
         ValueError: If the input value x is 0 (division by zero).
 
-    Example of use:
+    Example:
         >>> round(inverse_hyperbolic_cosecant(1.0), 10)
         0.881373587
         >>> round(inverse_hyperbolic_cosecant(-1.0), 10)
         -0.881373587
+
+    **Cost:** O(1), inverse hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
@@ -994,6 +1115,7 @@ def inverse_hyperbolic_cosecant(x: float) -> float:
     sgn_x = 1 if x > 0 else -1
 
     return math.log((sgn_x * math.sqrt(x * x + 1) + 1) / x)
+
 
 def inverse_hyperbolic_cotangent(x: float) -> float:
     """
@@ -1012,11 +1134,13 @@ def inverse_hyperbolic_cotangent(x: float) -> float:
         ValueError: If the input value x is outside the domain |X| > 1
                     or if X is 1 or -1 (division by zero).
 
-    Example of use:
+    Example:
         >>> round(inverse_hyperbolic_cotangent(2.0), 10)
         0.5493061443
         >>> round(inverse_hyperbolic_cotangent(-2.0), 10)
         -0.5493061443
+
+    **Cost:** O(1), inverse hyperbolic function.
     """
     if not isinstance(x, (int, float)):
         raise TypeError("Input value must be a numeric value (int or float).")
