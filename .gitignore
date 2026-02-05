@@ -238,3 +238,14 @@ docs/
 examples/
 notebooks/
 ToDo/
+
+# API Keys and Secrets (any subdirectory)
+**/*key*.txt
+**/*key*.csv
+**/*key*.json
+**/*key*.cfg
+**/*secret*.txt
+**/*secret*.csv
+**/*secret*.json
+**/*secret*.toml
+**/*secret*.cfg
