@@ -5,6 +5,7 @@ strings according to various conventions and requirements. It includes utilities
 for formatting names, addresses, identifiers, and other text data.
 
 Key Features:
+- Data masking and anonymization
 - Date and number formatting
 - Name and company name formatting
 - Email, URL, and domain formatting
@@ -48,6 +49,82 @@ _RE_NUMBERS_AND_DOTS = re.compile(r'[0-9.]')
 
 # Pre-compiled patterns for format_email_address and format_url
 _RE_EMAIL_VALID_CHARS = re.compile(r'[^a-zA-Z0-9.!#$%&\'*+/=?^_`{|}~@-]')
+
+
+def mask_data(
+    input_string: str,
+    mask_char: str = "*",
+    num_chars: Optional[int] = None,
+    position: str = "all",
+    start_index: int = 0,
+    keep_visible: int = 0
+) -> str:
+    """Mask sensitive data based on various patterns.
+
+    Description:
+        Obfuscates parts of a string to protect sensitive information like 
+        passwords, credit card numbers, or IDs. Supports multiple masking 
+        strategies (start, end, full, or specific range).
+
+    Args:
+        input_string (str): The string to be masked.
+        mask_char (str): Character used for masking. Defaults to '*'.
+        num_chars (Optional[int]): Total characters to obfuscate. If None, 
+                                    calculates based on 'position' and 'keep_visible'.
+        position (str): 'all' (entire string), 'start' (mask prefix), 
+                        'end' (mask suffix), or 'index' (mask range).
+        start_index (int): Offset to start masking (only if position='index').
+        keep_visible (int): Characters to preserve (unmasked) at the end 
+                            (if position='start') or start (if position='end').
+
+    Returns:
+        str: The obfuscated string.
+
+    Complexity: 
+        O(N) where N is the length of input_string.
+
+    Examples:
+        >>> mask_data("123456789", position="start", num_chars=4)
+        '****56789'
+        >>> mask_data("123456789", position="end", keep_visible=3)
+        '123******'
+        >>> mask_data("John Doe", position="index", start_index=2, num_chars=3)
+        'Jo***Doe'
+        >>> mask_data("password", mask_char="#")
+        '########'
+    """
+    if not input_string:
+        return ""
+    
+    length = len(input_string)
+    
+    if position == "all":
+        count = num_chars if num_chars is not None else length
+        return mask_char * min(count, length)
+    
+    if position == "start":
+        count = num_chars if num_chars is not None else (length - keep_visible)
+        count = max(0, min(count, length))
+        return (mask_char * count) + input_string[count:]
+    
+    if position == "end":
+        count = num_chars if num_chars is not None else (length - keep_visible)
+        count = max(0, min(count, length))
+        return input_string[:length - count] + (mask_char * count)
+    
+    if position == "index":
+        count = num_chars if num_chars is not None else (length - start_index)
+        if start_index < 0 or start_index >= length:
+            return input_string
+        
+        end_idx = min(start_index + count, length)
+        return (
+            input_string[:start_index] + 
+            (mask_char * (end_idx - start_index)) + 
+            input_string[end_idx:]
+        )
+    
+    return input_string
 
 
 def normalize_text(text: str) -> str:

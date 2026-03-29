@@ -2407,6 +2407,72 @@ def distinct_words(input_string: str, case_sensitive: bool = False) -> list[str]
     return result_list
 
 
+def distinct_split(
+    text: str,
+    separator: str = ";",
+    *,
+    strip_tokens: bool = True,
+    case_sensitive: bool = True,
+) -> str:
+    """Split a delimited string, remove duplicate tokens, and re-join.
+
+    Combines ``str.split`` with first-occurrence deduplication in a single
+    pass.  Useful for cleaning fields that accumulate repeated values
+    after concatenation (e.g. licence lists separated by ``";"``).  Empty
+    tokens (or tokens that become empty after stripping) are silently
+    discarded.
+
+    Args:
+        text: The delimited string to process.
+        separator: Delimiter used to split **and** re-join tokens.
+        strip_tokens: If ``True`` (default), leading/trailing whitespace
+            is stripped from each token before comparison and output.
+        case_sensitive: If ``True`` (default), ``"Office365"`` and
+            ``"office365"`` are treated as different tokens.  When
+            ``False`` the first-seen casing is preserved in the output.
+
+    Returns:
+        A string with unique tokens joined by *separator*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> distinct_split("Office365;PowerBI;Office365;Visio;PowerBI")
+        'Office365;PowerBI;Visio'
+
+        >>> distinct_split("a ; b ; a ; c", separator=";")
+        'a;b;c'
+
+        >>> distinct_split("Alpha;alpha;ALPHA", case_sensitive=False)
+        'Alpha'
+
+        >>> distinct_split("x|y|x|z", separator="|")
+        'x|y|z'
+
+        >>> distinct_split("one,,two,,one", separator=",")
+        'one,two'
+
+    Cost:
+        O(n) where n is the length of *text*.  Uses a single
+        iteration with a ``set`` for O(1) membership checks.
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input 'text' must be a string.")
+
+    seen: set[str] = set()
+    unique: list[str] = []
+
+    for token in text.split(separator):
+        cleaned = token.strip() if strip_tokens else token
+        key = cleaned if case_sensitive else cleaned.lower()
+        if key and key not in seen:
+            seen.add(key)
+            unique.append(cleaned)
+
+    return separator.join(unique)
+
+
 def move_word(input_string: str, from_index: int, to_index: int) -> str:
     """
     Moves a word from one position to another within a string.

@@ -94,6 +94,7 @@ The fxString module provides comprehensive string manipulation functions for For
 - [erase_lrspaces](#erase_lrspaces) - Removes leading and trailing spaces from string
 - [erase_allspaces](#erase_allspaces) - Removes all spaces from string
 - [distinct_words](#distinct_words) - Returns list of unique words from string
+- [distinct_split](#distinct_split) - Splits delimited string, removes duplicates, re-joins
 - [move_word](#move_word) - Moves word from one position to another
 - [concatenate_strings](#concatenate_strings) - Concatenates two strings together
 - [add_quotes](#add_quotes) - Adds quotes around string (single or double)
@@ -183,6 +184,7 @@ The fxString module provides comprehensive string manipulation functions for For
 
 **D**
 - [distinct_words](#distinct_words) - Returns list of unique words from string
+- [distinct_split](#distinct_split) - Splits delimited string, removes duplicates, re-joins
 - [domain_from_email](#domain_from_email) - Extracts domain portion from email address
 
 **E**
@@ -1182,6 +1184,41 @@ Returns a list of unique words from a string.
 ```
 
 **Cost:** O(n), where n is the length of the input string
+
+---
+
+### distinct_split
+
+Splits a delimited string, removes duplicate tokens preserving first-occurrence order, and re-joins with the same separator. Useful for cleaning fields that accumulate repeated values after concatenation.
+
+**Args:**
+- `text` (str): The delimited string to process
+- `separator` (str): Delimiter used to split and re-join tokens. Defaults to `";"`
+- `strip_tokens` (bool): Strip whitespace from each token before comparison. Defaults to True
+- `case_sensitive` (bool): Whether to distinguish between uppercase and lowercase tokens. Defaults to True
+
+**Returns:**
+- str: A string with unique tokens joined by the separator
+
+**Raises:**
+- TypeError: If `text` is not a string
+
+**Usage Example:**
+```python
+>>> distinct_split("Office365;PowerBI;Office365;Visio;PowerBI")
+'Office365;PowerBI;Visio'
+
+>>> distinct_split("a ; b ; a ; c", separator=";")
+'a;b;c'
+
+>>> distinct_split("Alpha;alpha;ALPHA", case_sensitive=False)
+'Alpha'
+
+>>> distinct_split("x|y|x|z", separator="|")
+'x|y|z'
+```
+
+**Cost:** O(n), where n is the length of the text
 
 ---
 

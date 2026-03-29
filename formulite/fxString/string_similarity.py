@@ -1,22 +1,7 @@
-"""String Similarity and Comparison Functions.
-
-This module provides advanced algorithms for measuring similarity between
-strings using various metrics. It includes both exact and fuzzy matching
-techniques, phonetic algorithms, and edit distance calculations.
-
-Key Features:
-- Multiple similarity algorithms (Levenshtein, Jaro-Winkler, Jaccard, etc.)
-- Phonetic matching (Metaphone, MRA)
-- Edit distance calculations
-- Word and character comparison
-- Longest common subsequence
-- Configurable similarity thresholds
-- Batch comparison utilities
-
-"""
-
 import sys
+import os
 import importlib
+import subprocess
 import difflib
 from collections import deque
 from typing import Union, List, Dict, Any, Tuple, Optional, Literal
@@ -31,10 +16,54 @@ AlgorithmType = Literal[
     'jaccard', 'lcs'
 ]
 
+
+def _is_uv_managed_environment() -> bool:
+    """Check if the current Python environment is managed by uv."""
+    # Check if running via 'uv run' (UV_PROJECT_ENVIRONMENT is set)
+    if os.environ.get('UV_PROJECT_ENVIRONMENT'):
+        return True
+    # Check if python is in uv's managed path
+    if 'uv' in sys.executable.lower():
+        return True
+    # Check pyvenv.cfg in the venv directory (from executable path)
+    exe_dir = os.path.dirname(sys.executable)
+    venv_dir = os.path.dirname(exe_dir)
+    pyvenv_cfg = os.path.join(venv_dir, 'pyvenv.cfg')
+    if os.path.exists(pyvenv_cfg):
+        try:
+            with open(pyvenv_cfg, 'r') as f:
+                content = f.read()
+                if 'uv =' in content or 'uv=' in content:
+                    return True
+        except:
+            pass
+    # Fallback: Check VIRTUAL_ENV environment variable
+    venv = os.environ.get('VIRTUAL_ENV', '')
+    if venv and os.path.exists(os.path.join(venv, 'pyvenv.cfg')):
+        try:
+            with open(os.path.join(venv, 'pyvenv.cfg'), 'r') as f:
+                content = f.read()
+                if 'uv =' in content or 'uv=' in content:
+                    return True
+        except:
+            pass
+    return False
+
+
+def _find_pyproject_dir() -> str:
+    """Find the directory containing pyproject.toml."""
+    current = os.getcwd()
+    while current != os.path.dirname(current):
+        if os.path.exists(os.path.join(current, 'pyproject.toml')):
+            return current
+        current = os.path.dirname(current)
+    return None
+
+
 def _lazy_import(module_name: str, package_name: str = None):
     """
     Intenta importar un módulo de forma perezosa. Si el módulo no está
-    disponible, imprime un mensaje sugiriendo la instalación con pip.
+    disponible, intenta instalarlo con uv o pip. Si falla, retorna None.
 
     Args:
         module_name (str): El nombre del módulo a importar (ej. 'metaphone').
@@ -43,10 +72,7 @@ def _lazy_import(module_name: str, package_name: str = None):
                             Si es None, se usa module_name.
 
     Returns:
-        module: El módulo importado.
-
-    Raises:
-        ImportError: Si el módulo no se puede importar después de la sugerencia.
+        module: El módulo importado, o None si no está disponible.
     """
     if module_name in _lazy_loaded_modules:
         return _lazy_loaded_modules[module_name]
@@ -57,20 +83,72 @@ def _lazy_import(module_name: str, package_name: str = None):
         return module
     except ImportError:
         install_name = package_name if package_name else module_name
-        print(f"Error: La librería '{module_name}' no está instalada.")
-        print(f"Por favor, instálala usando: pip install {install_name}")
-        # En un entorno real, podrías intentar instalarla aquí,
-        # pero en este entorno restringido, solo podemos sugerirlo.
-        import subprocess
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", install_name])
-            module = importlib.import_module(module_name)
-            _lazy_loaded_modules[module_name] = module
-            return module
-        except Exception as e:
-            print(f"No se pudo instalar '{install_name}' automáticamente: {e}")
-            #raise
-        raise # Re-lanza el error para que el programa sepa que la dependencia no está disponible
+        print(f"Warning: La librería '{module_name}' no está instalada.")
+        
+        installed = False
+        
+        # Strategy 1: uv add (for uv-managed projects with pyproject.toml)
+        if _is_uv_managed_environment():
+            project_dir = _find_pyproject_dir()
+            if project_dir:
+                print(f"Intentando instalar: uv add {install_name}")
+                try:
+                    subprocess.check_call(["uv", "add", install_name], cwd=project_dir)
+                    installed = True
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    pass
+            
+            # Strategy 2: uv pip install (for uv without pyproject.toml)
+            if not installed:
+                print(f"Intentando instalar: uv pip install {install_name}")
+                try:
+                    subprocess.check_call(["uv", "pip", "install", install_name, "--python", sys.executable])
+                    installed = True
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    pass
+        
+        # Strategy 3: Standard pip
+        if not installed:
+            print(f"Intentando instalar: pip install {install_name}")
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", install_name])
+                installed = True
+            except subprocess.CalledProcessError:
+                # Strategy 4: pip with --break-system-packages (PEP 668)
+                try:
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", install_name, "--break-system-packages"])
+                    installed = True
+                except subprocess.CalledProcessError:
+                    pass
+        
+        if installed:
+            # CRITICAL: Refresh finder caches
+            importlib.invalidate_caches()
+            
+            # Clear module from sys.modules if cached as failed
+            if module_name in sys.modules:
+                del sys.modules[module_name]
+            to_remove = [key for key in sys.modules if key.startswith(module_name + '.')]
+            for key in to_remove:
+                del sys.modules[key]
+            
+            try:
+                module = importlib.import_module(module_name)
+                _lazy_loaded_modules[module_name] = module
+                print(f"✓ '{install_name}' installed and '{module_name}' loaded")
+                return module
+            except ImportError as e:
+                print(f"✗ '{install_name}' installed but import '{module_name}' failed: {e}")
+                _lazy_loaded_modules[module_name] = None
+                return None
+        else:
+            print(f"✗ No se pudo instalar '{install_name}' automáticamente.")
+            print(f"  Instala manualmente usando uno de:")
+            print(f"    - uv add {install_name}")
+            print(f"    - uv pip install {install_name} --python {sys.executable}")
+            print(f"    - {sys.executable} -m pip install {install_name} --break-system-packages")
+            _lazy_loaded_modules[module_name] = None
+            return None
 
 
 def calculate_similarity(
@@ -392,6 +470,9 @@ class WordSimilarity:
             return True
         
         metaphone = _lazy_import('metaphone') # Importación perezosa
+        if metaphone is None:
+            # Fallback: si metaphone no está disponible, usar comparación simple
+            return word1.lower() == word2.lower()
         meta1 = metaphone.doublemetaphone(word1.lower()) # Convertir a minúsculas para consistencia
         meta2 = metaphone.doublemetaphone(word2.lower()) # Convertir a minúsculas para consistencia
         return any(m in meta2 for m in meta1 if m)
@@ -478,7 +559,11 @@ class WordSimilarity:
         if not word1: # Si ambas son cadenas vacías, la distancia es 0, similitud 1.0
             return 1.0
         jellyfish = _lazy_import('jellyfish') # Importación perezosa
-        dist = jellyfish.hamming_distance(word1, word2)
+        if jellyfish is None:
+            # Fallback: calcular distancia de Hamming manualmente
+            dist = sum(c1 != c2 for c1, c2 in zip(word1, word2))
+        else:
+            dist = jellyfish.hamming_distance(word1, word2)
         return 1 - dist / len(word1)
 
     @staticmethod

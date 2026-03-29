@@ -481,17 +481,17 @@ def nif_parse(nif: Optional[str]) -> Optional[str]:
         initial_letter = number_part[0]
         digits = number_part[1:]
 
-        # Calculate sum of even-indexed digits (1-based, so 2nd, 4th, 6th digits).
-        # Each digit is multiplied by 2, and if the result is two digits, they are summed.
-        even_sum = 0
-        for i in range(1, 7, 2):
-            digit = int(digits[i]) * 2
-            even_sum += (digit // 10) + (digit % 10)
-
-        # Calculate sum of odd-indexed digits (1-based, so 1st, 3rd, 5th, 7th digits).
+        # Per AEAT (RD 1065/2007), positions are 1-based:
+        # Odd positions (1st,3rd,5th,7th → 0-indexed 0,2,4,6) → multiply by 2, sum digits
         odd_sum = 0
         for i in range(0, 7, 2):
-            odd_sum += int(digits[i])
+            digit = int(digits[i]) * 2
+            odd_sum += (digit // 10) + (digit % 10)
+
+        # Even positions (2nd,4th,6th → 0-indexed 1,3,5) → sum directly
+        even_sum = 0
+        for i in range(1, 7, 2):
+            even_sum += int(digits[i])
 
         total_sum = even_sum + odd_sum
         sum_unit_digit = total_sum % 10
@@ -501,8 +501,8 @@ def nif_parse(nif: Optional[str]) -> Optional[str]:
         control_letters = "JABCDEFGHI"
 
         # Validate based on the initial letter type.
-        # Different ranges of initial letters have different control character rules.
-        if initial_letter in "PQRSW":
+        # CIF control type per AEAT (RD 1065/2007).
+        if initial_letter in "KPQRSW":
             # For these letters, the control character must be a letter.
             if control_part == control_letters[control_digit]:
                 return processed_nif
@@ -511,7 +511,7 @@ def nif_parse(nif: Optional[str]) -> Optional[str]:
             if control_part == str(control_digit):
                 return processed_nif
         else:
-            # For other letters, it can be either a digit or a letter.
+            # For other letters (C,D,F,G,J,L,M,N,U,V), it can be either.
             if control_part == str(control_digit) or control_part == control_letters[control_digit]:
                 return processed_nif
         return None
