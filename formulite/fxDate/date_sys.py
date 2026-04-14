@@ -5,8 +5,8 @@ including current datetime, date, time, year, month, day, weekday, and timezone-
 operations. All 'current_*' functions return information based on the system's local time.
 """
 
-from datetime import datetime, timedelta
-from typing import Union, Optional
+from datetime import datetime
+from typing import Optional
 import calendar
 import zoneinfo
 
@@ -412,3 +412,169 @@ def get_local_now(tz: Optional[str] = None) -> datetime:
         except Exception as e:
             # Capturar cualquier otro error inesperado.
             raise RuntimeError(f"An unexpected error occurred while getting local time for timezone '{tz}': {e}")
+
+
+def seconds_since_midnight() -> float:
+    """Returns the number of seconds elapsed since midnight of the current day.
+
+    Description:
+        Equivalent to VBA's Timer function. Useful for benchmarking, daily
+        scheduling offsets, or computing elapsed durations within a day.
+
+    Returns:
+        float: Seconds (with fractional microseconds) since 00:00:00 today.
+
+    Example:
+        >>> from formulite.fxDate.date_sys import seconds_since_midnight
+        >>> secs = seconds_since_midnight()
+        >>> 0 <= secs < 86400
+        True
+
+    Complexity: O(1)
+    """
+    now = datetime.now()
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return (now - midnight).total_seconds()
+
+
+def current_quarter() -> int:
+    """Returns the current quarter of the year (1-4).
+
+    Description:
+        Delegates to ``date_operations.get_quarter`` using today's date.
+
+    Returns:
+        int: Quarter number (1 for Jan-Mar, 4 for Oct-Dec).
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_quarter
+        >>> current_quarter()  # For March 2026
+        1
+
+    Complexity: O(1)
+    """
+    return date_ops.get_quarter(datetime.now())
+
+
+def current_week_number() -> int:
+    """Returns the current ISO week number (1-53).
+
+    Description:
+        Delegates to ``datetime.isocalendar`` for the current date.
+
+    Returns:
+        int: ISO 8601 week number.
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_week_number
+        >>> current_week_number()  # For 2026-01-05
+        2
+
+    Complexity: O(1)
+    """
+    return datetime.now().isocalendar()[1]
+
+
+def current_month_name(language: str = 'en') -> str:
+    """Returns the name of the current month in the specified language.
+
+    Description:
+        Delegates to ``date_operations.month_name`` using today's date.
+
+    Args:
+        language: Two-letter ISO 639-1 language code. Defaults to ``'en'``.
+
+    Returns:
+        str: Full month name (e.g. ``'January'``, ``'Enero'``).
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_month_name
+        >>> current_month_name('en')  # For January
+        'January'
+
+    Complexity: O(1)
+    """
+    return date_ops.month_name(datetime.now(), language)
+
+
+def current_first_day_of_month() -> datetime:
+    """Returns the first day of the current month at midnight.
+
+    Description:
+        Delegates to ``date_operations.start_of_month`` using today's date.
+
+    Returns:
+        datetime: First day of the current month at 00:00:00.
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_first_day_of_month
+        >>> current_first_day_of_month()  # For March 2026
+        datetime.datetime(2026, 3, 1, 0, 0)
+
+    Complexity: O(1)
+    """
+    return date_ops.start_of_month(datetime.now())
+
+
+def current_is_leap_year() -> bool:
+    """Checks if the current year is a leap year.
+
+    Description:
+        Delegates to ``date_operations.is_leap_year`` using the current year.
+
+    Returns:
+        bool: True if the current year is a leap year, False otherwise.
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_is_leap_year
+        >>> current_is_leap_year()  # For 2026
+        False
+
+    Complexity: O(1)
+    """
+    return date_ops.is_leap_year(datetime.now().year)
+
+
+def current_days_in_month() -> int:
+    """Returns the number of days in the current month.
+
+    Description:
+        Delegates to ``date_operations.days_in_month`` using the current
+        year and month.
+
+    Returns:
+        int: Number of days in the current month (28-31).
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_days_in_month
+        >>> current_days_in_month()  # For April 2026
+        30
+
+    Complexity: O(1)
+    """
+    now = datetime.now()
+
+    return date_ops.days_in_month(now.year, now.month)
+
+
+def current_season(hemisphere: str = 'northern', lang: str = 'en') -> str:
+    """Returns the current season of the year.
+
+    Description:
+        Delegates to ``date_operations.get_season`` using today's date.
+
+    Args:
+        hemisphere: ``'northern'`` or ``'southern'``. Defaults to ``'northern'``.
+        lang: Two-letter ISO 639-1 language code. Defaults to ``'en'``.
+
+    Returns:
+        str: Season name (e.g. ``'Spring'``, ``'Primavera'``).
+
+    Example:
+        >>> from formulite.fxDate.date_sys import current_season
+        >>> current_season('northern', 'en')  # For April 2026
+        'Spring'
+
+    Complexity: O(1)
+    """
+    return date_ops.get_season(datetime.now(), hemisphere, lang)

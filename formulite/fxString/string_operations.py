@@ -16,13 +16,18 @@ Key Features:
 
 """
 
-import collections
 from typing import Optional, Dict, List, Iterable
 import re
 import unicodedata
 import difflib
 import random
 import string
+
+from formulite.fxString.string_convertions import (
+    code_from_char as _core_code_from_char,
+    char_from_code as _core_char_from_code,
+)
+from formulite.fxString.string_caseconv import to_slug as _core_to_slug
 
 
 # Pre-compiled regex patterns for optimization
@@ -83,8 +88,7 @@ def ascii_from_char(character: str) -> int:
     if not character:  # Comprueba si la cadena está vacía
         raise ValueError("La cadena de entrada no puede estar vacía.")
 
-    # ord() devuelve el código Unicode de un carácter
-    return ord(character[0])
+    return _core_code_from_char(character)
 
 
 def char_from_ascii(integer_code: int) -> str:
@@ -118,10 +122,8 @@ def char_from_ascii(integer_code: int) -> str:
         raise TypeError("La entrada debe ser un entero.")
 
     try:
-        # char_from_ascii() convierte un entero a un carácter Unicode
-        return char_from_ascii(integer_code)
-    except ValueError as e:
-        # Captura errores si el código no es un punto de código Unicode válido
+        return _core_char_from_code(integer_code)
+    except (TypeError, ValueError) as e:
         raise ValueError(f"El valor entero está fuera del rango de códigos Unicode válidos: {e}")
     
 
@@ -621,6 +623,111 @@ def replace_last_occurrence(
     # Reconstruct the string by combining the part before the last occurrence,
     # the new substring, and the part after the last occurrence.
     return text[:last_index] + new_substring + text[last_index + len(old_substring):]
+
+
+def replace_by_position(
+    original_string: str,
+    start_position: int,
+    num_chars: int,
+    new_text: str
+) -> str:
+    """
+    Replaces a segment of a string defined by position and length with new text.
+
+    Equivalent to Excel's REPLACE function. Uses 1-based indexing.
+
+    Args:
+        original_string (str): The original string in which the replacement will be made.
+        start_position (int): The 1-based position of the first character to replace.
+        num_chars (int): The number of characters to replace from start_position.
+        new_text (str): The text to insert in place of the removed segment.
+
+    Returns:
+        str: The resulting string after the positional replacement.
+
+    Raises:
+        TypeError: If original_string or new_text is not str, or if start_position/num_chars is not int.
+        ValueError: If start_position < 1 or num_chars < 0.
+
+    Usage Example:
+        >>> replace_by_position("abcdefghijk", 6, 5, "*")
+        'abcde*k'
+        >>> replace_by_position("2024", 3, 2, "25")
+        '2025'
+        >>> replace_by_position("Hello World", 1, 5, "Goodbye")
+        'Goodbye World'
+
+    **Cost:** O(n), where n is the length of original_string.
+    """
+    if not isinstance(original_string, str):
+        raise TypeError("El argumento 'original_string' debe ser una cadena.")
+
+    if not isinstance(new_text, str):
+        raise TypeError("El argumento 'new_text' debe ser una cadena.")
+
+    if not isinstance(start_position, int) or not isinstance(num_chars, int):
+        raise TypeError("'start_position' y 'num_chars' deben ser enteros.")
+
+    if start_position < 1:
+        raise ValueError("'start_position' debe ser >= 1.")
+
+    if num_chars < 0:
+        raise ValueError("'num_chars' debe ser >= 0.")
+
+    # Convert 1-based to 0-based indexing
+    start_idx = start_position - 1
+    end_idx = start_idx + num_chars
+
+    return original_string[:start_idx] + new_text + original_string[end_idx:]
+
+
+def regex_replace(
+    text: str,
+    pattern: str,
+    replacement: str,
+    case_insensitive: bool = False
+) -> str:
+    """
+    Replaces all occurrences matching a regular expression pattern with a replacement string.
+
+    Equivalent to Excel's REGEXREPLACE function. Supports backreferences
+    in the replacement string (e.g., ``\\1``, ``\\g<name>``).
+
+    Args:
+        text (str): The input string to modify.
+        pattern (str): The regular expression pattern to match.
+        replacement (str): The replacement string. Supports regex backreferences.
+        case_insensitive (bool): If True, the pattern matching ignores case. Defaults to False.
+
+    Returns:
+        str: The text with all matching occurrences replaced.
+
+    Raises:
+        TypeError: If text, pattern, or replacement is not a string.
+        re.error: If the pattern is not a valid regular expression.
+
+    Usage Example:
+        >>> regex_replace("Hello 123 World 456", r"\\d+", "X")
+        'Hello X World X'
+        >>> regex_replace("test@email.com", r"@.*", "@example.com")
+        'test@example.com'
+        >>> regex_replace("FooBar FooBaz", r"foo", "QUX", case_insensitive=True)
+        'QUXBar QUXBaz'
+
+    **Cost:** O(n*m), where n is text length and m is pattern complexity.
+    """
+    if not isinstance(text, str):
+        raise TypeError("El argumento 'text' debe ser una cadena.")
+
+    if not isinstance(pattern, str):
+        raise TypeError("El argumento 'pattern' debe ser una cadena.")
+
+    if not isinstance(replacement, str):
+        raise TypeError("El argumento 'replacement' debe ser una cadena.")
+
+    flags = re.IGNORECASE if case_insensitive else 0
+
+    return re.sub(pattern, replacement, text, flags=flags)
 
 
 def truncate_string(
@@ -1402,7 +1509,6 @@ def split_by_substrings(p_iparse: str, p_separators: list[str]) -> list[str]:
     # 1. Escape separators for safe use in regex and create a pattern that finds any of them.
     #    This ensures that special regex characters in separators don't break the pattern.
     escaped_separators = [re.escape(s) for s in p_separators]
-    sep_pattern = '|'.join(escaped_separators)
 
     # 2. Split the script using a positive lookahead.
     #    - `(?=...)` is a positive lookahead assertion. It checks if the text ahead matches
@@ -1744,7 +1850,7 @@ def extract_numbers(input_string: str | None) -> list[int | float]:
 
 
 def split_all(text_to_tokenize: str, delimiter_pattern: str = None, return_joined: bool = False) -> list[str] | tuple[list[str], str]:
-    """
+    r"""
     Splits the input string into a list of words (tokens) based on a
     comprehensive set of delimiters.
 
@@ -1823,64 +1929,6 @@ def split_all(text_to_tokenize: str, delimiter_pattern: str = None, return_joine
         return (split_list, joined_string)
 
     return split_list
-
-
-def split_by_substrings(p_iparse: str, p_separators: list[str]) -> list[str]:
-    """
-    Splits a string by a list of substrings (separators),
-    with each resulting section starting with the separator that preceded it.
-
-    Args:
-        p_iparse: The input string to be split.
-        p_separators: A list of strings to use as separators.
-
-    Returns:
-        A list of strings, where each string starts with a separator
-        followed by the text until the next separator or the end of the input string.
-    """
-    # 1. Escape special regular expression characters in separators.
-    #    This is crucial for robustness if separators contain characters like '.', '?', '*', '+', etc.
-    escaped_separators = [re.escape(s) for s in p_separators]
-
-    # 2. Create a union regular expression pattern for all separators.
-    #    Example: if escaped_separators is ['\,', '\?', '\!'], sep_pattern becomes '\,|\?|\!'
-    sep_pattern = '|'.join(escaped_separators)
-
-    # 3. Construct the full regular expression for finding desired segments.
-    #    - (sep_pattern): This is the first capturing group. It matches and captures
-    #      any of the defined separators.
-    #    - (.*?): This is the second capturing group. It non-greedily matches any
-    #      character (except newline) zero or more times. The non-greedy aspect (.*?)
-    #      is important to ensure it stops at the earliest possible point.
-    #    - (?={sep_pattern}|$): This is a positive lookahead assertion. It means that
-    #      the match for the second capturing group (.*?) must be immediately followed
-    #      by either another separator (sep_pattern) or the end of the string ($).
-    #      This ensures that the text captured in the second group is exactly
-    #      the content between the current separator and the next one (or end of string).
-    full_pattern = f"({sep_pattern})(.*?)(?={sep_pattern}|$)"
-
-    # 4. Use re.findall to find all non-overlapping matches of the full_pattern.
-    #    re.findall returns a list of tuples, where each tuple contains the strings
-    #    captured by the groups in the pattern. In our case, each tuple will be
-    #    (matched_separator, text_after_separator).
-    found_matches = re.findall(full_pattern, p_iparse)
-
-    # 5. Combine the captured separator with the text that follows it.
-    #    Each combined section is then stripped of leading/trailing whitespace
-    #    to match the original function's behavior.
-    result = [(sep + text).strip() for sep, text in found_matches]
-
-    return result
-
-
-def split_limited(p_iparse, p_limit):
-    #limit_split("esto es una prueba de split de un programa python", 3)
-    #Salida: ['esto', 'es', 'una', 'prueba de split de un programa python']  
-    oparse = p_iparse.split()
-    if len(oparse) <= p_limit:
-        return oparse
-    else:
-        return oparse[:p_limit] + [" ".join(oparse[p_limit:])]
 
 
 def join_to_string(iterable: Iterable[str], separator: str = " ") -> str:
@@ -2271,6 +2319,50 @@ def erase_lrspaces(text: Optional[str]) -> Optional[str]:
     if text is None:
         return None
     return text.strip()
+
+
+def erase_lspaces(text: Optional[str]) -> Optional[str]:
+    """Removes leading (left) whitespace from the input string.
+
+    Equivalent to VBA's LTrim function.
+
+    Args:
+        text (Optional[str]): The input string. Can be None.
+
+    Returns:
+        Optional[str]: The string with leading spaces removed, or None if the input was None.
+
+    Usage Example:
+        >>> erase_lspaces("   hello   ")
+        'hello   '
+
+    **Cost:** O(n), where n is the length of the text.
+    """
+    if text is None:
+        return None
+    return text.lstrip()
+
+
+def erase_rspaces(text: Optional[str]) -> Optional[str]:
+    """Removes trailing (right) whitespace from the input string.
+
+    Equivalent to VBA's RTrim function.
+
+    Args:
+        text (Optional[str]): The input string. Can be None.
+
+    Returns:
+        Optional[str]: The string with trailing spaces removed, or None if the input was None.
+
+    Usage Example:
+        >>> erase_rspaces("   hello   ")
+        '   hello'
+
+    **Cost:** O(n), where n is the length of the text.
+    """
+    if text is None:
+        return None
+    return text.rstrip()
 
 
 def erase_allspaces(text: Optional[str]) -> Optional[str]:
@@ -2837,3 +2929,2862 @@ def string_merge(string1: str, string2: str, base: Optional[str] = None) -> str:
     return "".join(output)
 
 
+def repeat_string(text: str, times: int) -> str:
+    """Repeats a string a given number of times.
+
+    Equivalent to Excel REPT function for fxString.
+
+    Args:
+        text: The string to repeat.
+        times: Number of times to repeat (must be non-negative).
+
+    Returns:
+        The repeated string.
+
+    Raises:
+        TypeError: If times is not an integer.
+        ValueError: If times is negative.
+
+    Example:
+        >>> repeat_string("ab", 3)
+        'ababab'
+        >>> repeat_string("*", 5)
+        '*****'
+
+    Complexity: O(n * times)
+    """
+    if not isinstance(times, int):
+        raise TypeError("times must be an integer")
+
+    if times < 0:
+        raise ValueError("times must be non-negative")
+
+    return str(text) * times
+
+
+def center_string(text: str, width: int, fill_char: str = " ") -> str:
+    """Centers a string within a given width using a fill character.
+
+    Args:
+        text: The string to center.
+        width: The total width of the resulting string.
+        fill_char: The padding character.
+
+    Returns:
+        The centered string, or the original if it is already wider.
+
+    Example:
+        >>> center_string("hello", 11, "-")
+        '---hello---'
+        >>> center_string("hi", 6)
+        '  hi  '
+
+    Complexity: O(width)
+    """
+    return str(text).center(width, fill_char[0])
+
+
+def strip_html_tags(text: str) -> str:
+    """Removes all HTML/XML tags from a string.
+
+    Args:
+        text: The input string containing HTML tags.
+
+    Returns:
+        The string with all tags removed.
+
+    Example:
+        >>> strip_html_tags("<p>Hello <b>World</b></p>")
+        'Hello World'
+        >>> strip_html_tags("No tags here")
+        'No tags here'
+
+    Complexity: O(n)
+    """
+    return re.sub(r"<[^>]+>", "", str(text))
+
+
+def clean_non_printable(text: str) -> str:
+    """Removes all non-printable characters (ASCII 0-31) from a string.
+
+    Equivalent to Excel CLEAN function for fxString.
+
+    Args:
+        text: The input string.
+
+    Returns:
+        The string with non-printable characters removed.
+
+    Example:
+        >>> clean_non_printable("Hello\\x00World\\n")
+        'HelloWorld'
+
+    Complexity: O(n)
+    """
+    return "".join(ch for ch in str(text) if ord(ch) >= 32)
+
+
+def abbreviate(text: str, separator: str = "") -> str:
+    """Generates an abbreviation (initials/acronym) from a text string.
+
+    Takes the first letter of each word and joins them.
+
+    Args:
+        text: The input text.
+        separator: Character placed between initials.
+
+    Returns:
+        The abbreviation string in uppercase.
+
+    Example:
+        >>> abbreviate("World Health Organization")
+        'WHO'
+        >>> abbreviate("artificial intelligence", separator=".")
+        'A.I.'
+
+    Complexity: O(n)
+    """
+    words = str(text).split()
+
+    if not words:
+        return ""
+
+    initials = separator.join(w[0] for w in words if w)
+
+    if separator:
+        initials += separator
+
+    return initials.upper()
+
+
+def generate_initials(name: str, separator: str = ".") -> str:
+    """Generates initials from a person's name.
+
+    Args:
+        name: The full name (e.g. "John Ronald Tolkien").
+        separator: Character placed after each initial.
+
+    Returns:
+        The initials string (e.g. "J.R.T.").
+
+    Example:
+        >>> generate_initials("John Ronald Tolkien")
+        'J.R.T.'
+        >>> generate_initials("Albert Einstein", separator="")
+        'AE'
+
+    Complexity: O(n)
+    """
+    words = str(name).split()
+
+    if not words:
+        return ""
+
+    if separator:
+        return separator.join(w[0].upper() for w in words if w) + separator
+
+    return "".join(w[0].upper() for w in words if w)
+
+
+def count_lines(text: str) -> int:
+    """Counts the number of lines in a text string.
+
+    Args:
+        text: The input text.
+
+    Returns:
+        The number of lines (at least 1 for non-empty text, 0 for empty).
+
+    Example:
+        >>> count_lines("line1\\nline2\\nline3")
+        3
+        >>> count_lines("")
+        0
+
+    Complexity: O(n)
+    """
+    if not text:
+        return 0
+
+    return text.count("\n") + 1
+
+
+def get_line(text: str, line_number: int) -> Optional[str]:
+    """Returns a specific line from a multiline string (1-indexed).
+
+    Args:
+        text: The input multiline text.
+        line_number: The line number to retrieve (1-based).
+
+    Returns:
+        The requested line, or None if line_number is out of range.
+
+    Example:
+        >>> get_line("alpha\\nbeta\\ngamma", 2)
+        'beta'
+        >>> get_line("single line", 1)
+        'single line'
+
+    Complexity: O(n)
+    """
+    if not text or not isinstance(line_number, int) or line_number < 1:
+        return None
+
+    lines = text.split("\n")
+
+    if line_number > len(lines):
+        return None
+
+    return lines[line_number - 1]
+
+
+def remove_blank_lines(text: str) -> str:
+    """Removes all blank (empty or whitespace-only) lines from a text string.
+
+    Args:
+        text: The input multiline text.
+
+    Returns:
+        The text with blank lines removed.
+
+    Example:
+        >>> remove_blank_lines("a\\n\\nb\\n  \\nc")
+        'a\\nb\\nc'
+
+    Complexity: O(n)
+    """
+    lines = text.split("\n")
+    non_blank = [line for line in lines if line.strip()]
+    return "\n".join(non_blank)
+
+
+def sort_lines(text: str, reverse: bool = False) -> str:
+    """Sorts lines in a text string alphabetically.
+
+    Args:
+        text: The input multiline text.
+        reverse: If True, sorts in descending order.
+
+    Returns:
+        The text with lines sorted.
+
+    Example:
+        >>> sort_lines("banana\\napple\\ncherry")
+        'apple\\nbanana\\ncherry'
+        >>> sort_lines("b\\na\\nc", reverse=True)
+        'c\\nb\\na'
+
+    Complexity: O(n log n)
+    """
+    lines = text.split("\n")
+    return "\n".join(sorted(lines, reverse=reverse))
+
+
+def slugify(text: str, separator: str = "-") -> str:
+    """Converts text to a URL-friendly slug.
+
+    Removes accents, lowercases, replaces non-alphanumeric characters with
+    a separator, and collapses consecutive separators.
+
+    Args:
+        text: The input string.
+        separator: Character used between words (default ``-``).
+
+    Returns:
+        A URL-safe slug string.
+
+    Example:
+        >>> slugify("Hola Mundo!")
+        'hola-mundo'
+        >>> slugify("  Café con Leche  ")
+        'cafe-con-leche'
+        >>> slugify("Python 3.12 is great", separator="_")
+        'python_3_12_is_great'
+
+    Complexity: O(n)
+    """
+    return _core_to_slug(text, separator=separator)
+
+
+def wrap_text(text: str, width: int = 80) -> str:
+    """Wraps text to a specified line width at word boundaries.
+
+    Splits long lines without breaking words, inserting newlines at the
+    nearest whitespace before the width limit.
+
+    Args:
+        text: The input string.
+        width: Maximum characters per line (default 80).
+
+    Returns:
+        Word-wrapped text with newlines inserted.
+
+    Raises:
+        ValueError: If width is less than 1.
+
+    Example:
+        >>> wrap_text("The quick brown fox jumps over the lazy dog", width=20)
+        'The quick brown fox\\njumps over the lazy\\ndog'
+
+    Complexity: O(n)
+    """
+    if width < 1:
+        raise ValueError("Width must be at least 1.")
+
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string.")
+
+    import textwrap
+    return textwrap.fill(text, width=width)
+
+
+def extract_urls(text: str) -> list[str]:
+    """Extracts all URLs from a text string.
+
+    Finds http, https, and ftp URLs using a standard pattern.
+
+    Args:
+        text: The input string to scan.
+
+    Returns:
+        A list of extracted URL strings.
+
+    Example:
+        >>> extract_urls("Visit https://example.com or http://test.org/path")
+        ['https://example.com', 'http://test.org/path']
+        >>> extract_urls("No links here")
+        []
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string.")
+
+    pattern = re.compile(r'https?://[^\s<>"\')\]]+|ftp://[^\s<>"\')\]]+')
+    return pattern.findall(text)
+
+
+# ---------------------------------------------------------------------------
+# Text layout and word-level operations
+# ---------------------------------------------------------------------------
+
+
+def indent_text(text: str, prefix: str = "  ") -> str:
+    """Add a prefix string to the beginning of every line.
+
+    Args:
+        text: Input text (may contain multiple lines).
+        prefix: String to prepend to each line. Defaults to two spaces.
+
+    Returns:
+        Indented text.
+
+    Example:
+        >>> indent_text("line1\\nline2", ">> ")
+        '>> line1\\n>> line2'
+
+    Complexity: O(n)
+    """
+    import textwrap
+
+    return textwrap.indent(text, prefix)
+
+
+def dedent_text(text: str) -> str:
+    """Remove common leading whitespace from all lines.
+
+    Args:
+        text: Input text with indentation.
+
+    Returns:
+        De-indented text.
+
+    Example:
+        >>> dedent_text("    hello\\n    world")
+        'hello\\nworld'
+
+    Complexity: O(n)
+    """
+    import textwrap
+
+    return textwrap.dedent(text)
+
+
+def word_at(text: str, index: int) -> str:
+    """Return the word at the given 1-indexed position.
+
+    Args:
+        text: Input text.
+        index: 1-based word position.
+
+    Returns:
+        The word at the specified position.
+
+    Raises:
+        IndexError: If index is out of range.
+
+    Example:
+        >>> word_at("The quick brown fox", 3)
+        'brown'
+
+    Complexity: O(n)
+    """
+
+    words = text.split()
+
+    if index < 1 or index > len(words):
+        raise IndexError(f"index ({index}) out of range [1, {len(words)}].")
+
+    return words[index - 1]
+
+
+_RE_EMAIL_PATTERN = re.compile(
+    r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}'
+)
+
+
+def extract_emails(text: str) -> list[str]:
+    """Extracts all email addresses from a text string.
+
+    Args:
+        text: The input string to scan.
+
+    Returns:
+        A list of extracted email address strings.
+
+    Example:
+        >>> extract_emails("Contact us at info@example.com or sales@test.org")
+        ['info@example.com', 'sales@test.org']
+        >>> extract_emails("No emails here")
+        []
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string.")
+
+    return _RE_EMAIL_PATTERN.findall(text)
+
+
+def deduplicate_words(text: str) -> str:
+    """Removes duplicate words from a text, preserving first occurrence order.
+
+    Args:
+        text: The input string.
+
+    Returns:
+        Text with duplicates removed.
+
+    Example:
+        >>> deduplicate_words("the cat and the dog and the bird")
+        'the cat and dog bird'
+        >>> deduplicate_words("hello hello hello")
+        'hello'
+
+    Complexity: O(n)
+    """
+    seen: set[str] = set()
+    result: list[str] = []
+
+    for word in text.split():
+
+        if word not in seen:
+            seen.add(word)
+            result.append(word)
+
+    return " ".join(result)
+
+
+def surround(text: str, wrapper: str) -> str:
+    """Wraps a text with a given string on both sides.
+
+    Args:
+        text: The input string.
+        wrapper: The string to prepend and append.
+
+    Returns:
+        The surrounded text.
+
+    Example:
+        >>> surround("hello", "**")
+        '**hello**'
+        >>> surround("world", "'")
+        "'world'"
+
+    Complexity: O(1)
+    """
+    return f"{wrapper}{text}{wrapper}"
+
+
+def substitute(
+    text: str, old_text: str, new_text: str, instance_num: int = 0
+) -> str:
+    """Substitutes new text for old text in a string.
+
+    Description:
+        Replaces occurrences of old_text with new_text. If instance_num
+        is 0, replaces all occurrences. Otherwise replaces only the
+        Nth occurrence. Equivalent to Excel SUBSTITUTE.
+
+    Args:
+        text: The original text.
+        old_text: The text to find and replace.
+        new_text: The replacement text.
+        instance_num: Which occurrence to replace (0 = all, 1 = first, etc.).
+
+    Returns:
+        The text with substitutions applied.
+
+    Raises:
+        TypeError: If text, old_text, or new_text are not strings.
+        ValueError: If instance_num is negative.
+
+    Example:
+        >>> substitute("one fish two fish", "fish", "cat")
+        'one cat two cat'
+        >>> substitute("one fish two fish", "fish", "cat", 2)
+        'one fish two cat'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(old_text, str) or not isinstance(new_text, str):
+        raise TypeError("text, old_text, and new_text must be strings.")
+
+    if instance_num < 0:
+        raise ValueError("instance_num must be non-negative.")
+
+    if instance_num == 0:
+        return text.replace(old_text, new_text)
+
+    # Replace only the Nth occurrence
+    count = 0
+    start = 0
+
+    while True:
+        pos = text.find(old_text, start)
+
+        if pos == -1:
+            break
+
+        count += 1
+
+        if count == instance_num:
+            return text[:pos] + new_text + text[pos + len(old_text):]
+
+        start = pos + 1
+
+    return text
+
+
+def text_before(
+    text: str, delimiter: str, instance_num: int = 1
+) -> str:
+    """Returns text that occurs before a given delimiter.
+
+    Description:
+        Returns the portion of text before the Nth occurrence of the
+        delimiter. Negative instance_num searches from the end.
+        Equivalent to Excel TEXTBEFORE.
+
+    Args:
+        text: The input text to search.
+        delimiter: The delimiter to search for.
+        instance_num: Which occurrence (1 = first, -1 = last, etc.).
+
+    Returns:
+        The text before the specified occurrence of the delimiter.
+
+    Raises:
+        TypeError: If text or delimiter are not strings.
+        ValueError: If instance_num is 0 or delimiter is not found.
+
+    Example:
+        >>> text_before("hello-world-test", "-")
+        'hello'
+        >>> text_before("hello-world-test", "-", 2)
+        'hello-world'
+        >>> text_before("hello-world-test", "-", -1)
+        'hello-world'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(delimiter, str):
+        raise TypeError("text and delimiter must be strings.")
+
+    if instance_num == 0:
+        raise ValueError("instance_num cannot be 0.")
+
+    if instance_num > 0:
+        count = 0
+        start = 0
+
+        while True:
+            pos = text.find(delimiter, start)
+
+            if pos == -1:
+                break
+
+            count += 1
+
+            if count == instance_num:
+                return text[:pos]
+
+            start = pos + len(delimiter)
+
+        raise ValueError(f"Delimiter '{delimiter}' not found {instance_num} time(s).")
+
+    # Negative: search from end
+    count = 0
+    end = len(text)
+
+    while True:
+        pos = text.rfind(delimiter, 0, end)
+
+        if pos == -1:
+            break
+
+        count += 1
+
+        if count == abs(instance_num):
+            return text[:pos]
+
+        end = pos
+
+    raise ValueError(f"Delimiter '{delimiter}' not found {abs(instance_num)} time(s) from end.")
+
+
+def text_after(
+    text: str, delimiter: str, instance_num: int = 1
+) -> str:
+    """Returns text that occurs after a given delimiter.
+
+    Description:
+        Returns the portion of text after the Nth occurrence of the
+        delimiter. Negative instance_num searches from the end.
+        Equivalent to Excel TEXTAFTER.
+
+    Args:
+        text: The input text to search.
+        delimiter: The delimiter to search for.
+        instance_num: Which occurrence (1 = first, -1 = last, etc.).
+
+    Returns:
+        The text after the specified occurrence of the delimiter.
+
+    Raises:
+        TypeError: If text or delimiter are not strings.
+        ValueError: If instance_num is 0 or delimiter is not found.
+
+    Example:
+        >>> text_after("hello-world-test", "-")
+        'world-test'
+        >>> text_after("hello-world-test", "-", 2)
+        'test'
+        >>> text_after("hello-world-test", "-", -1)
+        'test'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(delimiter, str):
+        raise TypeError("text and delimiter must be strings.")
+
+    if instance_num == 0:
+        raise ValueError("instance_num cannot be 0.")
+
+    if instance_num > 0:
+        count = 0
+        start = 0
+
+        while True:
+            pos = text.find(delimiter, start)
+
+            if pos == -1:
+                break
+
+            count += 1
+
+            if count == instance_num:
+                return text[pos + len(delimiter):]
+
+            start = pos + len(delimiter)
+
+        raise ValueError(f"Delimiter '{delimiter}' not found {instance_num} time(s).")
+
+    # Negative: search from end
+    count = 0
+    end = len(text)
+
+    while True:
+        pos = text.rfind(delimiter, 0, end)
+
+        if pos == -1:
+            break
+
+        count += 1
+
+        if count == abs(instance_num):
+            return text[pos + len(delimiter):]
+
+        end = pos
+
+    raise ValueError(f"Delimiter '{delimiter}' not found {abs(instance_num)} time(s) from end.")
+
+
+def text_split(
+    text: str,
+    col_delimiter: str = None,
+    row_delimiter: str = None,
+) -> list:
+    """Splits text into rows and/or columns using delimiters.
+
+    Description:
+        Splits a string by column and/or row delimiters, returning a
+        2-D list of strings. Equivalent to Excel TEXTSPLIT.
+
+    Args:
+        text: The input text to split.
+        col_delimiter: Delimiter for splitting into columns. If None, no
+            column splitting.
+        row_delimiter: Delimiter for splitting into rows. If None, no
+            row splitting.
+
+    Returns:
+        A 2-D list of strings if both delimiters are provided,
+        a 1-D list if only one delimiter is provided.
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If both delimiters are None.
+
+    Example:
+        >>> text_split("a,b,c", col_delimiter=",")
+        ['a', 'b', 'c']
+        >>> text_split("a,b;c,d", col_delimiter=",", row_delimiter=";")
+        [['a', 'b'], ['c', 'd']]
+        >>> text_split("row1;row2;row3", row_delimiter=";")
+        ['row1', 'row2', 'row3']
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    if col_delimiter is None and row_delimiter is None:
+        raise ValueError("At least one delimiter must be provided.")
+
+    if row_delimiter is not None and col_delimiter is not None:
+        rows = text.split(row_delimiter)
+        return [row.split(col_delimiter) for row in rows]
+
+    if col_delimiter is not None:
+        return text.split(col_delimiter)
+
+    return text.split(row_delimiter)
+
+
+def search_text(
+    find_text: str, within_text: str, start_num: int = 1,
+) -> int:
+    """Case-insensitive text search returning 1-based position.
+
+    Description:
+        Finds the position of find_text within within_text,
+        ignoring case. Equivalent to Excel SEARCH.
+
+    Args:
+        find_text: Text to find.
+        within_text: Text to search in.
+        start_num: Starting position, 1-based (default 1).
+
+    Returns:
+        int: 1-based position of the first match.
+
+    Raises:
+        TypeError: If inputs are not valid.
+        ValueError: If find_text is not found or start_num < 1.
+
+    Example:
+        >>> search_text('margin', 'Profit Margin')
+        8
+        >>> search_text('M', 'miriam mcgovern')
+        1
+
+    Complexity: O(n)
+    """
+    if not isinstance(find_text, str) or not isinstance(within_text, str):
+        raise TypeError("find_text and within_text must be strings.")
+
+    if not isinstance(start_num, int) or start_num < 1:
+        raise ValueError("start_num must be an integer >= 1.")
+
+    start_idx = start_num - 1
+    position = within_text.lower().find(find_text.lower(), start_idx)
+
+    if position == -1:
+        raise ValueError(f"'{find_text}' not found in '{within_text}'.")
+
+    return position + 1
+
+
+def left_bytes(text: str, num_bytes: int) -> str:
+    """Return leading characters from *text* measured in UTF-16 LE bytes.
+
+    Equivalent to VBA ``LeftB``.  One ASCII character = 2 bytes in UTF-16 LE;
+    multi-byte characters may occupy more.
+
+    Args:
+        text: Source string.
+        num_bytes: Number of UTF-16 LE bytes to keep.
+
+    Returns:
+        Substring decoded from the first *num_bytes* bytes.
+
+    Example:
+        >>> left_bytes("Hello", 6)
+        'Hel'
+
+    Complexity: O(n)
+    """
+    encoded = text.encode("utf-16-le")
+    return encoded[:num_bytes].decode("utf-16-le", errors="ignore")
+
+
+def mid_bytes(text: str, start: int, length: int | None = None) -> str:
+    """Return a substring of *text* measured in UTF-16 LE bytes.
+
+    Equivalent to VBA ``MidB``.  *start* is **1-based** (first byte is 1).
+
+    Args:
+        text: Source string.
+        start: 1-based starting byte position.
+        length: Number of bytes to extract.  ``None`` means the rest.
+
+    Returns:
+        Substring decoded from the byte slice.
+
+    Example:
+        >>> mid_bytes("Hello", 3, 4)
+        'el'
+
+    Complexity: O(n)
+    """
+    encoded = text.encode("utf-16-le")
+    start_idx = start - 1
+
+    if length is None:
+        chunk = encoded[start_idx:]
+    else:
+        chunk = encoded[start_idx:start_idx + length]
+
+    return chunk.decode("utf-16-le", errors="ignore")
+
+
+def right_bytes(text: str, num_bytes: int) -> str:
+    """Return trailing characters from *text* measured in UTF-16 LE bytes.
+
+    Equivalent to VBA ``RightB``.
+
+    Args:
+        text: Source string.
+        num_bytes: Number of UTF-16 LE bytes to keep from the end.
+
+    Returns:
+        Substring decoded from the last *num_bytes* bytes.
+
+    Example:
+        >>> right_bytes("Hello", 6)
+        'llo'
+
+    Complexity: O(n)
+    """
+    encoded = text.encode("utf-16-le")
+    return encoded[-num_bytes:].decode("utf-16-le", errors="ignore")
+
+
+def clean_nonprintable(text: str) -> str:
+    """Remove all nonprintable characters (ASCII 0–31) from text.
+
+    Equivalent to the Excel ``CLEAN`` function.
+
+    Args:
+        text: Text to clean.
+
+    Returns:
+        String with all control characters removed.
+
+    Example:
+        >>> clean_nonprintable("Hello\x00World")
+        'HelloWorld'
+
+    Complexity: O(n)
+    """
+    return "".join(ch for ch in str(text) if ord(ch) >= 32)
+
+
+def interleave_strings(s1: str, s2: str) -> str:
+    """Interleave characters from two strings.
+
+    Characters are taken alternately from *s1* and *s2*. When one
+    string is exhausted the remainder of the other is appended.
+
+    Args:
+        s1: First string.
+        s2: Second string.
+
+    Returns:
+        Interleaved result.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Example:
+        >>> interleave_strings("abc", "12")
+        'a1b2c'
+
+    Complexity: O(n + m)
+    """
+    if not isinstance(s1, str) or not isinstance(s2, str):
+        raise TypeError("Both arguments must be strings")
+
+    result: list[str] = []
+    i = 0
+
+    while i < len(s1) or i < len(s2):
+
+        if i < len(s1):
+            result.append(s1[i])
+
+        if i < len(s2):
+            result.append(s2[i])
+
+        i += 1
+
+    return "".join(result)
+
+
+def run_length_encode(text: str) -> str:
+    """Run-length encode a string.
+
+    Consecutive identical characters are replaced by their count
+    followed by the character.
+
+    Args:
+        text: Input string.
+
+    Returns:
+        RLE-encoded string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> run_length_encode("aaabbc")
+        '3a2b1c'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    if not text:
+        return ""
+
+    parts: list[str] = []
+    count = 1
+
+    for i in range(1, len(text)):
+
+        if text[i] == text[i - 1]:
+            count += 1
+        else:
+            parts.append(f"{count}{text[i - 1]}")
+            count = 1
+
+    parts.append(f"{count}{text[-1]}")
+    return "".join(parts)
+
+
+def run_length_decode(encoded: str) -> str:
+    """Decode a run-length encoded string.
+
+    Expects the format produced by :func:`run_length_encode`
+    (count-character pairs like ``"3a2b1c"``).
+
+    Args:
+        encoded: RLE-encoded string.
+
+    Returns:
+        Decoded string.
+
+    Raises:
+        TypeError: If *encoded* is not a string.
+        ValueError: If the format is invalid.
+
+    Example:
+        >>> run_length_decode("3a2b1c")
+        'aaabbc'
+
+    Complexity: O(n)
+    """
+    if not isinstance(encoded, str):
+        raise TypeError("encoded must be a string")
+
+    if not encoded:
+        return ""
+
+    parts: list[str] = []
+    i = 0
+
+    while i < len(encoded):
+        num_start = i
+
+        while i < len(encoded) and encoded[i].isdigit():
+            i += 1
+
+        if i == num_start or i >= len(encoded):
+            raise ValueError(f"Invalid RLE format at position {i}")
+
+        count = int(encoded[num_start:i])
+        parts.append(encoded[i] * count)
+        i += 1
+
+    return "".join(parts)
+
+
+def count_vowels(text: str, lang: str = "en") -> int:
+    """Count vowels in a string.
+
+    Args:
+        text: Input text.
+        lang: Language code (``'en'`` for English, ``'es'`` for Spanish).
+              Spanish adds accented vowels.
+
+    Returns:
+        Number of vowels found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> count_vowels("Hello World")
+        3
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    vowels = set("aeiouAEIOU")
+
+    if lang.lower() == "es":
+        vowels |= set("áéíóúÁÉÍÓÚüÜ")
+
+    return sum(1 for ch in text if ch in vowels)
+
+
+def count_consonants(text: str, lang: str = "en") -> int:
+    """Counts the number of consonants in a text string.
+
+    Non-alphabetic characters are ignored.
+
+    Args:
+        text: The input string.
+        lang: Language code (``'en'`` or ``'es'``).
+
+    Returns:
+        Number of consonant characters.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> count_consonants("Hello World")
+        7
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    vowels = set("aeiouAEIOU")
+
+    if lang.lower() == "es":
+        vowels |= set("áéíóúÁÉÍÓÚüÜ")
+
+    return sum(1 for ch in text if ch.isalpha() and ch not in vowels)
+
+
+def longest_word(text: str) -> str:
+    """Returns the longest word in a text string.
+
+    Words are split on whitespace.  If the text is empty an empty
+    string is returned.  Ties are broken by first occurrence.
+
+    Args:
+        text: The input text.
+
+    Returns:
+        The longest word found, or ``''``.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> longest_word("the quick brown fox")
+        'quick'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    words = text.split()
+
+    if not words:
+        return ""
+
+    return max(words, key=len)
+
+
+def shortest_word(text: str) -> str:
+    """Returns the shortest word in a text string.
+
+    Words are split on whitespace.  If the text is empty an empty
+    string is returned.  Ties are broken by first occurrence.
+
+    Args:
+        text: The input text.
+
+    Returns:
+        The shortest word found, or ``''``.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> shortest_word("the quick brown fox")
+        'the'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    words = text.split()
+
+    if not words:
+        return ""
+
+    return min(words, key=len)
+
+
+def reverse_words(text: str) -> str:
+    """Reverses the order of words in a string.
+
+    Individual words keep their original spelling; only their
+    sequence is inverted.
+
+    Args:
+        text: The input text.
+
+    Returns:
+        Text with word order reversed.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> reverse_words("hello world foo")
+        'foo world hello'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return " ".join(text.split()[::-1])
+
+
+def extract_hashtags(text: str) -> list[str]:
+    """Extracts ``#hashtag`` tokens from a text string.
+
+    A hashtag starts with ``#`` followed by one or more word characters
+    (letters, digits, underscore).
+
+    Args:
+        text: The input text.
+
+    Returns:
+        List of hashtags **including** the leading ``#``.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> extract_hashtags("Hello #world #python3")
+        ['#world', '#python3']
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return re.findall(r"#\w+", text)
+
+
+def extract_mentions(text: str) -> list[str]:
+    """Extracts ``@mention`` tokens from a text string.
+
+    A mention starts with ``@`` followed by one or more word characters.
+
+    Args:
+        text: The input text.
+
+    Returns:
+        List of mentions **including** the leading ``@``.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> extract_mentions("Hi @alice and @bob!")
+        ['@alice', '@bob']
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return re.findall(r"@\w+", text)
+
+
+def count_syllables(text: str, lang: str = "en") -> int:
+    """Estimates the total number of syllables in a text.
+
+    Description:
+        Uses a heuristic vowel-cluster approach for English and a
+        vowel-group count for Spanish.  Intended for readability
+        metrics, not linguistic accuracy.
+
+    Args:
+        text: The input text.
+        lang: Language code (``'en'`` or ``'es'``).
+
+    Returns:
+        Estimated syllable count (minimum 1 per word).
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *lang* is not ``'en'`` or ``'es'``.
+
+    Usage Example:
+        >>> count_syllables("beautiful day")
+        4
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    lang = lang.lower()
+
+    if lang not in ("en", "es"):
+        raise ValueError("lang must be 'en' or 'es'")
+
+    words = re.findall(r"[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+", text.lower())
+    total = 0
+
+    for word in words:
+
+        if lang == "en":
+            # Remove trailing silent-e
+            w = word
+
+            if w.endswith("e") and len(w) > 2:
+                w = w[:-1]
+
+            count = len(re.findall(r"[aeiouy]+", w))
+
+            if count == 0:
+                count = 1
+
+            total += count
+
+        else:
+            count = len(re.findall(r"[aeiouáéíóúü]+", word))
+
+            if count == 0:
+                count = 1
+
+            total += count
+
+    return max(total, 1) if words else 0
+
+
+def soundex(text: str) -> str:
+    """Computes the Soundex phonetic code for a word.
+
+    Description:
+        Implements the American Soundex algorithm (Robert C. Russell,
+        1918).  Useful for matching names that sound alike but are
+        spelled differently.
+
+    Args:
+        text: A single word to encode.
+
+    Returns:
+        A 4-character Soundex code (letter + 3 digits).
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* contains no alphabetic characters.
+
+    Usage Example:
+        >>> soundex("Robert")
+        'R163'
+        >>> soundex("Rupert")
+        'R163'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    word = re.sub(r"[^a-zA-Z]", "", text).upper()
+
+    if not word:
+        raise ValueError("text must contain at least one alphabetic character")
+
+    mapping = {
+        "B": "1", "F": "1", "P": "1", "V": "1",
+        "C": "2", "G": "2", "J": "2", "K": "2",
+        "Q": "2", "S": "2", "X": "2", "Z": "2",
+        "D": "3", "T": "3",
+        "L": "4",
+        "M": "5", "N": "5",
+        "R": "6",
+    }
+
+    code = word[0]
+    prev = mapping.get(word[0], "0")
+
+    for ch in word[1:]:
+        digit = mapping.get(ch, "0")
+
+        # H and W do not separate identical adjacent codes
+        if ch in ("H", "W"):
+            continue
+
+        if digit != "0" and digit != prev:
+            code += digit
+
+        # Only update prev for coded consonants and vowels (not H/W)
+        prev = digit
+
+        if len(code) == 4:
+            break
+
+    return code.ljust(4, "0")
+
+
+def metaphone(text: str) -> str:
+    """Computes the Metaphone phonetic code for a word.
+
+    Description:
+        Implements Lawrence Philips' original Metaphone algorithm (1990).
+        More accurate than Soundex for English words.
+
+    Args:
+        text: A single word to encode.
+
+    Returns:
+        The Metaphone code string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* contains no alphabetic characters.
+
+    Usage Example:
+        >>> metaphone("Thompson")
+        'TMPSN'
+        >>> metaphone("Smith")
+        'SM0'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    word = re.sub(r"[^a-zA-Z]", "", text).upper()
+
+    if not word:
+        raise ValueError("text must contain at least one alphabetic character")
+
+    # Drop initial silent letter pairs
+    if word[:2] in ("AE", "GN", "KN", "PN", "WR"):
+        word = word[1:]
+
+    vowels = set("AEIOU")
+    result: list[str] = []
+    i = 0
+
+    while i < len(word):
+        c = word[i]
+        nxt = word[i + 1] if i + 1 < len(word) else ""
+
+        if c in vowels:
+
+            if i == 0:
+                result.append(c)
+
+            i += 1
+            continue
+
+        if c == "B":
+
+            if i == 0 or word[i - 1] != "M":
+                result.append("B")
+
+        elif c == "C":
+
+            if nxt in ("E", "I", "Y"):
+                result.append("S")
+            else:
+                result.append("K")
+
+        elif c == "D":
+
+            if nxt in ("G",) and i + 2 < len(word) and word[i + 2] in ("E", "I", "Y"):
+                result.append("J")
+            else:
+                result.append("T")
+
+        elif c == "F":
+            result.append("F")
+
+        elif c == "G":
+
+            if nxt in ("H",) and i + 2 < len(word) and word[i + 2] not in vowels:
+                pass
+            elif nxt in ("N",) and (i + 2 >= len(word)):
+                pass
+            elif i > 0 and word[i - 1] == "G":
+                pass
+            else:
+
+                if nxt in ("E", "I", "Y"):
+                    result.append("J")
+                else:
+                    result.append("K")
+
+        elif c == "H":
+
+            if nxt in vowels and (i == 0 or word[i - 1] not in vowels):
+                result.append("H")
+
+        elif c == "J":
+            result.append("J")
+
+        elif c == "K":
+
+            if i == 0 or word[i - 1] != "C":
+                result.append("K")
+
+        elif c == "L":
+            result.append("L")
+
+        elif c == "M":
+            result.append("M")
+
+        elif c == "N":
+            result.append("N")
+
+        elif c == "P":
+
+            if nxt == "H":
+                result.append("F")
+                i += 1
+            else:
+                result.append("P")
+
+        elif c == "Q":
+            result.append("K")
+
+        elif c == "R":
+            result.append("R")
+
+        elif c == "S":
+
+            if nxt == "H" or (nxt == "I" and i + 2 < len(word) and word[i + 2] in ("O", "A")):
+                result.append("X")
+                i += 1
+            else:
+                result.append("S")
+
+        elif c == "T":
+
+            if nxt == "H":
+                result.append("0")
+                i += 1
+            else:
+                result.append("T")
+
+        elif c == "V":
+            result.append("F")
+
+        elif c == "W" or c == "Y":
+
+            if nxt in vowels:
+                result.append(c)
+
+        elif c == "X":
+            result.append("KS")
+
+        elif c == "Z":
+            result.append("S")
+
+        i += 1
+
+    return "".join(result)
+
+
+def extract_domain_from_url(url: str) -> str:
+    """Extracts the domain (hostname) from a URL string.
+
+    Description:
+        Handles URLs with or without a scheme.  Returns the netloc
+        component stripped of any ``www.`` prefix, port, auth,
+        and path segments.
+
+    Args:
+        url: The URL to extract from.
+
+    Returns:
+        The domain name (e.g. ``'example.com'``).
+
+    Raises:
+        TypeError: If *url* is not a string.
+        ValueError: If no domain can be extracted.
+
+    Usage Example:
+        >>> extract_domain_from_url("https://www.example.com/path?q=1")
+        'example.com'
+
+    Complexity: O(n)
+    """
+    if not isinstance(url, str):
+        raise TypeError("url must be a string")
+
+    from urllib.parse import urlparse
+
+    cleaned = url.strip()
+
+    if "://" not in cleaned:
+        cleaned = "http://" + cleaned
+
+    parsed = urlparse(cleaned)
+    host = parsed.hostname or ""
+
+    if not host:
+        raise ValueError(f"Cannot extract domain from '{url}'")
+
+    if host.startswith("www."):
+        host = host[4:]
+
+    return host
+
+
+def nysiis(text: str) -> str:
+    """Compute the NYSIIS (New York State Identification and Intelligence System) phonetic code.
+
+    Description:
+        Produces a phonetic encoding that is generally more accurate
+        than Soundex for English names.  Applies prefix/suffix
+        transformations, then walks through the string applying
+        context-sensitive rules.
+
+    Args:
+        text: The text to encode.
+
+    Returns:
+        The NYSIIS code (uppercase, up to 6 characters).
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* is empty after cleaning.
+
+    Usage Example:
+        >>> nysiis("Watkins")
+        'WATCAN'
+        >>> nysiis("Johnson")
+        'JANSAN'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    name = re.sub(r"[^A-Za-z]", "", text).upper()
+
+    if not name:
+        raise ValueError("text must contain at least one alphabetic character")
+
+    # Step 1: prefix substitutions
+    prefix_map = [
+        ("MAC", "MCC"), ("KN", "NN"), ("K", "C"),
+        ("PH", "FF"), ("PF", "FF"), ("SCH", "SSS"),
+    ]
+
+    for old, new in prefix_map:
+
+        if name.startswith(old):
+            name = new + name[len(old):]
+            break
+
+    # Step 2: suffix substitutions
+    suffix_map = [
+        ("EE", "Y"), ("IE", "Y"), ("DT", "D"),
+        ("RT", "D"), ("RD", "D"), ("NT", "D"), ("ND", "D"),
+    ]
+
+    for old, new in suffix_map:
+
+        if name.endswith(old):
+            name = name[: -len(old)] + new
+            break
+
+    # Step 3: first character is kept
+    first = name[0]
+    result = [first]
+    i = 1
+
+    while i < len(name):
+        c = name[i]
+
+        if c == "E" and i + 1 < len(name) and name[i + 1] == "V":
+            result.append("AF")
+            i += 2
+            continue
+
+        if c in "AEIOU":
+            result.append("A")
+            i += 1
+            continue
+
+        if c == "Q":
+            result.append("G")
+        elif c == "Z":
+            result.append("S")
+        elif c == "M":
+            result.append("N")
+        elif c == "K":
+            result.append("C" if i + 1 < len(name) and name[i + 1] == "N" else "C")
+        elif c == "S" and i + 2 < len(name) and name[i + 1 : i + 3] == "CH":
+            result.append("SS")
+            i += 3
+            continue
+        elif c == "P" and i + 1 < len(name) and name[i + 1] == "H":
+            result.append("FF")
+            i += 2
+            continue
+        elif c == "H":
+            prev_vowel = name[i - 1] in "AEIOU" if i > 0 else False
+            next_vowel = name[i + 1] in "AEIOU" if i + 1 < len(name) else False
+
+            if not prev_vowel or not next_vowel:
+                result.append(result[-1] if result else c)
+            else:
+                result.append("H")
+        elif c == "W":
+            prev_vowel = name[i - 1] in "AEIOU" if i > 0 else False
+
+            if prev_vowel:
+                result.append(result[-1] if result else c)
+            else:
+                result.append("W")
+        else:
+            result.append(c)
+
+        i += 1
+
+    # Remove trailing 'S'
+    code = "".join(result)
+
+    if code.endswith("S") and len(code) > 1:
+        code = code[:-1]
+
+    # Replace trailing 'AY' with 'Y'
+    if code.endswith("AY"):
+        code = code[:-2] + "Y"
+
+    # Remove trailing 'A'
+    if code.endswith("A") and len(code) > 1:
+        code = code[:-1]
+
+    # Collapse repeated characters
+    collapsed = [code[0]]
+
+    for ch in code[1:]:
+
+        if ch != collapsed[-1]:
+            collapsed.append(ch)
+
+    return "".join(collapsed)[:6]
+
+
+def double_metaphone(text: str) -> tuple:
+    """Compute the Double Metaphone phonetic encoding.
+
+    Description:
+        Produces a primary and alternate phonetic key.  Handles
+        Germanic, Celtic, Romance, and Slavic name origins better
+        than the original Metaphone.
+
+    Args:
+        text: The text to encode.
+
+    Returns:
+        A tuple ``(primary, alternate)`` of phonetic codes (uppercase).
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* is empty after cleaning.
+
+    Usage Example:
+        >>> double_metaphone("Smith")
+        ('SM0', 'XMT')
+        >>> double_metaphone("Schmidt")
+        ('XMT', 'SMT')
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    original = text.strip().upper()
+
+    if not original:
+        raise ValueError("text must not be empty")
+
+    # Pad for safe look-ahead
+    word = original + "     "
+    length = len(original)
+    primary = []
+    secondary = []
+    current = 0
+
+    def _at(pos: int, size: int) -> str:
+        return word[pos : pos + size]
+
+    def _vowel(c: str) -> bool:
+        return c in "AEIOUY"
+
+    # Skip silent start
+    if _at(0, 2) in ("GN", "KN", "PN", "AE", "WR"):
+        current += 1
+
+    # Handle initial 'X'
+    if word[0] == "X":
+        primary.append("S")
+        secondary.append("S")
+        current += 1
+
+    while current < length:
+
+        if len(primary) >= 4 and len(secondary) >= 4:
+            break
+
+        c = word[current]
+
+        if c in "AEIOUY":
+
+            if current == 0:
+                primary.append("A")
+                secondary.append("A")
+
+            current += 1
+            continue
+
+        if c == "B":
+            primary.append("P")
+            secondary.append("P")
+            current += 2 if word[current + 1] == "B" else 1
+            continue
+
+        if c == "C":
+
+            if _at(current, 2) == "CH":
+                primary.append("X")
+                secondary.append("X")
+                current += 2
+            elif _at(current, 2) in ("CI", "CE", "CY"):
+                primary.append("S")
+                secondary.append("S")
+                current += 2
+            else:
+                primary.append("K")
+                secondary.append("K")
+                current += 2 if _at(current, 2) in ("CK", "CC", "CQ") else 1
+
+            continue
+
+        if c == "D":
+
+            if _at(current, 2) in ("DG",):
+                nxt2 = word[current + 2]
+
+                if nxt2 in "IEY":
+                    primary.append("J")
+                    secondary.append("J")
+                    current += 3
+                else:
+                    primary.append("TK")
+                    secondary.append("TK")
+                    current += 2
+            else:
+                primary.append("T")
+                secondary.append("T")
+                current += 2 if _at(current, 2) in ("DT", "DD") else 1
+
+            continue
+
+        if c == "F":
+            primary.append("F")
+            secondary.append("F")
+            current += 2 if word[current + 1] == "F" else 1
+            continue
+
+        if c == "G":
+            nxt = word[current + 1]
+
+            if nxt == "H":
+
+                if current > 0 and not _vowel(word[current - 1]):
+                    primary.append("K")
+                    secondary.append("K")
+                    current += 2
+                elif current == 0:
+
+                    if word[current + 2] == "I":
+                        primary.append("J")
+                        secondary.append("J")
+                    else:
+                        primary.append("K")
+                        secondary.append("K")
+
+                    current += 2
+                else:
+                    current += 2
+            elif nxt in "EIY":
+                primary.append("J")
+                secondary.append("K")
+                current += 2
+            else:
+                primary.append("K")
+                secondary.append("K")
+                current += 2 if nxt == "G" else 1
+
+            continue
+
+        if c == "H":
+
+            if _vowel(word[current + 1]) and (current == 0 or _vowel(word[current - 1])):
+                primary.append("H")
+                secondary.append("H")
+                current += 2
+            else:
+                current += 1
+
+            continue
+
+        if c == "J":
+            primary.append("J")
+            secondary.append("H")
+            current += 2 if word[current + 1] == "J" else 1
+            continue
+
+        if c == "K":
+            primary.append("K")
+            secondary.append("K")
+            current += 2 if word[current + 1] == "K" else 1
+            continue
+
+        if c == "L":
+            primary.append("L")
+            secondary.append("L")
+            current += 2 if word[current + 1] == "L" else 1
+            continue
+
+        if c == "M":
+            primary.append("M")
+            secondary.append("M")
+            current += 2 if word[current + 1] == "M" else 1
+            continue
+
+        if c == "N":
+            primary.append("N")
+            secondary.append("N")
+            current += 2 if word[current + 1] == "N" else 1
+            continue
+
+        if c == "P":
+
+            if word[current + 1] == "H":
+                primary.append("F")
+                secondary.append("F")
+                current += 2
+            else:
+                primary.append("P")
+                secondary.append("P")
+                current += 2 if word[current + 1] == "P" else 1
+
+            continue
+
+        if c == "Q":
+            primary.append("K")
+            secondary.append("K")
+            current += 2 if word[current + 1] == "Q" else 1
+            continue
+
+        if c == "R":
+            primary.append("R")
+            secondary.append("R")
+            current += 2 if word[current + 1] == "R" else 1
+            continue
+
+        if c == "S":
+
+            if _at(current, 2) == "SH":
+                primary.append("X")
+                secondary.append("X")
+                current += 2
+            elif _at(current, 3) == "SCH":
+                primary.append("SK")
+                secondary.append("SK")
+                current += 3
+            elif _at(current, 2) in ("SI", "SY"):
+                primary.append("S")
+                secondary.append("S")
+                current += 2
+            else:
+                primary.append("S")
+                secondary.append("S")
+                current += 2 if word[current + 1] == "S" else 1
+
+            continue
+
+        if c == "T":
+
+            if _at(current, 2) == "TH":
+                primary.append("0")  # theta
+                secondary.append("T")
+                current += 2
+            else:
+                primary.append("T")
+                secondary.append("T")
+                current += 2 if word[current + 1] in "T" else 1
+
+            continue
+
+        if c == "V":
+            primary.append("F")
+            secondary.append("F")
+            current += 2 if word[current + 1] == "V" else 1
+            continue
+
+        if c == "W":
+
+            if _vowel(word[current + 1]):
+                primary.append("A")
+                secondary.append("F")
+                current += 1
+            else:
+                current += 1
+
+            continue
+
+        if c == "X":
+            primary.append("KS")
+            secondary.append("KS")
+            current += 2 if word[current + 1] == "X" else 1
+            continue
+
+        if c == "Z":
+            primary.append("S")
+            secondary.append("TS")
+            current += 2 if word[current + 1] == "Z" else 1
+            continue
+
+        current += 1
+
+    return ("".join(primary)[:4], "".join(secondary)[:4])
+
+
+def cologne_phonetic(text: str) -> str:
+    """Compute the Kölner Phonetik (Cologne Phonetic) code.
+
+    Description:
+        A phonetic algorithm optimised for the German language.
+        Maps characters to digit codes based on context (preceding
+        and following characters).
+
+    Args:
+        text: The text to encode.
+
+    Returns:
+        The Cologne phonetic code as a digit string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* is empty after cleaning.
+
+    Usage Example:
+        >>> cologne_phonetic("Müller")
+        '657'
+        >>> cologne_phonetic("Schmidt")
+        '862'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    # Normalize: remove non-alpha, upper
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFKD", text)
+    # Map special German chars
+    name = normalized.upper()
+    name = name.replace("Ä", "A").replace("Ö", "O").replace("Ü", "U").replace("ß", "SS")
+    name = re.sub(r"[^A-Z]", "", name)
+
+    if not name:
+        raise ValueError("text must contain at least one alphabetic character")
+
+    codes = []
+
+    for i, c in enumerate(name):
+        prev_c = name[i - 1] if i > 0 else ""
+        next_c = name[i + 1] if i + 1 < len(name) else ""
+
+        if c in "AEIJOUY":
+            code = "0"
+        elif c == "H":
+            code = ""
+        elif c == "B":
+            code = "1"
+        elif c == "P":
+            code = "1" if next_c != "H" else "3"
+        elif c in "DT":
+            code = "8" if next_c in "CSZ" else "2"
+        elif c in "FVW":
+            code = "3"
+        elif c in "GKQ":
+            code = "4"
+        elif c == "C":
+
+            if i == 0:
+                code = "4" if next_c in "AHKLOQRUX" else "8"
+            else:
+                code = "4" if prev_c in "SZ" or next_c in "AHKOQUX" else "8"
+
+        elif c == "X":
+            code = "48" if prev_c not in "CKQ" else "8"
+        elif c == "L":
+            code = "5"
+        elif c in "MN":
+            code = "6"
+        elif c == "R":
+            code = "7"
+        elif c in "SZ":
+            code = "8"
+        else:
+            code = ""
+
+        codes.append(code)
+
+    # Collapse consecutive identical codes
+    result = codes[0] if codes else ""
+
+    for cd in codes[1:]:
+
+        if cd and cd != result[-1:]:
+            result += cd
+
+    # Remove all '0' except if first
+    if result:
+        result = result[0] + result[1:].replace("0", "")
+
+    return result
+
+
+def longest_common_prefix(s1: str, s2: str) -> str:
+    """Return the longest common prefix of two strings.
+
+    Description:
+        Compares character-by-character from the start until a
+        mismatch is found.
+
+    Args:
+        s1: First string.
+        s2: Second string.
+
+    Returns:
+        The longest common prefix (may be empty string).
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Usage Example:
+        >>> longest_common_prefix("interstellar", "internet")
+        'inter'
+        >>> longest_common_prefix("abc", "xyz")
+        ''
+
+    Complexity: O(min(n, m))
+    """
+    if not isinstance(s1, str) or not isinstance(s2, str):
+        raise TypeError("s1 and s2 must be strings")
+
+    i = 0
+
+    while i < len(s1) and i < len(s2) and s1[i] == s2[i]:
+        i += 1
+
+    return s1[:i]
+
+
+def longest_common_suffix(s1: str, s2: str) -> str:
+    """Return the longest common suffix of two strings.
+
+    Description:
+        Compares character-by-character from the end until a
+        mismatch is found.
+
+    Args:
+        s1: First string.
+        s2: Second string.
+
+    Returns:
+        The longest common suffix (may be empty string).
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Usage Example:
+        >>> longest_common_suffix("testing", "running")
+        'ning'
+        >>> longest_common_suffix("abc", "xyz")
+        ''
+
+    Complexity: O(min(n, m))
+    """
+    if not isinstance(s1, str) or not isinstance(s2, str):
+        raise TypeError("s1 and s2 must be strings")
+
+    i = 0
+
+    while i < len(s1) and i < len(s2) and s1[-(i + 1)] == s2[-(i + 1)]:
+        i += 1
+
+    return s1[len(s1) - i :] if i > 0 else ""
+
+
+def normalize_unicode(text: str, form: str = "NFC") -> str:
+    """Normalize a Unicode string to a canonical form.
+
+    Description:
+        Uses Python's ``unicodedata.normalize`` with the specified
+        normalization form: NFC, NFD, NFKC, or NFKD.
+
+    Args:
+        text: The text to normalize.
+        form: Normalization form (``'NFC'``, ``'NFD'``, ``'NFKC'``,
+            or ``'NFKD'``).
+
+    Returns:
+        The normalized string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *form* is not a valid normalization form.
+
+    Usage Example:
+        >>> normalize_unicode("café", "NFC") == normalize_unicode("café", "NFC")
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    form = form.upper()
+    valid_forms = ("NFC", "NFD", "NFKC", "NFKD")
+
+    if form not in valid_forms:
+        raise ValueError(f"form must be one of {valid_forms}")
+
+    import unicodedata
+
+    return unicodedata.normalize(form, text)
+
+
+def generate_password(length: int = 16, *, uppercase: bool = True,
+                      lowercase: bool = True, digits: bool = True,
+                      special: bool = True) -> str:
+    """Generate a cryptographically secure random password.
+
+    Description:
+        Uses ``secrets.choice`` for randomness.  At least one character
+        from each enabled category is guaranteed, then the remaining
+        positions are filled from the combined pool and shuffled.
+
+    Args:
+        length: Total password length (>= number of enabled categories).
+        uppercase: Include A-Z. Default True.
+        lowercase: Include a-z. Default True.
+        digits: Include 0-9. Default True.
+        special: Include ``!@#$%^&*()-_=+``. Default True.
+
+    Returns:
+        A random password string of the requested length.
+
+    Raises:
+        TypeError: If *length* is not an integer.
+        ValueError: If *length* is too short or no category is enabled.
+
+    Usage Example:
+        >>> pwd = generate_password(20)
+        >>> len(pwd)
+        20
+
+    Complexity: O(n) where n = length.
+    """
+    import secrets
+
+    if not isinstance(length, int):
+        raise TypeError("length must be an integer.")
+
+    pools: list = []
+    required: list = []
+
+    if uppercase:
+        pool_upper = string.ascii_uppercase
+        pools.append(pool_upper)
+        required.append(secrets.choice(pool_upper))
+
+    if lowercase:
+        pool_lower = string.ascii_lowercase
+        pools.append(pool_lower)
+        required.append(secrets.choice(pool_lower))
+
+    if digits:
+        pool_digits = string.digits
+        pools.append(pool_digits)
+        required.append(secrets.choice(pool_digits))
+
+    if special:
+        pool_special = "!@#$%^&*()-_=+"
+        pools.append(pool_special)
+        required.append(secrets.choice(pool_special))
+
+    if not pools:
+        raise ValueError("At least one character category must be enabled.")
+
+    if length < len(required):
+        raise ValueError(f"length must be >= {len(required)} for the enabled categories.")
+
+    combined = "".join(pools)
+    remaining = [secrets.choice(combined) for _ in range(length - len(required))]
+    result = required + remaining
+
+    # Shuffle using Fisher-Yates with secrets
+    for i in range(len(result) - 1, 0, -1):
+        j = secrets.randbelow(i + 1)
+        result[i], result[j] = result[j], result[i]
+
+    return "".join(result)
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 – Batch 32: String Operations (1 of 4)
+# ---------------------------------------------------------------------------
+
+def pad_start(text: str, width: int, fillchar: str = " ") -> str:
+    """Pad *text* on the left to reach *width* characters.
+
+    Args:
+        text: Source string.
+        width: Desired minimum width.
+        fillchar: Single character to pad with (default space).
+
+    Returns:
+        Left-padded string.
+
+    Raises:
+        TypeError: If text is not a string or width is not int.
+        ValueError: If fillchar is not a single character.
+
+    Usage Example:
+        >>> pad_start('42', 5, '0')
+        '00042'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    if not isinstance(width, int):
+        raise TypeError("width must be an integer.")
+    if not isinstance(fillchar, str) or len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character.")
+    return text.rjust(width, fillchar)
+
+
+def pad_end(text: str, width: int, fillchar: str = " ") -> str:
+    """Pad *text* on the right to reach *width* characters.
+
+    Args:
+        text: Source string.
+        width: Desired minimum width.
+        fillchar: Single character to pad with (default space).
+
+    Returns:
+        Right-padded string.
+
+    Raises:
+        TypeError: If text is not a string or width is not int.
+        ValueError: If fillchar is not a single character.
+
+    Usage Example:
+        >>> pad_end('hi', 5, '.')
+        'hi...'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    if not isinstance(width, int):
+        raise TypeError("width must be an integer.")
+    if not isinstance(fillchar, str) or len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character.")
+    return text.ljust(width, fillchar)
+
+
+def pad_center(text: str, width: int, fillchar: str = " ") -> str:
+    """Centre *text* within *width* characters, padding both sides.
+
+    Args:
+        text: Source string.
+        width: Desired minimum width.
+        fillchar: Single character to pad with (default space).
+
+    Returns:
+        Centre-padded string.
+
+    Raises:
+        TypeError: If text is not a string or width is not int.
+        ValueError: If fillchar is not a single character.
+
+    Usage Example:
+        >>> pad_center('hi', 6, '-')
+        '--hi--'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    if not isinstance(width, int):
+        raise TypeError("width must be an integer.")
+    if not isinstance(fillchar, str) or len(fillchar) != 1:
+        raise ValueError("fillchar must be a single character.")
+    return text.center(width, fillchar)
+
+
+def remove_prefix(text: str, prefix: str) -> str:
+    """Remove *prefix* from the start of *text* if present.
+
+    Args:
+        text: Source string.
+        prefix: Prefix to remove.
+
+    Returns:
+        String without the leading prefix.
+
+    Raises:
+        TypeError: If arguments are not strings.
+
+    Usage Example:
+        >>> remove_prefix('unhappy', 'un')
+        'happy'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(prefix, str):
+        raise TypeError("Both arguments must be strings.")
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
+def remove_suffix(text: str, suffix: str) -> str:
+    """Remove *suffix* from the end of *text* if present.
+
+    Args:
+        text: Source string.
+        suffix: Suffix to remove.
+
+    Returns:
+        String without the trailing suffix.
+
+    Raises:
+        TypeError: If arguments are not strings.
+
+    Usage Example:
+        >>> remove_suffix('filename.txt', '.txt')
+        'filename'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(suffix, str):
+        raise TypeError("Both arguments must be strings.")
+    if suffix and text.endswith(suffix):
+        return text[:-len(suffix)]
+    return text
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 – Batch 33: String Operations (2 of 4)
+# ---------------------------------------------------------------------------
+
+def collapse_whitespace(text: str) -> str:
+    """Replace consecutive whitespace with a single space and strip edges.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        String with normalised whitespace.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> collapse_whitespace('  hello   world  ')
+        'hello world'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    import re as _re
+    return _re.sub(r'\s+', ' ', text).strip()
+
+
+def truncate_with_ellipsis(text: str, max_len: int, ellipsis: str = "...") -> str:
+    """Truncate *text* to *max_len* characters, appending *ellipsis* if cut.
+
+    Args:
+        text: Source string.
+        max_len: Maximum length INCLUDING ellipsis.
+        ellipsis: Suffix to append (default ``"..."``).
+
+    Returns:
+        Truncated string.
+
+    Raises:
+        TypeError: If types are invalid.
+        ValueError: If max_len < len(ellipsis).
+
+    Usage Example:
+        >>> truncate_with_ellipsis('hello world', 8)
+        'hello...'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(ellipsis, str):
+        raise TypeError("text and ellipsis must be strings.")
+    if not isinstance(max_len, int):
+        raise TypeError("max_len must be an integer.")
+    if max_len < len(ellipsis):
+        raise ValueError("max_len must be >= len(ellipsis).")
+    if len(text) <= max_len:
+        return text
+    return text[:max_len - len(ellipsis)] + ellipsis
+
+
+def camel_to_snake(text: str) -> str:
+    """Convert camelCase or PascalCase to snake_case.
+
+    Args:
+        text: camelCase or PascalCase string.
+
+    Returns:
+        snake_case string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> camel_to_snake('helloWorld')
+        'hello_world'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    import re as _re
+    result = _re.sub(r'([A-Z])', r'_\1', text).lower()
+    return result.lstrip("_")
+
+
+def count_occurrences(text: str, sub: str) -> int:
+    """Count non-overlapping occurrences of *sub* in *text*.
+
+    Args:
+        text: Source string.
+        sub: Substring to count.
+
+    Returns:
+        Number of occurrences.
+
+    Raises:
+        TypeError: If arguments are not strings.
+
+    Usage Example:
+        >>> count_occurrences('banana', 'an')
+        2
+
+    Complexity: O(n·m)
+    """
+    if not isinstance(text, str) or not isinstance(sub, str):
+        raise TypeError("Both arguments must be strings.")
+    return text.count(sub)
+
+
+def repeat_each_char(text: str, n: int) -> str:
+    """Repeat each character in *text* n times.
+
+    Args:
+        text: Source string.
+        n: Repetition count (≥ 0).
+
+    Returns:
+        String with each character repeated.
+
+    Raises:
+        TypeError: If types are incorrect.
+        ValueError: If n < 0.
+
+    Usage Example:
+        >>> repeat_each_char('abc', 2)
+        'aabbcc'
+
+    Complexity: O(n·m)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    if not isinstance(n, int):
+        raise TypeError("n must be an integer.")
+    if n < 0:
+        raise ValueError("n must be >= 0.")
+    return "".join(ch * n for ch in text)
+
+
+def zigzag_case(text: str) -> str:
+    """Alternate character case: even indices lower, odd indices upper.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        Zigzag-cased string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> zigzag_case('hello')
+        'hElLo'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    return "".join(
+        ch.upper() if i % 2 else ch.lower() for i, ch in enumerate(text)
+    )
+
+
+def swap_case(text: str) -> str:
+    """Swap the case of every character in *text*.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        Case-swapped string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> swap_case('Hello World')
+        'hELLO wORLD'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    return text.swapcase()
+
+
+def caesar_cipher(text: str, shift: int) -> str:
+    """Apply Caesar cipher with the given shift (positive = right).
+
+    Only shifts ASCII letters; other characters are unchanged.
+
+    Args:
+        text: Source string.
+        shift: Number of positions to shift.
+
+    Returns:
+        Ciphered string.
+
+    Raises:
+        TypeError: If types are incorrect.
+
+    Usage Example:
+        >>> caesar_cipher('abc', 3)
+        'def'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    if not isinstance(shift, int):
+        raise TypeError("shift must be an integer.")
+    result = []
+    for ch in text:
+        if 'a' <= ch <= 'z':
+            result.append(chr((ord(ch) - ord('a') + shift) % 26 + ord('a')))
+        elif 'A' <= ch <= 'Z':
+            result.append(chr((ord(ch) - ord('A') + shift) % 26 + ord('A')))
+        else:
+            result.append(ch)
+    return "".join(result)
+
+
+def rot13(text: str) -> str:
+    """Apply ROT13 rotation to *text*.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        ROT13-rotated string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> rot13('hello')
+        'uryyb'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    return caesar_cipher(text, 13)
+
+
+def title_case(text: str) -> str:
+    """Convert *text* to title case, capitalising the first letter of each word.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        Title-cased string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> title_case('hello world')
+        'Hello World'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    return text.title()
+
+
+def snake_to_camel(text: str) -> str:
+    """Convert snake_case to camelCase.
+
+    Args:
+        text: Snake-cased string.
+
+    Returns:
+        camelCase string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> snake_to_camel('hello_world')
+        'helloWorld'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    parts = text.split("_")
+    if not parts:
+        return text
+    return parts[0] + "".join(p.capitalize() for p in parts[1:])
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 – Batch 34: String Operations (3 of 4)
+# ---------------------------------------------------------------------------
+
+def kebab_case(text: str) -> str:
+    """Convert whitespace-separated *text* to kebab-case (lowercase, hyphens).
+
+    Args:
+        text: Source string.
+
+    Returns:
+        kebab-cased string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> kebab_case('Hello World')
+        'hello-world'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    import re as _re
+    return _re.sub(r'\s+', '-', text.strip()).lower()
+
+
+def constant_case(text: str) -> str:
+    """Convert whitespace-separated *text* to CONSTANT_CASE.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        CONSTANT_CASE string.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> constant_case('Hello World')
+        'HELLO_WORLD'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    import re as _re
+    return _re.sub(r'\s+', '_', text.strip()).upper()
+
+
+def chunk_string(text: str, size: int) -> list:
+    """Split *text* into chunks of *size* characters.
+
+    Args:
+        text: Source string.
+        size: Chunk width (> 0).
+
+    Returns:
+        List of string chunks.
+
+    Raises:
+        TypeError: If types are incorrect.
+        ValueError: If size ≤ 0.
+
+    Usage Example:
+        >>> chunk_string('abcdefgh', 3)
+        ['abc', 'def', 'gh']
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    if not isinstance(size, int):
+        raise TypeError("size must be an integer.")
+    if size <= 0:
+        raise ValueError("size must be positive.")
+    return [text[i:i + size] for i in range(0, len(text), size)]
+
+
+def squeeze(text: str, char: str) -> str:
+    """Reduce consecutive runs of *char* to a single occurrence.
+
+    Args:
+        text: Source string.
+        char: Single character to squeeze.
+
+    Returns:
+        Squeezed string.
+
+    Raises:
+        TypeError: If types are incorrect.
+        ValueError: If char is not a single character.
+
+    Usage Example:
+        >>> squeeze('aaabbbccc', 'b')
+        'aaabccc'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(char, str):
+        raise TypeError("Both arguments must be strings.")
+    if len(char) != 1:
+        raise ValueError("char must be a single character.")
+    result = []
+    prev = None
+    for ch in text:
+        if ch == char and prev == char:
+            continue
+        result.append(ch)
+        prev = ch
+    return "".join(result)
+
+
+def string_xor(a: str, b: str) -> str:
+    """XOR two equal-length strings character by character.
+
+    Returns a string of XOR'd character ordinals as two-digit hex codes.
+
+    Args:
+        a: First string.
+        b: Second string (same length as *a*).
+
+    Returns:
+        Hex-encoded XOR result.
+
+    Raises:
+        TypeError: If arguments are not strings.
+        ValueError: If lengths differ.
+
+    Usage Example:
+        >>> string_xor('abc', 'ABC')
+        '202020'
+
+    Complexity: O(n)
+    """
+    if not isinstance(a, str) or not isinstance(b, str):
+        raise TypeError("Both arguments must be strings.")
+    if len(a) != len(b):
+        raise ValueError("Strings must be the same length.")
+    return "".join(f"{ord(x) ^ ord(y):02x}" for x, y in zip(a, b))

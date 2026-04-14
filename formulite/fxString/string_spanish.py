@@ -16,6 +16,7 @@ Key Features:
 
 from typing import Optional
 import re
+import unicodedata
 
 # Define the list of common Spanish articles, conjunctions, and prepositions
 # to be removed. Words are ordered for slight optimization, but primarily for readability.
@@ -42,9 +43,6 @@ _STOP_WORDS_PATTERN = re.compile(
     re.IGNORECASE
 )
 
-
-import re
-import unicodedata # Potentially for accent removal if fxString.shift_string does this
 
 # --- Constants for phonetic reductions ---
 # Define replacements for each strength level.

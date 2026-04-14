@@ -1,10 +1,89 @@
 """Excel-compatible mathematical and trigonometric functions."""
 
 import math
-from functools import reduce
 from typing import List, Union
 
-import numpy as np
+from formulite.fxNumeric.arithmetic_functions import (
+    absolute_value as _core_abs,
+    combinations as _core_combin,
+    combinations_with_repetition as _core_combina,
+    double_factorial as _core_double_factorial,
+    exp as _core_exp,
+    factorial as _core_factorial,
+    gcd_list as _core_gcd_list,
+    lcm_list as _core_lcm_list,
+    modulo as _core_mod,
+    natural_log as _core_ln,
+    common_log as _core_log10,
+    log_base_n as _core_log,
+    matrix_determinant as _core_mdeterm,
+    matrix_inverse as _core_minverse,
+    matrix_multiply as _core_mmult,
+    identity_matrix as _core_munit,
+    power as _core_power,
+    quotient as _core_quotient,
+    series_sum as _core_series_sum,
+    sign as _core_sign,
+    square_root as _core_sqrt,
+    sqrt_pi as _core_sqrtpi,
+    sum_x2my2 as _core_sum_x2my2,
+    sum_x2py2 as _core_sum_x2py2,
+    sum_xmy2 as _core_sum_xmy2,
+    matrix_transpose as _core_transpose,
+)
+from formulite.fxNumeric.conversion_functions import (
+    int_to_roman as _core_int_to_roman,
+    roman_to_int as _core_roman_to_int,
+    number_to_base as _core_number_to_base,
+    base_to_decimal as _core_base_to_decimal,
+)
+from formulite.fxNumeric.trigonometry_functions import (
+    arccosine as _core_acos,
+    arcsine as _core_asin,
+    arctangent as _core_atan,
+    arctangent2 as _core_atan2,
+    cosecant as _core_csc,
+    cosine as _core_cos,
+    cotangent as _core_cot,
+    degrees_to_radians as _core_radians,
+    hyperbolic_cosecant as _core_csch,
+    hyperbolic_cosine as _core_cosh,
+    hyperbolic_cotangent as _core_coth,
+    hyperbolic_secant as _core_sech,
+    hyperbolic_sine as _core_sinh,
+    hyperbolic_tangent as _core_tanh,
+    inverse_hyperbolic_cosine as _core_acosh,
+    inverse_hyperbolic_cotangent as _core_acoth,
+    inverse_hyperbolic_sine as _core_asinh,
+    inverse_hyperbolic_tangent as _core_atanh,
+    radians_to_degrees as _core_degrees,
+    secant as _core_sec,
+    sine as _core_sin,
+    tangent as _core_tan,
+)
+from formulite.fxNumeric.rounding_functions import (
+    ceiling_significance as _core_ceiling,
+    ceiling_math as _core_ceiling_math,
+    ceiling_precise as _core_ceiling_precise,
+    even as _core_even,
+    floor_significance as _core_floor,
+    floor_math as _core_floor_math,
+    floor_precise as _core_floor_precise,
+    odd as _core_odd,
+    round_to_n_decimals as _core_round,
+    round_to_nearest_multiple as _core_mround,
+)
+from formulite.fxNumeric.random_functions import (
+    random_array as _core_random_array,
+    random_float as _core_random_float,
+    random_int as _core_random_int,
+)
+from formulite.fxNumeric.statistics_functions import (
+    calculate_standard_deviation as _core_std_dev,
+    calculate_variance as _core_variance,
+    aggregate as _core_aggregate,
+    sum_if as _core_sum_if,
+)
 
 
 def ABS(number: float) -> float:
@@ -28,7 +107,7 @@ def ABS(number: float) -> float:
     
     Cost: O(1)
     """
-    return abs(number)
+    return _core_abs(number)
 
 
 def ACOS(number: float) -> float:
@@ -57,7 +136,7 @@ def ACOS(number: float) -> float:
     """
     if not -1 <= number <= 1:
         raise ValueError("Input must be between -1 and 1")
-    return math.acos(number)
+    return _core_acos(number)
 
 
 def ACOSH(number: float) -> float:
@@ -86,7 +165,7 @@ def ACOSH(number: float) -> float:
     """
     if number < 1:
         raise ValueError("Input must be >= 1")
-    return math.acosh(number)
+    return _core_acosh(number)
 
 
 def ACOT(number: float) -> float:
@@ -110,7 +189,7 @@ def ACOT(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.atan(1 / number) if number != 0 else math.pi / 2
+    return _core_atan(1 / number) if number != 0 else math.pi / 2
 
 
 def ACOTH(number: float) -> float:
@@ -139,7 +218,7 @@ def ACOTH(number: float) -> float:
     """
     if abs(number) <= 1:
         raise ValueError("Input must satisfy |x| > 1")
-    return math.atanh(1 / number)
+    return _core_acoth(number)
 
 
 def AGGREGATE(data: List[Union[int, float]], operation: str = "sum") -> float:
@@ -169,20 +248,7 @@ def AGGREGATE(data: List[Union[int, float]], operation: str = "sum") -> float:
     
     Cost: O(n) where n is the length of data
     """
-    if not data:
-        raise ValueError("List cannot be empty")
-    
-    operations = {
-        "sum": sum(data),
-        "avg": sum(data) / len(data),
-        "max": max(data),
-        "min": min(data)
-    }
-    
-    if operation not in operations:
-        raise ValueError("Operation must be 'sum', 'avg', 'max', or 'min'")
-    
-    return operations[operation]
+    return _core_aggregate(data, operation)
 
 
 def ASIN(number: float) -> float:
@@ -211,7 +277,7 @@ def ASIN(number: float) -> float:
     """
     if not -1 <= number <= 1:
         raise ValueError("Input must be between -1 and 1")
-    return math.asin(number)
+    return _core_asin(number)
 
 
 def ASINH(number: float) -> float:
@@ -235,7 +301,7 @@ def ASINH(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.asinh(number)
+    return _core_asinh(number)
 
 
 def ATAN(number: float) -> float:
@@ -259,7 +325,7 @@ def ATAN(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.atan(number)
+    return _core_atan(number)
 
 
 def ATAN2(x: float, y: float) -> float:
@@ -284,7 +350,7 @@ def ATAN2(x: float, y: float) -> float:
     
     Cost: O(1)
     """
-    return math.atan2(y, x)
+    return _core_atan2(y, x)
 
 
 def ATANH(number: float) -> float:
@@ -313,7 +379,7 @@ def ATANH(number: float) -> float:
     """
     if not -1 < number < 1:
         raise ValueError("Input must be between -1 and 1 (exclusive)")
-    return math.atanh(number)
+    return _core_atanh(number)
 
 
 def BASE(number: int, radix: int, min_length: int = 0) -> str:
@@ -344,13 +410,7 @@ def BASE(number: int, radix: int, min_length: int = 0) -> str:
     
     Cost: O(log n) where n is the number
     """
-    if not 2 <= radix <= 36:
-        raise ValueError("Base must be between 2 and 36")
-    if number < 0:
-        raise ValueError("Number must be non-negative")
-    
-    result = np.base_repr(number, radix)
-    return result.zfill(min_length) if min_length > 0 else result
+    return _core_number_to_base(number, radix, min_length)
 
 
 def CEILING(number: float, significance: float = 1) -> float:
@@ -379,7 +439,7 @@ def CEILING(number: float, significance: float = 1) -> float:
     """
     if significance == 0:
         return 0
-    return math.ceil(number / significance) * significance
+    return _core_ceiling(number, significance)
 
 
 def CEILING_MATH(number: float, significance: float = 1, mode: int = 0) -> float:
@@ -407,16 +467,7 @@ def CEILING_MATH(number: float, significance: float = 1, mode: int = 0) -> float
     
     Cost: O(1)
     """
-    if significance == 0:
-        return 0
-    
-    if number >= 0:
-        return math.ceil(number / abs(significance)) * abs(significance)
-    else:
-        if mode == 0:
-            return math.ceil(number / abs(significance)) * abs(significance)
-        else:
-            return math.floor(number / abs(significance)) * abs(significance)
+    return _core_ceiling_math(number, significance, mode)
 
 
 def CEILING_PRECISE(number: float, significance: float = 1) -> float:
@@ -441,9 +492,7 @@ def CEILING_PRECISE(number: float, significance: float = 1) -> float:
     
     Cost: O(1)
     """
-    if significance == 0:
-        return 0
-    return math.ceil(number / abs(significance)) * abs(significance)
+    return _core_ceiling_precise(number, significance)
 
 
 def COMBIN(n: int, k: int) -> int:
@@ -473,7 +522,7 @@ def COMBIN(n: int, k: int) -> int:
     """
     if n < 0 or k < 0 or k > n:
         raise ValueError("Invalid inputs: must have 0 <= k <= n and n >= 0")
-    return math.comb(n, k)
+    return _core_combin(n, k)
 
 
 def COMBINA(n: int, k: int) -> int:
@@ -503,7 +552,7 @@ def COMBINA(n: int, k: int) -> int:
     """
     if n < 0 or k < 0:
         raise ValueError("Inputs must be non-negative")
-    return math.comb(n + k - 1, k)
+    return _core_combina(n, k)
 
 
 def COS(number: float) -> float:
@@ -527,7 +576,7 @@ def COS(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.cos(number)
+    return _core_cos(number)
 
 
 def COSH(number: float) -> float:
@@ -550,7 +599,7 @@ def COSH(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.cosh(number)
+    return _core_cosh(number)
 
 
 def COT(number: float) -> float:
@@ -577,10 +626,7 @@ def COT(number: float) -> float:
     
     Cost: O(1)
     """
-    sin_val = math.sin(number)
-    if sin_val == 0:
-        raise ValueError("Cotangent undefined at this angle")
-    return math.cos(number) / sin_val
+    return _core_cot(number)
 
 
 def COTH(number: float) -> float:
@@ -606,10 +652,7 @@ def COTH(number: float) -> float:
     
     Cost: O(1)
     """
-    sinh_val = math.sinh(number)
-    if sinh_val == 0:
-        raise ValueError("Hyperbolic cotangent undefined at 0")
-    return math.cosh(number) / sinh_val
+    return _core_coth(number)
 
 
 def CSC(number: float) -> float:
@@ -636,10 +679,7 @@ def CSC(number: float) -> float:
     
     Cost: O(1)
     """
-    sin_val = math.sin(number)
-    if sin_val == 0:
-        raise ValueError("Cosecant undefined at this angle")
-    return 1 / sin_val
+    return _core_csc(number)
 
 
 def CSCH(number: float) -> float:
@@ -665,10 +705,7 @@ def CSCH(number: float) -> float:
     
     Cost: O(1)
     """
-    sinh_val = math.sinh(number)
-    if sinh_val == 0:
-        raise ValueError("Hyperbolic cosecant undefined at 0")
-    return 1 / sinh_val
+    return _core_csch(number)
 
 
 def DECIMAL(text: str, radix: int) -> int:
@@ -696,9 +733,7 @@ def DECIMAL(text: str, radix: int) -> int:
     
     Cost: O(n) where n is the length of text
     """
-    if not 2 <= radix <= 36:
-        raise ValueError("Base must be between 2 and 36")
-    return int(text, radix)
+    return _core_base_to_decimal(text, radix)
 
 
 def DEGREES(angle: float) -> float:
@@ -722,7 +757,7 @@ def DEGREES(angle: float) -> float:
     
     Cost: O(1)
     """
-    return math.degrees(angle)
+    return _core_degrees(angle)
 
 
 def EVEN(number: float) -> int:
@@ -749,10 +784,7 @@ def EVEN(number: float) -> int:
     
     Cost: O(1)
     """
-    if number >= 0:
-        return int(math.ceil(number / 2) * 2)
-    else:
-        return int(math.floor(number / 2) * 2)
+    return _core_even(number)
 
 
 def EXP(number: float) -> float:
@@ -776,7 +808,7 @@ def EXP(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.exp(number)
+    return _core_exp(number)
 
 
 def FACT(number: int) -> int:
@@ -803,9 +835,7 @@ def FACT(number: int) -> int:
     
     Cost: O(n)
     """
-    if number < 0:
-        raise ValueError("Factorial not defined for negative numbers")
-    return math.factorial(number)
+    return _core_factorial(number)
 
 
 def FACTDOUBLE(number: int) -> int:
@@ -833,13 +863,7 @@ def FACTDOUBLE(number: int) -> int:
     
     Cost: O(n)
     """
-    if number < 0:
-        raise ValueError("Double factorial not defined for negative numbers")
-    
-    result = 1
-    for i in range(number, 0, -2):
-        result *= i
-    return result
+    return _core_double_factorial(number)
 
 
 def FLOOR(number: float, significance: float = 1) -> float:
@@ -866,7 +890,7 @@ def FLOOR(number: float, significance: float = 1) -> float:
     """
     if significance == 0:
         return 0
-    return math.floor(number / significance) * significance
+    return _core_floor(number, significance)
 
 
 def FLOOR_MATH(number: float, significance: float = 1, mode: int = 0) -> float:
@@ -894,16 +918,7 @@ def FLOOR_MATH(number: float, significance: float = 1, mode: int = 0) -> float:
     
     Cost: O(1)
     """
-    if significance == 0:
-        return 0
-    
-    if number >= 0:
-        return math.floor(number / abs(significance)) * abs(significance)
-    else:
-        if mode == 0:
-            return math.floor(number / abs(significance)) * abs(significance)
-        else:
-            return math.ceil(number / abs(significance)) * abs(significance)
+    return _core_floor_math(number, significance, mode)
 
 
 def FLOOR_PRECISE(number: float, significance: float = 1) -> float:
@@ -928,9 +943,7 @@ def FLOOR_PRECISE(number: float, significance: float = 1) -> float:
     
     Cost: O(1)
     """
-    if significance == 0:
-        return 0
-    return math.floor(number / abs(significance)) * abs(significance)
+    return _core_floor_precise(number, significance)
 
 
 def GCD(*numbers: int) -> int:
@@ -959,7 +972,7 @@ def GCD(*numbers: int) -> int:
     """
     if not numbers:
         raise ValueError("At least one number required")
-    return math.gcd(*numbers)
+    return _core_gcd_list(list(numbers))
 
 
 def INT(number: float) -> int:
@@ -983,7 +996,7 @@ def INT(number: float) -> int:
     
     Cost: O(1)
     """
-    return math.floor(number)
+    return int(_core_floor(number, 1))
 
 
 def ISO_CEILING(number: float, significance: float = 1) -> float:
@@ -1008,9 +1021,7 @@ def ISO_CEILING(number: float, significance: float = 1) -> float:
     
     Cost: O(1)
     """
-    if significance == 0:
-        return 0
-    return math.ceil(number / abs(significance)) * abs(significance)
+    return CEILING_PRECISE(number, significance)
 
 
 def LCM(*numbers: int) -> int:
@@ -1039,11 +1050,7 @@ def LCM(*numbers: int) -> int:
     """
     if not numbers:
         raise ValueError("At least one number required")
-    
-    def lcm_two(a: int, b: int) -> int:
-        return abs(a * b) // math.gcd(a, b)
-    
-    return abs(reduce(lcm_two, numbers))
+    return _core_lcm_list(list(numbers))
 
 
 def LN(number: float) -> float:
@@ -1072,7 +1079,7 @@ def LN(number: float) -> float:
     """
     if number <= 0:
         raise ValueError("Input must be positive")
-    return math.log(number)
+    return _core_ln(number)
 
 
 def LOG(number: float, base: float = 10) -> float:
@@ -1102,7 +1109,7 @@ def LOG(number: float, base: float = 10) -> float:
     """
     if number <= 0 or base <= 0 or base == 1:
         raise ValueError("Invalid inputs for logarithm")
-    return math.log(number, base)
+    return _core_log(number, base)
 
 
 def LOG10(number: float) -> float:
@@ -1131,7 +1138,7 @@ def LOG10(number: float) -> float:
     """
     if number <= 0:
         raise ValueError("Input must be positive")
-    return math.log10(number)
+    return _core_log10(number)
 
 
 def MOD(number: float, divisor: float) -> float:
@@ -1162,7 +1169,7 @@ def MOD(number: float, divisor: float) -> float:
     """
     if divisor == 0:
         raise ValueError("Divisor cannot be zero")
-    return number % divisor
+    return _core_mod(number, divisor)
 
 
 def MDETERM(matrix: List[List[float]]) -> float:
@@ -1189,10 +1196,7 @@ def MDETERM(matrix: List[List[float]]) -> float:
     
     Cost: O(n³) where n is matrix dimension
     """
-    mat = np.array(matrix)
-    if mat.shape[0] != mat.shape[1]:
-        raise ValueError("Matrix must be square")
-    return float(np.linalg.det(mat))
+    return _core_mdeterm(matrix)
 
 
 def MINVERSE(matrix: List[List[float]]) -> List[List[float]]:
@@ -1217,12 +1221,7 @@ def MINVERSE(matrix: List[List[float]]) -> List[List[float]]:
     
     Cost: O(n³) where n is matrix dimension
     """
-    mat = np.array(matrix)
-    if mat.shape[0] != mat.shape[1]:
-        raise ValueError("Matrix must be square")
-    if abs(np.linalg.det(mat)) < 1e-10:
-        raise ValueError("Matrix is not invertible")
-    return np.linalg.inv(mat).tolist()
+    return _core_minverse(matrix)
 
 
 def ODD(number: float) -> int:
@@ -1249,12 +1248,7 @@ def ODD(number: float) -> int:
     
     Cost: O(1)
     """
-    if number >= 0:
-        result = math.ceil(number)
-        return result if result % 2 == 1 else result + 1
-    else:
-        result = math.floor(number)
-        return result if result % 2 == -1 else result - 1
+    return _core_odd(number)
 
 
 def PI() -> float:
@@ -1298,7 +1292,7 @@ def POWER(number: float, power: float) -> float:
     
     Cost: O(1)
     """
-    return math.pow(number, power)
+    return _core_power(number, power)
 
 
 def RADIANS(angle: float) -> float:
@@ -1322,7 +1316,7 @@ def RADIANS(angle: float) -> float:
     
     Cost: O(1)
     """
-    return math.radians(angle)
+    return _core_radians(angle)
 
 
 def ARABIC(roman: str) -> int:
@@ -1349,26 +1343,7 @@ def ARABIC(roman: str) -> int:
     
     Cost: O(n) where n is the length of the Roman numeral
     """
-    roman = roman.upper()
-    roman_values = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
-    
-    # Validate input
-    for char in roman:
-        if char not in roman_values:
-            raise ValueError(f"Invalid Roman numeral: {roman}")
-    
-    result = 0
-    prev_value = 0
-    
-    for char in reversed(roman):
-        value = roman_values[char]
-        if value < prev_value:
-            result -= value
-        else:
-            result += value
-        prev_value = value
-    
-    return result
+    return _core_roman_to_int(roman)
 
 
 def ROMAN(number: int, form: int = 0) -> str:
@@ -1396,19 +1371,7 @@ def ROMAN(number: int, form: int = 0) -> str:
     
     Cost: O(1)
     """
-    if not 1 <= number <= 3999:
-        raise ValueError("Number must be between 1 and 3999")
-    
-    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
-    numerals = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"]
-    
-    result = ""
-    for value, numeral in zip(values, numerals):
-        count = number // value
-        result += numeral * count
-        number -= value * count
-    
-    return result
+    return _core_int_to_roman(number)
 
 
 def ROUND(number: float, num_digits: int = 0) -> float:
@@ -1435,7 +1398,7 @@ def ROUND(number: float, num_digits: int = 0) -> float:
     
     Cost: O(1)
     """
-    return round(number, num_digits)
+    return _core_round(number, num_digits)
 
 
 def ROUNDDOWN(number: float, num_digits: int = 0) -> float:
@@ -1514,10 +1477,7 @@ def SEC(number: float) -> float:
     
     Cost: O(1)
     """
-    cos_val = math.cos(number)
-    if cos_val == 0:
-        raise ValueError("Secant undefined at this angle")
-    return 1 / cos_val
+    return _core_sec(number)
 
 
 def SECH(number: float) -> float:
@@ -1540,7 +1500,7 @@ def SECH(number: float) -> float:
     
     Cost: O(1)
     """
-    return 1 / math.cosh(number)
+    return _core_sech(number)
 
 
 def SIGN(number: float) -> int:
@@ -1566,11 +1526,7 @@ def SIGN(number: float) -> int:
     
     Cost: O(1)
     """
-    if number > 0:
-        return 1
-    elif number < 0:
-        return -1
-    return 0
+    return _core_sign(number)
 
 
 def SIN(number: float) -> float:
@@ -1594,7 +1550,7 @@ def SIN(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.sin(number)
+    return _core_sin(number)
 
 
 def SINH(number: float) -> float:
@@ -1617,7 +1573,7 @@ def SINH(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.sinh(number)
+    return _core_sinh(number)
 
 
 def SQRT(number: float) -> float:
@@ -1645,7 +1601,7 @@ def SQRT(number: float) -> float:
     """
     if number < 0:
         raise ValueError("Cannot compute square root of negative number")
-    return math.sqrt(number)
+    return _core_sqrt(number)
 
 
 def SQRTPI(number: float) -> float:
@@ -1674,7 +1630,7 @@ def SQRTPI(number: float) -> float:
     """
     if number < 0:
         raise ValueError("Number must be non-negative")
-    return math.sqrt(number * math.pi)
+    return _core_sqrtpi(number)
 
 
 def TAN(number: float) -> float:
@@ -1698,7 +1654,7 @@ def TAN(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.tan(number)
+    return _core_tan(number)
 
 
 def TANH(number: float) -> float:
@@ -1721,7 +1677,7 @@ def TANH(number: float) -> float:
     
     Cost: O(1)
     """
-    return math.tanh(number)
+    return _core_tanh(number)
 
 
 def TRUNC(number: float, num_digits: int = 0) -> float:
@@ -1811,303 +1767,7 @@ def SUMIF(values: List[Union[int, float]], criteria: str) -> float:
     
     Cost: O(n) where n is the length of values
     """
-    operator = ''.join(c for c in criteria if c in '<>=!')
-    if not operator:
-        raise ValueError("Invalid criteria format")
-    
-    number_str = ''.join(c for c in criteria if c.isdigit() or c in '.-')
-    number = float(number_str) if number_str else 0
-    
-    conditions = {
-        '>': lambda x: x > number,
-        '<': lambda x: x < number,
-        '>=': lambda x: x >= number,
-        '<=': lambda x: x <= number,
-        '=': lambda x: x == number,
-        '==': lambda x: x == number,
-        '!=': lambda x: x != number
-    }
-    
-    if operator not in conditions:
-        raise ValueError(f"Invalid operator: {operator}")
-    
-    return sum(x for x in values if conditions[operator](x))
-
-
-def AVERAGE(*numbers: Union[float, List[float]]) -> float:
-    """Returns the average (arithmetic mean) of numbers.
-    
-    Description:
-        Returns the average of the arguments, ignoring text and logical values.
-        Equivalent to Excel's AVERAGE function.
-    
-    Args:
-        *numbers: One or more numbers or lists of numbers.
-    
-    Returns:
-        float: The average of the numbers.
-    
-    Raises:
-        ValueError: If no numbers are provided.
-    
-    Usage Example:
-        >>> AVERAGE(10, 20, 30)
-        20.0
-        >>> AVERAGE([1, 2, 3, 4, 5])
-        3.0
-        >>> AVERAGE([10, 20], 30, 40)
-        25.0
-    
-    Cost: O(n) where n is total number of values
-    """
-    all_numbers = []
-    for item in numbers:
-        if isinstance(item, (list, tuple)):
-            all_numbers.extend(x for x in item if isinstance(x, (int, float)))
-        elif isinstance(item, (int, float)):
-            all_numbers.append(item)
-    
-    if not all_numbers:
-        raise ValueError("No numbers to average")
-    
-    return sum(all_numbers) / len(all_numbers)
-
-
-def AVERAGEIF(values: List[Union[int, float]], criteria: str) -> float:
-    """Returns the average of cells that meet a criterion.
-    
-    Description:
-        Returns the average (arithmetic mean) of all cells that meet
-        a given criterion. Equivalent to Excel's AVERAGEIF function.
-    
-    Args:
-        values (List[Union[int, float]]): List of numbers to evaluate.
-        criteria (str): Condition as string (e.g., ">10", "<=5", "=3").
-    
-    Returns:
-        float: Average of numbers that meet the criterion.
-    
-    Raises:
-        ValueError: If criteria format is invalid or no values match.
-    
-    Usage Example:
-        >>> AVERAGEIF([1, 5, 10, 15, 20], ">10")
-        17.5
-        >>> AVERAGEIF([2, 4, 6, 8, 10], "<=5")
-        3.0
-    
-    Cost: O(n) where n is the length of values
-    """
-    operator = ''.join(c for c in criteria if c in '<>=!')
-    if not operator:
-        raise ValueError("Invalid criteria format")
-    
-    number_str = ''.join(c for c in criteria if c.isdigit() or c in '.-')
-    number = float(number_str) if number_str else 0
-    
-    conditions = {
-        '>': lambda x: x > number,
-        '<': lambda x: x < number,
-        '>=': lambda x: x >= number,
-        '<=': lambda x: x <= number,
-        '=': lambda x: x == number,
-        '==': lambda x: x == number,
-        '!=': lambda x: x != number
-    }
-    
-    if operator not in conditions:
-        raise ValueError(f"Invalid operator: {operator}")
-    
-    matching = [x for x in values if conditions[operator](x)]
-    
-    if not matching:
-        raise ValueError("No values match the criteria")
-    
-    return sum(matching) / len(matching)
-
-
-def MAX(*numbers: Union[float, List[float]]) -> float:
-    """Returns the largest value in a set of numbers.
-    
-    Description:
-        Returns the maximum value from the arguments. Equivalent to
-        Excel's MAX function.
-    
-    Args:
-        *numbers: One or more numbers or lists of numbers.
-    
-    Returns:
-        float: The maximum value.
-    
-    Raises:
-        ValueError: If no numbers are provided.
-    
-    Usage Example:
-        >>> MAX(10, 20, 30)
-        30
-        >>> MAX([1, 5, 3, 9, 2])
-        9
-        >>> MAX([10, 20], 30, [40, 15])
-        40
-    
-    Cost: O(n) where n is total number of values
-    """
-    all_numbers = []
-    for item in numbers:
-        if isinstance(item, (list, tuple)):
-            all_numbers.extend(x for x in item if isinstance(x, (int, float)))
-        elif isinstance(item, (int, float)):
-            all_numbers.append(item)
-    
-    if not all_numbers:
-        raise ValueError("No numbers provided")
-    
-    return max(all_numbers)
-
-
-def MIN(*numbers: Union[float, List[float]]) -> float:
-    """Returns the smallest value in a set of numbers.
-    
-    Description:
-        Returns the minimum value from the arguments. Equivalent to
-        Excel's MIN function.
-    
-    Args:
-        *numbers: One or more numbers or lists of numbers.
-    
-    Returns:
-        float: The minimum value.
-    
-    Raises:
-        ValueError: If no numbers are provided.
-    
-    Usage Example:
-        >>> MIN(10, 20, 30)
-        10
-        >>> MIN([1, 5, 3, 9, 2])
-        1
-        >>> MIN([10, 20], 30, [40, 15])
-        10
-    
-    Cost: O(n) where n is total number of values
-    """
-    all_numbers = []
-    for item in numbers:
-        if isinstance(item, (list, tuple)):
-            all_numbers.extend(x for x in item if isinstance(x, (int, float)))
-        elif isinstance(item, (int, float)):
-            all_numbers.append(item)
-    
-    if not all_numbers:
-        raise ValueError("No numbers provided")
-    
-    return min(all_numbers)
-
-
-def MAXIFS(values: List[Union[int, float]], criteria: str) -> float:
-    """Returns the maximum value among cells specified by a criterion.
-    
-    Description:
-        Returns the maximum value among cells that meet a given criterion.
-        Equivalent to Excel's MAXIFS function.
-    
-    Args:
-        values (List[Union[int, float]]): List of numbers to evaluate.
-        criteria (str): Condition as string (e.g., ">10", "<=5", "=3").
-    
-    Returns:
-        float: Maximum value that meets the criterion.
-    
-    Raises:
-        ValueError: If criteria format is invalid or no values match.
-    
-    Usage Example:
-        >>> MAXIFS([1, 5, 10, 15, 20], ">10")
-        20
-        >>> MAXIFS([2, 4, 6, 8, 10], "<=5")
-        4
-    
-    Cost: O(n) where n is the length of values
-    """
-    operator = ''.join(c for c in criteria if c in '<>=!')
-    if not operator:
-        raise ValueError("Invalid criteria format")
-    
-    number_str = ''.join(c for c in criteria if c.isdigit() or c in '.-')
-    number = float(number_str) if number_str else 0
-    
-    conditions = {
-        '>': lambda x: x > number,
-        '<': lambda x: x < number,
-        '>=': lambda x: x >= number,
-        '<=': lambda x: x <= number,
-        '=': lambda x: x == number,
-        '==': lambda x: x == number,
-        '!=': lambda x: x != number
-    }
-    
-    if operator not in conditions:
-        raise ValueError(f"Invalid operator: {operator}")
-    
-    matching = [x for x in values if conditions[operator](x)]
-    
-    if not matching:
-        raise ValueError("No values match the criteria")
-    
-    return max(matching)
-
-
-def MINIFS(values: List[Union[int, float]], criteria: str) -> float:
-    """Returns the minimum value among cells specified by a criterion.
-    
-    Description:
-        Returns the minimum value among cells that meet a given criterion.
-        Equivalent to Excel's MINIFS function.
-    
-    Args:
-        values (List[Union[int, float]]): List of numbers to evaluate.
-        criteria (str): Condition as string (e.g., ">10", "<=5", "=3").
-    
-    Returns:
-        float: Minimum value that meets the criterion.
-    
-    Raises:
-        ValueError: If criteria format is invalid or no values match.
-    
-    Usage Example:
-        >>> MINIFS([1, 5, 10, 15, 20], ">10")
-        15
-        >>> MINIFS([2, 4, 6, 8, 10], "<=5")
-        2
-    
-    Cost: O(n) where n is the length of values
-    """
-    operator = ''.join(c for c in criteria if c in '<>=!')
-    if not operator:
-        raise ValueError("Invalid criteria format")
-    
-    number_str = ''.join(c for c in criteria if c.isdigit() or c in '.-')
-    number = float(number_str) if number_str else 0
-    
-    conditions = {
-        '>': lambda x: x > number,
-        '<': lambda x: x < number,
-        '>=': lambda x: x >= number,
-        '<=': lambda x: x <= number,
-        '=': lambda x: x == number,
-        '==': lambda x: x == number,
-        '!=': lambda x: x != number
-    }
-    
-    if operator not in conditions:
-        raise ValueError(f"Invalid operator: {operator}")
-    
-    matching = [x for x in values if conditions[operator](x)]
-    
-    if not matching:
-        raise ValueError("No values match the criteria")
-    
-    return min(matching)
+    return _core_sum_if(values, values, criteria)
 
 
 def MMULT(matrix1: List[List[float]], matrix2: List[List[float]]) -> List[List[float]]:
@@ -2136,14 +1796,7 @@ def MMULT(matrix1: List[List[float]], matrix2: List[List[float]]) -> List[List[f
     
     Cost: O(n * m * p) where n, m, p are matrix dimensions
     """
-    mat1 = np.array(matrix1)
-    mat2 = np.array(matrix2)
-    
-    if mat1.shape[1] != mat2.shape[0]:
-        raise ValueError("Number of columns in matrix1 must equal number of rows in matrix2")
-    
-    result = np.matmul(mat1, mat2)
-    return result.tolist()
+    return _core_mmult(matrix1, matrix2)
 
 
 def MROUND(number: float, multiple: float) -> float:
@@ -2179,7 +1832,7 @@ def MROUND(number: float, multiple: float) -> float:
     if (number > 0 and multiple < 0) or (number < 0 and multiple > 0):
         raise ValueError("Number and multiple must have the same sign")
     
-    return round(number / multiple) * multiple
+    return _core_mround(number, multiple)
 
 
 def MULTINOMIAL(*numbers: int) -> int:
@@ -2206,20 +1859,9 @@ def MULTINOMIAL(*numbers: int) -> int:
     
     Cost: O(n) where n is the sum of all numbers
     """
-    if not numbers:
-        return 1
-    
-    for num in numbers:
-        if num < 0:
-            raise ValueError("All numbers must be non-negative")
-    
-    total = sum(numbers)
-    result = math.factorial(total)
-    
-    for num in numbers:
-        result //= math.factorial(num)
-    
-    return result
+    from formulite.fxPython.py_itertools import multinomial as _core_multinomial
+
+    return _core_multinomial(*numbers)
 
 
 def MUNIT(dimension: int) -> List[List[float]]:
@@ -2246,10 +1888,7 @@ def MUNIT(dimension: int) -> List[List[float]]:
     
     Cost: O(n²) where n is the dimension
     """
-    if dimension <= 0:
-        raise ValueError("Dimension must be positive")
-    
-    return np.eye(dimension).tolist()
+    return _core_munit(dimension)
 
 
 def PRODUCT(*numbers: Union[float, List[float]]) -> float:
@@ -2313,10 +1952,7 @@ def QUOTIENT(numerator: float, denominator: float) -> int:
     
     Cost: O(1)
     """
-    if denominator == 0:
-        raise ValueError("Denominator cannot be zero")
-    
-    return int(numerator / denominator)
+    return _core_quotient(numerator, denominator)
 
 
 def RAND() -> float:
@@ -2336,7 +1972,7 @@ def RAND() -> float:
     
     Cost: O(1)
     """
-    return np.random.random()
+    return _core_random_float(0.0, 1.0)
 
 
 def RANDBETWEEN(bottom: int, top: int) -> int:
@@ -2369,7 +2005,7 @@ def RANDBETWEEN(bottom: int, top: int) -> int:
     if bottom > top:
         raise ValueError("Bottom must be less than or equal to top")
     
-    return np.random.randint(bottom, top + 1)
+    return _core_random_int(bottom, top)
 
 
 def RANDARRAY(rows: int = 1, columns: int = 1, min_val: float = 0, 
@@ -2410,10 +2046,7 @@ def RANDARRAY(rows: int = 1, columns: int = 1, min_val: float = 0,
     if min_val >= max_val:
         raise ValueError("Min value must be less than max value")
     
-    if whole_number:
-        return np.random.randint(int(min_val), int(max_val) + 1, size=(rows, columns)).tolist()
-    else:
-        return (np.random.random((rows, columns)) * (max_val - min_val) + min_val).tolist()
+    return _core_random_array(rows, columns, min_val, max_val, whole_number)
 
 
 def SEQUENCE(rows: int, columns: int = 1, start: float = 1, step: float = 1) -> List[List[float]]:
@@ -2445,19 +2078,9 @@ def SEQUENCE(rows: int, columns: int = 1, start: float = 1, step: float = 1) -> 
     
     Cost: O(rows * columns)
     """
-    if rows <= 0 or columns <= 0:
-        raise ValueError("Rows and columns must be positive")
-    
-    result = []
-    current = start
-    for i in range(rows):
-        row = []
-        for j in range(columns):
-            row.append(current)
-            current += step
-        result.append(row)
-    
-    return result
+    from formulite.fxPython.py_operations import sequence as _core_sequence
+
+    return _core_sequence(rows, columns, start, step)
 
 
 def SERIESSUM(x: float, n: int, m: int, coefficients: List[float]) -> float:
@@ -2485,11 +2108,7 @@ def SERIESSUM(x: float, n: int, m: int, coefficients: List[float]) -> float:
     
     Cost: O(k) where k is the number of coefficients
     """
-    result = 0
-    for i, coeff in enumerate(coefficients):
-        power = n + i * m
-        result += coeff * (x ** power)
-    return result
+    return float(_core_series_sum(x, n, m, coefficients))
 
 
 def SUBTOTAL(function_num: int, *values: Union[float, List[float]]) -> float:
@@ -2549,15 +2168,15 @@ def SUBTOTAL(function_num: int, *values: Union[float, List[float]]) -> float:
             result *= num
         return result
     elif function_num == 7:  # STDEV (sample)
-        return float(np.std(all_numbers, ddof=1))
+        return _core_std_dev(all_numbers, sample=True)
     elif function_num == 8:  # STDEVP (population)
-        return float(np.std(all_numbers, ddof=0))
+        return _core_std_dev(all_numbers, sample=False)
     elif function_num == 9:  # SUM
         return sum(all_numbers)
     elif function_num == 10:  # VAR (sample)
-        return float(np.var(all_numbers, ddof=1))
+        return _core_variance(all_numbers, sample=True)
     elif function_num == 11:  # VARP (population)
-        return float(np.var(all_numbers, ddof=0))
+        return _core_variance(all_numbers, sample=False)
     else:
         raise ValueError("Function number must be between 1 and 11")
 
@@ -2589,21 +2208,23 @@ def SUMPRODUCT(*arrays: List[Union[int, float]]) -> float:
     if not arrays:
         raise ValueError("At least one array required")
     
-    # Convert to numpy arrays
-    np_arrays = [np.array(arr) for arr in arrays]
-    
     # Check all arrays have same length
-    length = len(np_arrays[0])
-    for arr in np_arrays[1:]:
+    length = len(arrays[0])
+    for arr in arrays[1:]:
         if len(arr) != length:
             raise ValueError("All arrays must have the same length")
     
     # Multiply all arrays element-wise and sum
-    result = np_arrays[0]
-    for arr in np_arrays[1:]:
-        result = result * arr
-    
-    return float(np.sum(result))
+    result = 0.0
+    for i in range(length):
+        product = 1.0
+
+        for arr in arrays:
+            product *= arr[i]
+
+        result += product
+
+    return result
 
 
 def SUMSQ(*numbers: Union[float, List[float]]) -> float:
@@ -2667,8 +2288,8 @@ def SUMX2MY2(array_x: List[float], array_y: List[float]) -> float:
     """
     if len(array_x) != len(array_y):
         raise ValueError("Arrays must have the same length")
-    
-    return sum(x**2 - y**2 for x, y in zip(array_x, array_y))
+
+    return _core_sum_x2my2(array_x, array_y)
 
 
 def SUMX2PY2(array_x: List[float], array_y: List[float]) -> float:
@@ -2699,8 +2320,8 @@ def SUMX2PY2(array_x: List[float], array_y: List[float]) -> float:
     """
     if len(array_x) != len(array_y):
         raise ValueError("Arrays must have the same length")
-    
-    return sum(x**2 + y**2 for x, y in zip(array_x, array_y))
+
+    return _core_sum_x2py2(array_x, array_y)
 
 
 def SUMXMY2(array_x: List[float], array_y: List[float]) -> float:
@@ -2731,6 +2352,89 @@ def SUMXMY2(array_x: List[float], array_y: List[float]) -> float:
     """
     if len(array_x) != len(array_y):
         raise ValueError("Arrays must have the same length")
-    
-    return sum((x - y)**2 for x, y in zip(array_x, array_y))
+
+    return _core_sum_xmy2(array_x, array_y)
+
+
+def SUMIFS(sum_range: List[Union[int, float]], *criteria_pairs) -> float:
+    """Sums values that meet multiple criteria.
+
+    Description:
+        Adds cells in a range that meet multiple criteria specified as
+        pairs of (criteria_range, criterion). Equivalent to Excel's
+        SUMIFS function.
+
+    Args:
+        sum_range (List[Union[int, float]]): Range of values to sum.
+        *criteria_pairs: Alternating criteria_range and criterion pairs.
+            Each criteria_range is a list and each criterion is a string
+            (e.g., ">10", "<=5") or a direct value for equality.
+
+    Returns:
+        float: Sum of values meeting all criteria.
+
+    Raises:
+        ValueError: If criteria are not provided as pairs or ranges differ
+            in length.
+
+    Usage Example:
+        >>> SUMIFS([10, 20, 30, 40], [1, 2, 3, 4], ">1", [5, 15, 25, 35], "<30")
+        50
+        >>> SUMIFS([100, 200, 300], ["A", "B", "A"], "A")
+        400
+
+    Cost: O(n * m) where n is range length and m is number of criteria
+    """
+    if len(criteria_pairs) % 2 != 0:
+        raise ValueError("Criteria must be provided as pairs of (range, criterion).")
+
+    if len(criteria_pairs) == 2:
+        return _core_sum_if(sum_range, criteria_pairs[0], criteria_pairs[1])
+
+    # Multiple criteria pairs — intersect matches
+    criteria_list = []
+
+    for i in range(0, len(criteria_pairs), 2):
+        criteria_range = criteria_pairs[i]
+        criterion = criteria_pairs[i + 1]
+
+        if len(criteria_range) != len(sum_range):
+            raise ValueError("All ranges must have the same length.")
+
+        criteria_list.append((criteria_range, criterion))
+
+    from formulite.fxNumeric.statistics_functions import _parse_criteria
+
+    preds = [_parse_criteria(crit) for _, crit in criteria_list]
+    total = 0.0
+
+    for i in range(len(sum_range)):
+
+        if not isinstance(sum_range[i], (int, float)):
+            continue
+
+        if all(pred(criteria_list[j][0][i]) for j, pred in enumerate(preds)):
+            total += sum_range[i]
+
+    return total
+
+
+def TRANSPOSE(array: List[List[float]]) -> List[List[float]]:
+    """Transposes a matrix (swaps rows and columns).
+
+    Excel function: TRANSPOSE
+
+    Args:
+        array: Input matrix.
+
+    Returns:
+        List[List[float]]: The transposed matrix.
+
+    Usage Example:
+        >>> TRANSPOSE([[1, 2, 3], [4, 5, 6]])
+        [[1, 4], [2, 5], [3, 6]]
+
+    Cost: O(m * n)
+    """
+    return _core_transpose(array)
 

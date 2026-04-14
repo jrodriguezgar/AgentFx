@@ -5,16 +5,21 @@ Complete reference for all string manipulation, conversion, validation, and form
 ## Overview
 
 The fxString module provides comprehensive string manipulation functions for FormuLite, including:
-- **Conversions**: Parse strings to numbers, dates, JSON
-- **Operations**: Substring, replace, split, extract, concatenate
-- **Format**: Capitalize, pad, normalize, format names/emails/URLs
-- **Evaluations**: Validate formats, check content, parse emails
-- **Similarity**: Calculate string similarity using various algorithms
+- **Conversions**: Parse strings to numbers, dates, JSON, booleans, Roman numerals, Morse, binary
+- **Operations**: Substring, replace, split, extract, concatenate, deduplicate
+- **Format**: Capitalize, pad, normalize, format names/emails/URLs, pluralize
+- **Evaluations**: Validate formats, check content, parse emails, palindromes, anagrams, entropy
+- **Similarity**: Calculate string similarity using various algorithms (Levenshtein, Jaro-Winkler, cosine, etc.)
+- **Encoding**: Base64, URL percent-encoding, HTML entities
+- **Case Conversion**: camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, slug, Title Case
+- **Regex**: Match, extract, split, count with regex patterns
+- **Hashing**: SHA-256, MD5, fingerprinting for deduplication
+- **Compression**: zlib compression with Base64 transport
 - **Spanish**: NIF/NIE/CIF validation, Spanish text processing
 - **Validations**: Check patterns and content
 - **Spellcheck**: Text normalization
 
-### 📚 Additional Resources
+### Additional Resources
 
 - **Practical Use Cases** - Real-world examples and patterns for string similarity, spellcheck, autocompletion, and more
   - **[English Version (USE_CASES_EN.md)](USE_CASES_EN.md)** 
@@ -28,6 +33,11 @@ The fxString module provides comprehensive string manipulation functions for For
 - **string_format.py**: Text formatting and normalization functions
 - **string_evaluations.py**: String validation and pattern matching functions
 - **string_similarity.py**: String comparison and similarity algorithms
+- **string_encoding.py**: Base64, URL, and HTML entity encoding/decoding
+- **string_caseconv.py**: Naming convention conversions (camelCase, snake_case, etc.)
+- **string_regex.py**: High-level regex wrappers (match, extract, split, count)
+- **string_hashing.py**: Cryptographic hashing and deduplication fingerprinting
+- **string_compression.py**: zlib text compression with Base64 transport
 - **string_spanish.py**: Spanish-specific validation and processing functions
 - **string_spellcheck.py**: Text normalization and spell-checking utilities
 - **string_validations.py**: Character and pattern validation functions
@@ -36,13 +46,18 @@ The fxString module provides comprehensive string manipulation functions for For
 
 ## Table of Contents
 
-- [Additional Resources](#-additional-resources)
+- [Additional Resources](#additional-resources)
 - [Function Categories](#function-categories)
   - [String Conversions](#string-conversions)
   - [String Operations](#string-operations)
   - [String Format](#string-format)
   - [String Evaluations](#string-evaluations)
   - [String Similarity](#string-similarity)
+  - [String Encoding](#string-encoding)
+  - [String Case Conversion](#string-case-conversion)
+  - [String Regex](#string-regex)
+  - [String Hashing](#string-hashing)
+  - [String Compression](#string-compression)
   - [String Spanish](#string-spanish)
   - [String Validations](#string-validations)
   - [String Spellcheck](#string-spellcheck)
@@ -62,8 +77,27 @@ The fxString module provides comprehensive string manipulation functions for For
 - [string_to_datetime](#string_to_datetime) - Converts string to datetime.datetime object
 - [split_all](#split_all) - Splits string by common delimiters, removes empty strings
 - [split_by_substrings](#split_by_substrings) - Splits string by substring list, preserves separators
-- [split_limited](#split_limited) - Splits string by whitespace with word limit
 - [extract_and_decode_json](#extract_and_decode_json) - Extracts and decodes JSON from fenced block
+- [string_to_boolean](#string_to_boolean) - Converts truthy/falsy string to boolean
+- [boolean_to_string](#boolean_to_string) - Converts boolean to "true"/"false" string
+- [string_to_list](#string_to_list) - Splits string into list by delimiter
+- [integer_to_roman](#integer_to_roman) - Converts integer to Roman numeral string
+- [roman_to_integer](#roman_to_integer) - Converts Roman numeral string to integer
+- [text_to_binary](#text_to_binary) - Converts text to binary representation
+- [binary_to_text](#binary_to_text) - Converts binary string back to text
+- [text_to_morse](#text_to_morse) - Encodes text to Morse code
+- [morse_to_text](#morse_to_text) - Decodes Morse code back to text
+- [encode_base64](#encode_base64) - Encodes string to Base64 representation
+- [decode_base64](#decode_base64) - Decodes Base64 string back to plain text
+- [encode_url](#encode_url) - Applies percent-encoding for safe URL use
+- [decode_url](#decode_url) - Decodes percent-encoded URL string
+- [char_from_code](#char_from_code) - Character from Unicode code point (UNICHAR)
+- [code_from_char](#code_from_char) - Unicode code point from character (UNICODE)
+- [value_to_text](#value_to_text) - Value to text with optional formatting (VALUETOTEXT)
+- [to_full_width](#to_full_width) - Convert half-width characters to full-width (DBCS)
+- [to_half_width](#to_half_width) - Convert full-width characters to half-width (ASC)
+- [text_to_hex](#text_to_hex) - Converts text to hexadecimal byte representation
+- [hex_to_text](#hex_to_text) - Converts hexadecimal string back to text
 
 ### String Operations
 - [ascii_from_char](#ascii_from_char) - Returns Unicode/ASCII code of first character
@@ -74,8 +108,10 @@ The fxString module provides comprehensive string manipulation functions for For
 - [random_string](#random_string) - Generates random string of specified length
 - [reverse_string](#reverse_string) - Reverses characters in string
 - [replace_string](#replace_string) - Replaces all occurrences of substring with another
+- [replace_by_position](#replace_by_position) - Replaces a segment by position and length (Excel REPLACE)
 - [replace_first_occurrence](#replace_first_occurrence) - Replaces only first occurrence of substring
 - [replace_last_occurrence](#replace_last_occurrence) - Replaces only last occurrence of substring
+- [regex_replace](#regex_replace) - Replaces all matches of a regex pattern (Excel REGEXREPLACE)
 - [truncate_string](#truncate_string) - Truncates string to maximum length with ellipsis
 - [substring](#substring) - Extracts substring from given position and length
 - [left_substring](#left_substring) - Returns leftmost n characters of string
@@ -91,13 +127,46 @@ The fxString module provides comprehensive string manipulation functions for For
 - [join_to_string](#join_to_string) - Joins iterable of strings with separator
 - [erase_specialchar](#erase_specialchar) - Removes special characters, optionally allows spaces/underscores
 - [erase_digits](#erase_digits) - Removes all digits from string
+- [erase_lspaces](#erase_lspaces) - Removes leading (left) spaces from string (VBA LTrim)
 - [erase_lrspaces](#erase_lrspaces) - Removes leading and trailing spaces from string
+- [erase_rspaces](#erase_rspaces) - Removes trailing (right) spaces from string (VBA RTrim)
 - [erase_allspaces](#erase_allspaces) - Removes all spaces from string
 - [distinct_words](#distinct_words) - Returns list of unique words from string
 - [distinct_split](#distinct_split) - Splits delimited string, removes duplicates, re-joins
 - [move_word](#move_word) - Moves word from one position to another
 - [concatenate_strings](#concatenate_strings) - Concatenates two strings together
 - [add_quotes](#add_quotes) - Adds quotes around string (single or double)
+- [slugify](#slugify) - Converts text to URL-friendly slug
+- [extract_urls](#extract_urls) - Extracts all URLs from text
+- [extract_emails](#extract_emails) - Extracts all email addresses from text
+- [repeat_string](#repeat_string) - Repeats string n times
+- [center_string](#center_string) - Centers string within given width
+- [strip_html_tags](#strip_html_tags) - Removes HTML tags from text
+- [clean_non_printable](#clean_non_printable) - Removes non-printable characters
+- [abbreviate](#abbreviate) - Truncates text with ellipsis at word boundary
+- [generate_initials](#generate_initials) - Generates initials from name
+- [wrap_text](#wrap_text) - Word-wrap to fixed column width
+- [count_lines](#count_lines) - Counts lines in multiline text
+- [get_line](#get_line) - Gets specific line by number (1-indexed)
+- [remove_blank_lines](#remove_blank_lines) - Removes blank/whitespace-only lines
+- [sort_lines](#sort_lines) - Sorts lines alphabetically
+- [deduplicate_words](#deduplicate_words) - Removes duplicate words preserving order
+- [surround](#surround) - Wraps text with string on both sides
+- [word_at](#word_at) - Gets word at position (0-indexed) from text
+- [substitute](#substitute) - Replaces occurrences of old text with new text (SUBSTITUTE)
+- [text_before](#text_before) - Text before the Nth delimiter (TEXTBEFORE)
+- [text_after](#text_after) - Text after the Nth delimiter (TEXTAFTER)
+- [text_split](#text_split) - Split text by delimiters into list (TEXTSPLIT)
+- [count_syllables](#count_syllables) - Estimates syllable count in text (English/Spanish)
+- [soundex](#soundex) - Computes Soundex phonetic code for a word
+- [metaphone](#metaphone) - Computes Metaphone phonetic code for a word
+- [extract_domain_from_url](#extract_domain_from_url) - Extracts domain from a URL string
+- [nysiis](#nysiis) - NYSIIS phonetic encoding (improved Soundex for names)
+- [double_metaphone](#double_metaphone) - Double Metaphone phonetic encoding (primary + alternate)
+- [cologne_phonetic](#cologne_phonetic) - Kölner Phonetik phonetic encoding (German-optimised)
+- [longest_common_prefix](#longest_common_prefix) - Longest common prefix of two strings
+- [longest_common_suffix](#longest_common_suffix) - Longest common suffix of two strings
+- [normalize_unicode](#normalize_unicode) - Unicode normalization (NFC/NFD/NFKC/NFKD)
 
 ### String Format
 - [sql_quote](#sql_quote) - Escapes single quotes for safe SQL queries
@@ -116,6 +185,19 @@ The fxString module provides comprehensive string manipulation functions for For
 - [format_name](#format_name) - Formats person's name by specified rules
 - [format_fullname](#format_fullname) - Formats full name, removes titles and normalizes
 - [format_company_name](#format_company_name) - Formats company name, handles legal forms
+- [camel_to_snake](#camel_to_snake) - Converts camelCase/PascalCase to snake_case
+- [snake_to_camel](#snake_to_camel) - Converts snake_case to camelCase or PascalCase
+- [word_wrap](#word_wrap) - Wraps text to specified line width at word boundaries
+- [swap_case](#swap_case) - Inverts case of every character
+- [indent_text](#indent_text) - Adds prefix to every line
+- [dedent_text](#dedent_text) - Removes common leading whitespace
+- [zfill](#zfill) - Pads with leading zeros
+- [rot13](#rot13) - Applies ROT13 substitution cipher
+- [format_list_as_sentence](#format_list_as_sentence) - Joins list as "a, b and c"
+- [pluralize_count](#pluralize_count) - "1 item" / "3 items"
+- [format_as_currency](#format_as_currency) - Formats number as currency string (DOLLAR)
+- [fixed](#fixed) - Formats number with fixed decimals and thousands separators (FIXED)
+- [dollar](#dollar) - Formats number as dollar currency text (DOLLAR)
 
 ### String Evaluations
 - [contains_digit](#contains_digit) - Checks if string contains at least one digit
@@ -132,6 +214,30 @@ The fxString module provides comprehensive string manipulation functions for For
 - [parse_email](#parse_email) - Parses email address into username and domain components
 - [username_from_email](#username_from_email) - Extracts username portion from email address
 - [domain_from_email](#domain_from_email) - Extracts domain portion from email address
+- [word_frequency](#word_frequency) - Frequency of each word as dict
+- [char_frequency](#char_frequency) - Frequency of each character as dict
+- [sentence_count](#sentence_count) - Counts sentences by terminal punctuation
+- [reading_time](#reading_time) - Estimated reading time in minutes
+- [is_palindrome](#is_palindrome) - Checks if text is a palindrome
+- [is_json](#is_json) - Checks if string is valid JSON
+- [is_uuid](#is_uuid) - Checks if string is valid UUID format
+- [is_ipv4](#is_ipv4) - Checks if string is valid IPv4 address
+- [is_ipv6](#is_ipv6) - Checks if string is valid IPv6 address
+- [is_credit_card_format](#is_credit_card_format) - Checks if string has valid credit card number format (Luhn)
+- [count_sentences](#count_sentences) - Counts sentences in text
+- [text_stats](#text_stats) - Dict with chars, words, sentences, lines, avg_word_length
+- [is_anagram](#is_anagram) - Checks if two strings are anagrams
+- [is_pangram](#is_pangram) - Checks if text uses all alphabet letters
+- [is_valid_iban](#is_valid_iban) - Validates IBAN (format + MOD-97 check digit)
+- [is_valid_isbn](#is_valid_isbn) - Validates ISBN-10 / ISBN-13
+- [is_valid_luhn](#is_valid_luhn) - Generic Luhn (mod-10) algorithm validation
+- [is_valid_ean](#is_valid_ean) - Validates EAN-8 / EAN-13 barcode
+- [is_valid_swift_bic](#is_valid_swift_bic) - Validates SWIFT/BIC code (ISO 9362)
+- [is_valid_isin](#is_valid_isin) - Validates ISIN (International Securities ID, Luhn on alphanumeric)
+- [is_valid_cusip](#is_valid_cusip) - Validates CUSIP (9-character US securities ID)
+- [is_valid_sedol](#is_valid_sedol) - Validates SEDOL (7-character UK securities ID)
+- [is_valid_vin](#is_valid_vin) - Validates VIN (Vehicle Identification Number, 17 chars)
+- [is_valid_issn](#is_valid_issn) - Validates ISSN (International Standard Serial Number, mod-11)
 
 ### String Similarity
 - [calculate_similarity](#calculate_similarity) - Calculates similarity using specified algorithm
@@ -143,6 +249,42 @@ The fxString module provides comprehensive string manipulation functions for For
 - [string_jarowinkler_score](#string_jarowinkler_score) - Calculates Jaro-Winkler similarity between two strings
 - [string_jaccard_score](#string_jaccard_score) - Calculates Jaccard similarity coefficient between strings
 - [string_similarity_score](#string_similarity_score) - Calculates multiple similarity scores using all algorithms
+- [string_cosine_score](#string_cosine_score) - Cosine similarity between two strings
+- [generate_ngrams](#generate_ngrams) - Generates character n-grams from text
+- [find_closest_match](#find_closest_match) - Finds best match from candidate list
+- [rank_by_similarity](#rank_by_similarity) - Ranks candidates by similarity score
+
+### String Encoding
+- [encode_base64](#encode_base64) - Encodes string to Base64
+- [decode_base64](#decode_base64) - Decodes Base64 string
+- [encode_url](#encode_url) - URL percent-encoding
+- [decode_url](#decode_url) - Decodes percent-encoded URL
+- [encode_html_entities](#encode_html_entities) - Encodes HTML special characters
+- [decode_html_entities](#decode_html_entities) - Decodes HTML entities
+
+### String Case Conversion
+- [to_camel_case](#to_camel_case) - Converts to camelCase
+- [to_pascal_case](#to_pascal_case) - Converts to PascalCase
+- [to_snake_case](#to_snake_case) - Converts to snake_case
+- [to_kebab_case](#to_kebab_case) - Converts to kebab-case
+- [to_constant_case](#to_constant_case) - Converts to CONSTANT_CASE
+- [to_slug](#to_slug) - Converts to url-slug (ASCII, lowered, hyphenated)
+- [to_title_case](#to_title_case) - Smart Title Case respecting articles (en/es)
+
+### String Regex
+- [regex_match](#regex_match) - Tests if pattern matches anywhere
+- [regex_extract](#regex_extract) - Extracts first regex match
+- [regex_extract_all](#regex_extract_all) - Extracts all regex matches
+- [regex_split](#regex_split) - Splits string by regex pattern
+- [regex_count](#regex_count) - Counts regex pattern matches
+
+### String Hashing
+- [hash_string](#hash_string) - Generates hash digest (md5/sha256/sha512)
+- [fingerprint](#fingerprint) - Normalized fingerprint for deduplication
+
+### String Compression
+- [compress_string](#compress_string) - Compresses text via zlib + Base64
+- [decompress_string](#decompress_string) - Decompresses Base64/zlib string
 
 ### String Spanish
 - [remove_spanish_stop_words](#remove_spanish_stop_words) - Removes common Spanish stop words from string
@@ -171,18 +313,37 @@ The fxString module provides comprehensive string manipulation functions for For
 - [add_quotes](#add_quotes) - Adds quotes around string (single or double)
 - [ascii_from_char](#ascii_from_char) - Returns Unicode/ASCII code of first character
 - [ascii_string](#ascii_string) - Converts to ASCII, removing non-ASCII characters
+- [abbreviate](#abbreviate) - Truncates text with ellipsis at word boundary
+
+**B**
+- [binary_to_text](#binary_to_text) - Converts binary string back to text
+- [boolean_to_string](#boolean_to_string) - Converts boolean to "true"/"false" string
 
 **C**
+- [camel_to_snake](#camel_to_snake) - Converts camelCase/PascalCase to snake_case
 - [calculate_similarity](#calculate_similarity) - Calculates similarity using specified algorithm
 - [capitalize_string](#capitalize_string) - Capitalizes string by mode (all/first/each word)
+- [center_string](#center_string) - Centers string within given width
+- [char_frequency](#char_frequency) - Frequency of each character as dict
 - [char_from_ascii](#char_from_ascii) - Returns character from Unicode/ASCII code value
+- [char_from_code](#char_from_code) - Character from Unicode code point (UNICHAR)
+- [clean_non_printable](#clean_non_printable) - Removes non-printable characters
 - [common_substring](#common_substring) - Finds longest common substring between two strings
+- [compress_string](#compress_string) - Compresses text via zlib + Base64
+- [code_from_char](#code_from_char) - Unicode code point from character (UNICODE)
 - [concatenate_strings](#concatenate_strings) - Concatenates two strings together
 - [contains_digit](#contains_digit) - Checks if string contains at least one digit
 - [count_characters](#count_characters) - Counts occurrences of specific character in string
+- [count_lines](#count_lines) - Counts lines in multiline text
 - [count_words](#count_words) - Counts number of words in string
 
 **D**
+- [decode_base64](#decode_base64) - Decodes Base64 string back to plain text
+- [decode_html_entities](#decode_html_entities) - Decodes HTML entities
+- [decode_url](#decode_url) - Decodes percent-encoded URL string
+- [decompress_string](#decompress_string) - Decompresses Base64/zlib string
+- [dedent_text](#dedent_text) - Removes common leading whitespace
+- [deduplicate_words](#deduplicate_words) - Removes duplicate words preserving order
 - [distinct_words](#distinct_words) - Returns list of unique words from string
 - [distinct_split](#distinct_split) - Splits delimited string, removes duplicates, re-joins
 - [domain_from_email](#domain_from_email) - Extracts domain portion from email address
@@ -192,23 +353,38 @@ The fxString module provides comprehensive string manipulation functions for For
 - [erase_allspaces](#erase_allspaces) - Removes all spaces from string
 - [erase_digits](#erase_digits) - Removes all digits from string
 - [erase_lrspaces](#erase_lrspaces) - Removes leading and trailing spaces from string
+- [erase_lspaces](#erase_lspaces) - Removes leading (left) spaces from string (VBA LTrim)
+- [erase_rspaces](#erase_rspaces) - Removes trailing (right) spaces from string (VBA RTrim)
 - [erase_specialchar](#erase_specialchar) - Removes special characters, optionally allows spaces/underscores
 - [extract_and_decode_json](#extract_and_decode_json) - Extracts and decodes JSON from fenced block
+- [extract_emails](#extract_emails) - Extracts all email addresses from text
 - [extract_first_number](#extract_first_number) - Extracts first number (integer/float) from string
 - [extract_last_number](#extract_last_number) - Extracts last number (integer/float) from string
 - [extract_numbers](#extract_numbers) - Extracts all numbers (integers/floats) from string
+- [extract_urls](#extract_urls) - Extracts all URLs from text
 
 **F**
+- [find_closest_match](#find_closest_match) - Finds best match from candidate list
 - [find_common_words](#find_common_words) - Finds words appearing in both strings
+- [fingerprint](#fingerprint) - Normalized fingerprint for deduplication
 - [fix_spanish](#fix_spanish) - Fixes common Spanish character encoding issues
 - [flat_vowels](#flat_vowels) - Removes diacritical marks (accents) from vowels
 - [format_company_name](#format_company_name) - Formats company name, handles legal forms
 - [format_date](#format_date) - Formats date/datetime into specified string format
 - [format_email_address](#format_email_address) - Formats and normalizes email address (lowercase, trimmed)
 - [format_fullname](#format_fullname) - Formats full name, removes titles and normalizes
+- [format_list_as_sentence](#format_list_as_sentence) - Joins list as "a, b and c"
 - [format_name](#format_name) - Formats person's name by specified rules
 - [format_number](#format_number) - Formats number with decimal places and separators
 - [format_url](#format_url) - Formats and normalizes URL
+- [format_as_currency](#format_as_currency) - Formats number as currency string (DOLLAR)
+- [fixed](#fixed) - Formats number with fixed decimals and thousands separators (FIXED)
+- [dollar](#dollar) - Formats number as dollar currency text (DOLLAR)
+
+**G**
+- [generate_initials](#generate_initials) - Generates initials from name
+- [generate_ngrams](#generate_ngrams) - Generates character n-grams from text
+- [get_line](#get_line) - Gets specific line by number (1-indexed)
 
 **H**
 - [has_date_format](#has_date_format) - Checks if string can be interpreted as date
@@ -216,12 +392,18 @@ The fxString module provides comprehensive string manipulation functions for For
 - [has_same_characters](#has_same_characters) - Checks if strings contain same characters (anagram)
 - [has_same_words](#has_same_words) - Checks if strings contain same words (order-independent)
 - [has_substring](#has_substring) - Checks if string contains specific substring
+- [hash_string](#hash_string) - Generates hash digest (md5/sha256/sha512)
 
 **I**
+- [indent_text](#indent_text) - Adds prefix to every line
+- [integer_to_roman](#integer_to_roman) - Converts integer to Roman numeral string
 - [is_alphabetic](#is_alphabetic) - Checks if string contains only alphabetic characters
+- [is_anagram](#is_anagram) - Checks if two strings are anagrams
 - [is_email_format](#is_email_format) - Validates if string matches email address format
 - [is_internet_domain_format](#is_internet_domain_format) - Validates if string matches internet domain format
 - [is_numeric](#is_numeric) - Checks if string represents valid number
+- [is_palindrome](#is_palindrome) - Checks if text is a palindrome
+- [is_pangram](#is_pangram) - Checks if text uses all alphabet letters
 - [is_url_format](#is_url_format) - Validates if string matches URL format
 - [is_valid_cif](#is_valid_cif) - Validates Spanish CIF (Certificado de Identificación Fiscal)
 - [is_valid_dni](#is_valid_dni) - Validates Spanish DNI (Documento Nacional de Identidad)
@@ -244,48 +426,86 @@ The fxString module provides comprehensive string manipulation functions for For
 - [normalize_spaces](#normalize_spaces) - Replaces multiple spaces with single, trims ends
 - [normalize_symbols](#normalize_symbols) - Normalizes symbol spacing per typographical rules
 - [normalize_text](#normalize_text) - Normalizes text by lowercasing and removing accents
-
 **P**
 - [pad_string](#pad_string) - Pads string to length with character
 - [parse_email](#parse_email) - Parses email address into username and domain components
+- [pluralize_count](#pluralize_count) - "1 item" / "3 items"
 - [position_in_string](#position_in_string) - Finds all positions where substring appears (1-indexed)
 
 **R**
 - [random_string](#random_string) - Generates random string of specified length
+- [rank_by_similarity](#rank_by_similarity) - Ranks candidates by similarity score
+- [reading_time](#reading_time) - Estimated reading time in minutes
 - [reduce_spanish_letters](#reduce_spanish_letters) - Reduces Spanish text to phonetic representation
+- [regex_count](#regex_count) - Counts regex pattern matches
+- [regex_extract](#regex_extract) - Extracts first regex match
+- [regex_extract_all](#regex_extract_all) - Extracts all regex matches
+- [regex_match](#regex_match) - Tests if pattern matches anywhere
+- [regex_replace](#regex_replace) - Replaces all matches of a regex pattern (Excel REGEXREPLACE)
+- [regex_split](#regex_split) - Splits string by regex pattern
+- [remove_blank_lines](#remove_blank_lines) - Removes blank/whitespace-only lines
 - [remove_spanish_stop_words](#remove_spanish_stop_words) - Removes common Spanish stop words from string
+- [repeat_string](#repeat_string) - Repeats string n times
+- [replace_by_position](#replace_by_position) - Replaces a segment by position and length (Excel REPLACE)
 - [replace_first_occurrence](#replace_first_occurrence) - Replaces only first occurrence of substring
 - [replace_last_occurrence](#replace_last_occurrence) - Replaces only last occurrence of substring
 - [replace_string](#replace_string) - Replaces all occurrences of substring with another
 - [replace_void](#replace_void) - Replaces empty or None values with specified replacement
 - [reverse_string](#reverse_string) - Reverses characters in string
 - [right_substring](#right_substring) - Returns rightmost n characters of string
+- [roman_to_integer](#roman_to_integer) - Converts Roman numeral string to integer
+- [rot13](#rot13) - Applies ROT13 substitution cipher
 
 **S**
 - [same_letters](#same_letters) - Checks if strings contain exact same characters (anagram)
+- [sentence_count](#sentence_count) - Counts sentences by terminal punctuation
+- [slugify](#slugify) - Converts text to URL-friendly slug
+- [sort_lines](#sort_lines) - Sorts lines alphabetically
 - [split_all](#split_all) - Splits string by common delimiters, removes empty strings
 - [split_by_substrings](#split_by_substrings) - Splits string by substring list, preserves separators
-- [split_limited](#split_limited) - Splits string by whitespace with word limit
+- [snake_to_camel](#snake_to_camel) - Converts snake_case to camelCase or PascalCase
 - [sql_quote](#sql_quote) - Escapes single quotes for safe SQL queries
 - [starts_with_substring](#starts_with_substring) - Checks if string starts with specific prefix
+- [string_cosine_score](#string_cosine_score) - Cosine similarity between two strings
 - [string_hamming_score](#string_hamming_score) - Calculates Hamming distance between two strings
 - [string_jaccard_score](#string_jaccard_score) - Calculates Jaccard similarity coefficient between strings
 - [string_jarowinkler_score](#string_jarowinkler_score) - Calculates Jaro-Winkler similarity between two strings
 - [string_levenshtein_score](#string_levenshtein_score) - Calculates Levenshtein distance between two strings
 - [string_similarity_score](#string_similarity_score) - Calculates multiple similarity scores using all algorithms
+- [string_to_boolean](#string_to_boolean) - Converts truthy/falsy string to boolean
 - [string_to_date](#string_to_date) - Converts string to date or datetime object
 - [string_to_datetime](#string_to_datetime) - Converts string to datetime.datetime object
 - [string_to_float](#string_to_float) - Converts string to float or None if fails
 - [string_to_integer](#string_to_integer) - Converts string to integer or None if fails
+- [string_to_list](#string_to_list) - Splits string into list by delimiter
 - [string_to_number](#string_to_number) - Converts string to integer or float based on type
 - [substring](#substring) - Extracts substring from given position and length
 - [substring_between_pattern](#substring_between_pattern) - Extracts substring between two pattern occurrences
 - [substring_from_delimiters](#substring_from_delimiters) - Extracts content between specified delimiters
 - [substring_on_left](#substring_on_left) - Extracts substring left of first pattern occurrence
 - [substring_on_right](#substring_on_right) - Extracts substring right of first pattern occurrence
+- [substitute](#substitute) - Replaces occurrences of old text with new text (SUBSTITUTE)
+
+- [strip_html_tags](#strip_html_tags) - Removes HTML tags from text
+- [surround](#surround) - Wraps text with string on both sides
+- [swap_case](#swap_case) - Inverts case of every character
 
 **T**
+- [text_after](#text_after) - Text after the Nth delimiter (TEXTAFTER)
+- [text_before](#text_before) - Text before the Nth delimiter (TEXTBEFORE)
+- [text_split](#text_split) - Split text by delimiters into list (TEXTSPLIT)
+- [text_to_binary](#text_to_binary) - Converts text to binary representation
+- [text_to_morse](#text_to_morse) - Encodes text to Morse code
+- [to_camel_case](#to_camel_case) - Converts to camelCase
+- [to_constant_case](#to_constant_case) - Converts to CONSTANT_CASE
+- [to_full_width](#to_full_width) - Convert half-width characters to full-width (DBCS)
+- [to_half_width](#to_half_width) - Convert full-width characters to half-width (ASC)
+- [to_kebab_case](#to_kebab_case) - Converts to kebab-case
 - [to_lower](#to_lower) - Converts string to lowercase
+- [to_pascal_case](#to_pascal_case) - Converts to PascalCase
+- [to_slug](#to_slug) - Converts to url-slug
+- [to_snake_case](#to_snake_case) - Converts to snake_case
+- [to_title_case](#to_title_case) - Smart Title Case respecting articles
 - [to_upper](#to_upper) - Converts string to uppercase
 - [truncate_string](#truncate_string) - Truncates string to maximum length with ellipsis
 
@@ -294,6 +514,15 @@ The fxString module provides comprehensive string manipulation functions for For
 
 **V**
 - [validate_spanish_nif](#validate_spanish_nif) - Validates Spanish NIF (DNI/NIE/CIF) by type
+- [value_to_text](#value_to_text) - Value to text with optional formatting (VALUETOTEXT)
+
+**W**
+- [word_frequency](#word_frequency) - Frequency of each word as dict
+- [word_wrap](#word_wrap) - Wraps text to specified line width at word boundaries
+- [wrap_text](#wrap_text) - Word-wrap to fixed column width
+
+**Z**
+- [zfill](#zfill) - Pads with leading zeros
 
 ---
 
@@ -515,31 +744,6 @@ Splits a string by a list of substrings (separators), preserving the separators.
 ```
 
 **Cost:** O(n + m * k), where n is the string length, m is the number of separators, and k is the number of segments
-
----
-
-### split_limited
-
-Splits a string by whitespace into a list of words, with an optional limit on the number of initial words.
-
-**Args:**
-- `input_string` (str): The string to be split
-- `limit` (int): The maximum number of initial words to return individually. Must be non-negative
-
-**Returns:**
-- list[str]: A list of strings, where the last element might contain multiple words if the original string exceeded the limit
-
-**Raises:**
-- TypeError: If 'input_string' is not a string or 'limit' is not an integer
-- ValueError: If 'limit' is a negative integer
-
-**Usage Example:**
-```python
->>> split_limited("This is a test of the split function", 3)
-['This', 'is', 'a', 'test of the split function']
-```
-
-**Cost:** O(n), where n is the length of the input string
 
 ---
 
@@ -797,6 +1001,68 @@ Replaces only the last occurrence of a substring.
 ```
 
 **Cost:** O(n), where n is the length of the original string
+
+---
+
+### replace_by_position
+
+Replaces a segment of a string defined by position and length with new text. Equivalent to Excel's REPLACE function. Uses 1-based indexing.
+
+**Args:**
+- `original_string` (str): The original string in which the replacement will be made
+- `start_position` (int): The 1-based position of the first character to replace
+- `num_chars` (int): The number of characters to replace from start_position
+- `new_text` (str): The text to insert in place of the removed segment
+
+**Returns:**
+- str: The resulting string after the positional replacement
+
+**Raises:**
+- `TypeError`: If original_string or new_text is not str, or if start_position/num_chars is not int
+- `ValueError`: If start_position < 1 or num_chars < 0
+
+**Usage Example:**
+```python
+>>> replace_by_position("abcdefghijk", 6, 5, "*")
+'abcde*k'
+>>> replace_by_position("2024", 3, 2, "25")
+'2025'
+>>> replace_by_position("Hello World", 1, 5, "Goodbye")
+'Goodbye World'
+```
+
+**Cost:** O(n), where n is the length of original_string
+
+---
+
+### regex_replace
+
+Replaces all occurrences matching a regular expression pattern with a replacement string. Equivalent to Excel's REGEXREPLACE function. Supports backreferences in the replacement string.
+
+**Args:**
+- `text` (str): The input string to modify
+- `pattern` (str): The regular expression pattern to match
+- `replacement` (str): The replacement string (supports regex backreferences)
+- `case_insensitive` (bool): If True, the pattern matching ignores case. Defaults to False
+
+**Returns:**
+- str: The text with all matching occurrences replaced
+
+**Raises:**
+- `TypeError`: If text, pattern, or replacement is not a string
+- `re.error`: If the pattern is not a valid regular expression
+
+**Usage Example:**
+```python
+>>> regex_replace("Hello 123 World 456", r"\d+", "X")
+'Hello X World X'
+>>> regex_replace("test@email.com", r"@.*", "@example.com")
+'test@example.com'
+>>> regex_replace("FooBar FooBaz", r"foo", "QUX", case_insensitive=True)
+'QUXBar QUXBaz'
+```
+
+**Cost:** O(n*m), where n is text length and m is pattern complexity
 
 ---
 
@@ -1140,6 +1406,46 @@ Removes leading and trailing spaces from a string.
 ```python
 >>> erase_lrspaces("  hello world  ")
 'hello world'
+```
+
+**Cost:** O(n), where n is the length of the text
+
+---
+
+### erase_lspaces
+
+Removes leading (left) whitespace from a string. Equivalent to VBA's LTrim function.
+
+**Args:**
+- `text` (Optional[str]): The text to process
+
+**Returns:**
+- Optional[str]: The text with leading spaces removed
+
+**Usage Example:**
+```python
+>>> erase_lspaces("   hello   ")
+'hello   '
+```
+
+**Cost:** O(n), where n is the length of the text
+
+---
+
+### erase_rspaces
+
+Removes trailing (right) whitespace from a string. Equivalent to VBA's RTrim function.
+
+**Args:**
+- `text` (Optional[str]): The text to process
+
+**Returns:**
+- Optional[str]: The text with trailing spaces removed
+
+**Usage Example:**
+```python
+>>> erase_rspaces("   hello   ")
+'   hello'
 ```
 
 **Cost:** O(n), where n is the length of the text
@@ -2599,3 +2905,1895 @@ Functions for spell checking and text normalization.
 Class for multi-algorithm spell checking.
 
 ---
+
+## String Encoding
+
+Functions for encoding and decoding text in various formats.
+
+### encode_html_entities
+
+Encodes HTML special characters (`<`, `>`, `&`, `"`, `'`) as HTML entities.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: HTML-escaped string.
+
+**Example:**
+```python
+>>> encode_html_entities('<b>"Hello"</b>')
+'&lt;b&gt;&quot;Hello&quot;&lt;/b&gt;'
+```
+
+**Cost:** O(n)
+
+---
+
+### decode_html_entities
+
+Decodes HTML entities back to their original characters.
+
+**Parameters:**
+- `text` (str): HTML-encoded string.
+
+**Returns:**
+- `str`: Decoded text.
+
+**Example:**
+```python
+>>> decode_html_entities('&lt;b&gt;Hi&lt;/b&gt;')
+'<b>Hi</b>'
+```
+
+**Cost:** O(n)
+
+---
+
+## String Case Conversion
+
+Functions for converting between naming conventions.
+
+### to_camel_case
+
+Converts text to camelCase.
+
+**Parameters:**
+- `text` (str): Input text in any convention.
+
+**Returns:**
+- `str`: camelCase string.
+
+**Example:**
+```python
+>>> to_camel_case("hello_world")
+'helloWorld'
+```
+
+**Cost:** O(n)
+
+---
+
+### to_pascal_case
+
+Converts text to PascalCase.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: PascalCase string.
+
+**Example:**
+```python
+>>> to_pascal_case("hello_world")
+'HelloWorld'
+```
+
+**Cost:** O(n)
+
+---
+
+### to_snake_case
+
+Converts text to snake_case.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: snake_case string.
+
+**Example:**
+```python
+>>> to_snake_case("helloWorld")
+'hello_world'
+```
+
+**Cost:** O(n)
+
+---
+
+### to_kebab_case
+
+Converts text to kebab-case.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: kebab-case string.
+
+**Example:**
+```python
+>>> to_kebab_case("helloWorld")
+'hello-world'
+```
+
+**Cost:** O(n)
+
+---
+
+### to_constant_case
+
+Converts text to CONSTANT_CASE.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: CONSTANT_CASE string.
+
+**Example:**
+```python
+>>> to_constant_case("maxRetries")
+'MAX_RETRIES'
+```
+
+**Cost:** O(n)
+
+---
+
+### to_slug
+
+Converts text to URL-safe slug (ASCII, lowered, hyphenated).
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: Slug string.
+
+**Example:**
+```python
+>>> to_slug("Café Résumé")
+'cafe-resume'
+```
+
+**Cost:** O(n)
+
+---
+
+### to_title_case
+
+Smart Title Case that respects articles and prepositions (en/es).
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: Title-cased string.
+
+**Example:**
+```python
+>>> to_title_case("the lord of the rings")
+'The Lord of the Rings'
+```
+
+**Cost:** O(n)
+
+---
+
+## String Regex
+
+High-level regex wrappers.
+
+### regex_match
+
+Tests if a pattern matches anywhere in text.
+
+**Parameters:**
+- `text` (str): Input string.
+- `pattern` (str): Regex pattern.
+- `case_sensitive` (bool): Case sensitivity. Defaults to True.
+
+**Returns:**
+- `bool`: True if pattern matches.
+
+**Example:**
+```python
+>>> regex_match("Hello World", r"\d+")
+False
+>>> regex_match("abc123", r"\d+")
+True
+```
+
+**Cost:** O(n*m)
+
+---
+
+### regex_extract
+
+Extracts first regex match.
+
+**Parameters:**
+- `text` (str): Input string.
+- `pattern` (str): Regex pattern.
+- `group` (int): Capture group. Defaults to 0.
+- `case_sensitive` (bool): Case sensitivity. Defaults to True.
+
+**Returns:**
+- `Optional[str]`: First match or None.
+
+**Example:**
+```python
+>>> regex_extract("ID: 12345", r"\d+")
+'12345'
+```
+
+**Cost:** O(n*m)
+
+---
+
+### regex_extract_all
+
+Extracts all regex matches.
+
+**Parameters:**
+- `text` (str): Input string.
+- `pattern` (str): Regex pattern.
+- `case_sensitive` (bool): Case sensitivity. Defaults to True.
+
+**Returns:**
+- `list[str]`: All matches.
+
+**Example:**
+```python
+>>> regex_extract_all("a1 b2 c3", r"[a-z]\d")
+['a1', 'b2', 'c3']
+```
+
+**Cost:** O(n*m)
+
+---
+
+### regex_split
+
+Splits a string by regex pattern.
+
+**Parameters:**
+- `text` (str): Input string.
+- `pattern` (str): Regex delimiter.
+- `max_split` (int): Max splits (0 = unlimited). Defaults to 0.
+- `case_sensitive` (bool): Case sensitivity. Defaults to True.
+
+**Returns:**
+- `list[str]`: Split substrings.
+
+**Example:**
+```python
+>>> regex_split("one, two; three", r"[,;]\s*")
+['one', 'two', 'three']
+```
+
+**Cost:** O(n*m)
+
+---
+
+### regex_count
+
+Counts non-overlapping matches of a regex pattern.
+
+**Parameters:**
+- `text` (str): Input string.
+- `pattern` (str): Regex pattern.
+- `case_sensitive` (bool): Case sensitivity. Defaults to True.
+
+**Returns:**
+- `int`: Number of matches.
+
+**Example:**
+```python
+>>> regex_count("one 1 two 2 three 3", r"\d+")
+3
+```
+
+**Cost:** O(n*m)
+
+---
+
+## String Hashing
+
+Cryptographic hashing and deduplication fingerprinting.
+
+### hash_string
+
+Generates a hex hash digest of a string.
+
+**Parameters:**
+- `text` (str): Input string.
+- `algorithm` (str): Hash algorithm (`"md5"`, `"sha256"`, `"sha512"`). Defaults to `"sha256"`.
+
+**Returns:**
+- `str`: Hex digest.
+
+**Example:**
+```python
+>>> hash_string("hello", "md5")
+'5d41402abc4b2a76b9719d911017c592'
+```
+
+**Cost:** O(n)
+
+---
+
+### fingerprint
+
+Creates a normalized fingerprint for deduplication (lowered, sorted unique words).
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `str`: Fingerprint string.
+
+**Example:**
+```python
+>>> fingerprint("The Quick Brown Fox")
+'brown fox quick the'
+```
+
+**Cost:** O(n log n)
+
+---
+
+## String Compression
+
+Text compression using zlib with Base64 transport.
+
+### compress_string
+
+Compresses a text string via zlib and encodes as URL-safe Base64.
+
+**Parameters:**
+- `text` (str): Input string.
+- `level` (int): Compression level 1-9. Defaults to 9.
+
+**Returns:**
+- `str`: Compressed Base64 string.
+
+**Example:**
+```python
+>>> compressed = compress_string("hello " * 100)
+>>> len(compressed) < 600
+True
+```
+
+**Cost:** O(n)
+
+---
+
+### decompress_string
+
+Decompresses a Base64/zlib compressed string.
+
+**Parameters:**
+- `compressed` (str): Base64-encoded compressed string.
+
+**Returns:**
+- `str`: Original text.
+
+**Example:**
+```python
+>>> decompress_string(compress_string("hello"))
+'hello'
+```
+
+**Cost:** O(n)
+
+---
+
+## Additional String Operations (recent)
+
+### repeat_string
+
+Repeats a string n times.
+
+**Parameters:**
+- `text` (str): Input string.
+- `n` (int): Number of repetitions.
+
+**Returns:**
+- `str`: Repeated string.
+
+**Example:**
+```python
+>>> repeat_string("ab", 3)
+'ababab'
+```
+
+**Cost:** O(n)
+
+---
+
+### center_string
+
+Centers a string within a given width.
+
+**Parameters:**
+- `text` (str): Input string.
+- `width` (int): Total width.
+- `fill_char` (str): Padding character. Defaults to ' '.
+
+**Returns:**
+- `str`: Centered string.
+
+**Example:**
+```python
+>>> center_string("hi", 8, '-')
+'---hi---'
+```
+
+**Cost:** O(1)
+
+---
+
+### strip_html_tags
+
+Removes all HTML tags from text, keeping only content.
+
+**Parameters:**
+- `text` (str): HTML text.
+
+**Returns:**
+- `str`: Plain text.
+
+**Example:**
+```python
+>>> strip_html_tags("<p>Hello <b>World</b></p>")
+'Hello World'
+```
+
+**Cost:** O(n)
+
+---
+
+### clean_non_printable
+
+Removes non-printable control characters from text.
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `str`: Cleaned string.
+
+**Example:**
+```python
+>>> clean_non_printable("ABC\x00\x01\x02")
+'ABC'
+```
+
+**Cost:** O(n)
+
+---
+
+### abbreviate
+
+Truncates text at word boundary with ellipsis.
+
+**Parameters:**
+- `text` (str): Input string.
+- `max_length` (int): Maximum length including ellipsis.
+
+**Returns:**
+- `str`: Abbreviated text.
+
+**Example:**
+```python
+>>> abbreviate("Hello World Example", 12)
+'Hello...'
+```
+
+**Cost:** O(n)
+
+---
+
+### generate_initials
+
+Generates initials from a name.
+
+**Parameters:**
+- `name` (str): Full name.
+- `separator` (str): Separator between initials. Defaults to '.'.
+
+**Returns:**
+- `str`: Initials string.
+
+**Example:**
+```python
+>>> generate_initials("John Ronald Tolkien")
+'J.R.T.'
+```
+
+**Cost:** O(n)
+
+---
+
+### count_lines
+
+Counts lines in multiline text.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `int`: Number of lines.
+
+**Example:**
+```python
+>>> count_lines("a\nb\nc")
+3
+```
+
+**Cost:** O(n)
+
+---
+
+### get_line
+
+Gets a specific line from text (1-indexed).
+
+**Parameters:**
+- `text` (str): Input text.
+- `line_number` (int): Line number (1-based).
+
+**Returns:**
+- `Optional[str]`: The line, or None if out of range.
+
+**Example:**
+```python
+>>> get_line("a\nb\nc", 2)
+'b'
+```
+
+**Cost:** O(n)
+
+---
+
+### remove_blank_lines
+
+Removes blank or whitespace-only lines.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: Text without blank lines.
+
+**Example:**
+```python
+>>> remove_blank_lines("a\n\n  \nb")
+'a\nb'
+```
+
+**Cost:** O(n)
+
+---
+
+### sort_lines
+
+Sorts lines alphabetically.
+
+**Parameters:**
+- `text` (str): Input text.
+- `reverse` (bool): Descending order. Defaults to False.
+
+**Returns:**
+- `str`: Sorted text.
+
+**Example:**
+```python
+>>> sort_lines("c\na\nb")
+'a\nb\nc'
+```
+
+**Cost:** O(n log n)
+
+---
+
+### deduplicate_words
+
+Removes duplicate words, preserving first occurrence order.
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `str`: Text with duplicate words removed.
+
+**Example:**
+```python
+>>> deduplicate_words("the cat and the dog and the bird")
+'the cat and dog bird'
+```
+
+**Cost:** O(n)
+
+---
+
+### surround
+
+Wraps text with a given string on both sides.
+
+**Parameters:**
+- `text` (str): Input string.
+- `wrapper` (str): String to prepend and append.
+
+**Returns:**
+- `str`: Surrounded text.
+
+**Example:**
+```python
+>>> surround("hello", "**")
+'**hello**'
+```
+
+**Cost:** O(1)
+
+---
+
+### extract_emails
+
+Extracts all email addresses from a text.
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `list[str]`: List of email addresses.
+
+**Example:**
+```python
+>>> extract_emails("Contact info@test.com or admin@site.org")
+['info@test.com', 'admin@site.org']
+```
+
+**Cost:** O(n)
+
+---
+
+## Additional String Format (recent)
+
+### swap_case
+
+Inverts case of every character.
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `str`: Case-swapped string.
+
+**Example:**
+```python
+>>> swap_case("Hello World")
+'hELLO wORLD'
+```
+
+**Cost:** O(n)
+
+---
+
+### indent_text
+
+Adds a prefix to every line.
+
+**Parameters:**
+- `text` (str): Input text.
+- `prefix` (str): Line prefix. Defaults to `'    '`.
+
+**Returns:**
+- `str`: Indented text.
+
+**Example:**
+```python
+>>> indent_text("a\nb", prefix=">> ")
+'>> a\n>> b'
+```
+
+**Cost:** O(n)
+
+---
+
+### dedent_text
+
+Removes common leading whitespace from all lines.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: Dedented text.
+
+**Example:**
+```python
+>>> dedent_text("    a\n    b")
+'a\nb'
+```
+
+**Cost:** O(n)
+
+---
+
+### zfill
+
+Pads a string with leading zeros.
+
+**Parameters:**
+- `text` (str): Input string.
+- `width` (int): Target total width.
+
+**Returns:**
+- `str`: Zero-padded string.
+
+**Example:**
+```python
+>>> zfill("42", 5)
+'00042'
+```
+
+**Cost:** O(1)
+
+---
+
+### rot13
+
+Applies ROT13 letter substitution cipher.
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `str`: ROT13-encoded string.
+
+**Example:**
+```python
+>>> rot13("Hello")
+'Uryyb'
+```
+
+**Cost:** O(n)
+
+---
+
+### format_list_as_sentence
+
+Formats a list as a human-readable sentence.
+
+**Parameters:**
+- `items` (list[str]): List of items.
+- `conjunction` (str): Conjunction before last item. Defaults to `"and"`.
+- `separator` (str): Item separator. Defaults to `", "`.
+
+**Returns:**
+- `str`: Formatted sentence.
+
+**Example:**
+```python
+>>> format_list_as_sentence(["a", "b", "c"])
+'a, b and c'
+```
+
+**Cost:** O(n)
+
+---
+
+### pluralize_count
+
+Returns count with noun in singular or plural form.
+
+**Parameters:**
+- `count` (int): Quantity.
+- `singular` (str): Singular noun.
+- `plural` (Optional[str]): Plural noun. Defaults to singular + "s".
+
+**Returns:**
+- `str`: Formatted string.
+
+**Example:**
+```python
+>>> pluralize_count(1, "item")
+'1 item'
+>>> pluralize_count(5, "item")
+'5 items'
+```
+
+**Cost:** O(1)
+
+---
+
+## Additional String Evaluations (recent)
+
+### word_frequency
+
+Returns frequency of each word as a dictionary.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `dict[str, int]`: Word → count mapping.
+
+**Example:**
+```python
+>>> word_frequency("the cat and the dog")
+{'the': 2, 'cat': 1, 'and': 1, 'dog': 1}
+```
+
+**Cost:** O(n)
+
+---
+
+### char_frequency
+
+Returns frequency of each character as a dictionary.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `dict[str, int]`: Character → count mapping.
+
+**Example:**
+```python
+>>> char_frequency("aabbc")
+{'a': 2, 'b': 2, 'c': 1}
+```
+
+**Cost:** O(n)
+
+---
+
+### sentence_count
+
+Counts sentences by terminal punctuation (`.`, `!`, `?`).
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `int`: Number of sentences.
+
+**Example:**
+```python
+>>> sentence_count("Hello! How are you? Fine.")
+3
+```
+
+**Cost:** O(n)
+
+---
+
+### reading_time
+
+Estimates reading time in minutes.
+
+**Parameters:**
+- `text` (str): Input text.
+- `words_per_minute` (int): Reading speed. Defaults to 200.
+
+**Returns:**
+- `float`: Minutes.
+
+**Example:**
+```python
+>>> reading_time("word " * 400)
+2.0
+```
+
+**Cost:** O(n)
+
+---
+
+### is_palindrome
+
+Checks if text is a palindrome (ignoring case, spaces, punctuation).
+
+**Parameters:**
+- `text` (str): Input string.
+
+**Returns:**
+- `bool`: True if palindrome.
+
+**Example:**
+```python
+>>> is_palindrome("A man a plan a canal Panama")
+True
+```
+
+**Cost:** O(n)
+
+---
+
+### is_anagram
+
+Checks if two strings are anagrams (same letters, ignoring case/spaces).
+
+**Parameters:**
+- `a` (str): First string.
+- `b` (str): Second string.
+
+**Returns:**
+- `bool`: True if anagrams.
+
+**Example:**
+```python
+>>> is_anagram("listen", "silent")
+True
+```
+
+**Cost:** O(n log n)
+
+---
+
+### is_pangram
+
+Checks if text contains every letter of the given alphabet.
+
+**Parameters:**
+- `text` (str): Input string.
+- `alphabet` (str): Required letters. Defaults to `"abcdefghijklmnopqrstuvwxyz"`.
+
+**Returns:**
+- `bool`: True if pangram.
+
+**Example:**
+```python
+>>> is_pangram("The quick brown fox jumps over the lazy dog")
+True
+```
+
+**Cost:** O(n + a)
+
+---
+
+## Additional String Similarity (recent)
+
+### string_cosine_score
+
+Cosine similarity between two strings based on character frequency vectors.
+
+**Parameters:**
+- `a` (str): First string.
+- `b` (str): Second string.
+
+**Returns:**
+- `dict`: `{'similarity': float, 'score': float}`.
+
+**Example:**
+```python
+>>> string_cosine_score("hello world", "hello earth")
+{'similarity': 0.5, 'score': 50.0}
+```
+
+**Cost:** O(n)
+
+---
+
+### generate_ngrams
+
+Generates character n-grams from text.
+
+**Parameters:**
+- `text` (str): Input string.
+- `n` (int): N-gram size. Defaults to 2.
+
+**Returns:**
+- `list[str]`: List of n-grams.
+
+**Example:**
+```python
+>>> generate_ngrams("hello", 2)
+['he', 'el', 'll', 'lo']
+```
+
+**Cost:** O(n)
+
+---
+
+### find_closest_match
+
+Finds best match from a candidate list.
+
+**Parameters:**
+- `text` (str): Query string.
+- `candidates` (list[str]): List of candidate strings.
+- `algorithm` (str): Similarity algorithm. Defaults to `"levenshtein"`.
+
+**Returns:**
+- `tuple[str, float]`: Best match and score.
+
+**Example:**
+```python
+>>> find_closest_match("cart", ["cat", "car", "card"])
+('cat', 75.0)
+```
+
+**Cost:** O(n*m*k)
+
+---
+
+### rank_by_similarity
+
+Ranks candidates by similarity score (descending).
+
+**Parameters:**
+- `text` (str): Query string.
+- `candidates` (list[str]): Candidate strings.
+- `algorithm` (str): Similarity algorithm. Defaults to `"levenshtein"`.
+
+**Returns:**
+- `list[tuple[str, float]]`: Sorted (candidate, score) pairs.
+
+**Example:**
+```python
+>>> rank_by_similarity("cart", ["cat", "car", "card"])
+[('cat', 75.0), ('car', 75.0), ('card', 75.0)]
+```
+
+**Cost:** O(n*m*k)
+
+---
+
+## Additional String Conversions (recent)
+
+### string_to_boolean
+
+Converts truthy/falsy strings to boolean.
+
+**Parameters:**
+- `text` (str): Input string (e.g. "yes", "true", "1", "no", "false", "0").
+
+**Returns:**
+- `bool`: Boolean value.
+
+**Example:**
+```python
+>>> string_to_boolean("yes")
+True
+>>> string_to_boolean("no")
+False
+```
+
+**Cost:** O(1)
+
+---
+
+### boolean_to_string
+
+Converts boolean to "true" / "false" string.
+
+**Parameters:**
+- `value` (bool): Boolean value.
+
+**Returns:**
+- `str`: "true" or "false".
+
+**Example:**
+```python
+>>> boolean_to_string(True)
+'true'
+```
+
+**Cost:** O(1)
+
+---
+
+### string_to_list
+
+Splits a string into a list by delimiter with optional stripping.
+
+**Parameters:**
+- `text` (str): Input string.
+- `delimiter` (str): Separator. Defaults to `","`.
+- `strip` (bool): Strip whitespace. Defaults to True.
+
+**Returns:**
+- `list[str]`: Split items.
+
+**Example:**
+```python
+>>> string_to_list("a, b, c")
+['a', 'b', 'c']
+```
+
+**Cost:** O(n)
+
+---
+
+### integer_to_roman
+
+Converts an integer (1–3999) to Roman numeral string.
+
+**Parameters:**
+- `number` (int): Input integer.
+
+**Returns:**
+- `str`: Roman numeral.
+
+**Example:**
+```python
+>>> integer_to_roman(2024)
+'MMXXIV'
+```
+
+**Cost:** O(1)
+
+---
+
+### roman_to_integer
+
+Converts a Roman numeral string to integer.
+
+**Parameters:**
+- `roman` (str): Roman numeral string.
+
+**Returns:**
+- `int`: Integer value.
+
+**Example:**
+```python
+>>> roman_to_integer("MMXXIV")
+2024
+```
+
+**Cost:** O(n)
+
+---
+
+### text_to_binary
+
+Converts text to binary representation.
+
+**Parameters:**
+- `text` (str): Input text.
+- `separator` (str): Between bytes. Defaults to `" "`.
+
+**Returns:**
+- `str`: Binary string.
+
+**Example:**
+```python
+>>> text_to_binary("AB")
+'01000001 01000010'
+```
+
+**Cost:** O(n)
+
+---
+
+### binary_to_text
+
+Converts binary string back to text.
+
+**Parameters:**
+- `binary_str` (str): Binary string.
+- `separator` (str): Byte separator. Defaults to `" "`.
+
+**Returns:**
+- `str`: Decoded text.
+
+**Example:**
+```python
+>>> binary_to_text("01000001 01000010")
+'AB'
+```
+
+**Cost:** O(n)
+
+---
+
+### text_to_morse
+
+Encodes text to Morse code.
+
+**Parameters:**
+- `text` (str): Input text.
+
+**Returns:**
+- `str`: Morse code.
+
+**Example:**
+```python
+>>> text_to_morse("SOS")
+'... --- ...'
+```
+
+**Cost:** O(n)
+
+---
+
+### morse_to_text
+
+Decodes Morse code back to text.
+
+**Parameters:**
+- `morse` (str): Morse code string.
+
+**Returns:**
+- `str`: Decoded text.
+
+**Example:**
+```python
+>>> morse_to_text("... --- ...")
+'SOS'
+```
+
+**Cost:** O(n)
+
+---
+
+### `camel_to_snake()`
+
+Converts a camelCase or PascalCase string to snake_case.
+
+**Parameters:**
+- text: The camelCase or PascalCase string.
+
+**Returns:**
+- The snake_case equivalent.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_format import camel_to_snake
+
+result = camel_to_snake(...)
+```
+
+---
+
+### `char_from_code()`
+
+Returns the Unicode character for a given code point.
+
+**Parameters:**
+- code_point: A valid Unicode code point (1 to 1114111).
+
+**Returns:**
+- The single Unicode character.
+
+**Raises:**
+- TypeError: If input is not an integer.
+- ValueError: If code point is out of valid Unicode range.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_convertions import char_from_code
+
+result = char_from_code(...)
+```
+
+---
+
+### `code_from_char()`
+
+Returns the Unicode code point of the first character of a string.
+
+**Parameters:**
+- character: A non-empty string (first character is used).
+
+**Returns:**
+- The Unicode code point as an integer.
+
+**Raises:**
+- TypeError: If input is not a string.
+- ValueError: If the string is empty.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_convertions import code_from_char
+
+result = code_from_char(...)
+```
+
+---
+
+### `count_sentences()`
+
+Count the number of sentences in a text.
+
+**Parameters:**
+- text: Input text.
+
+**Returns:**
+- Number of sentences.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import count_sentences
+
+result = count_sentences(...)
+```
+
+---
+
+### `decode_base64()`
+
+Decodes a Base64-encoded string back to plain text.
+
+**Parameters:**
+- encoded_text: The Base64-encoded string.
+- encoding: Character encoding to use after Base64 decoding.
+
+**Returns:**
+- The decoded plain text string.
+
+**Raises:**
+- TypeError: If encoded_text is not a string.
+- ValueError: If the input is not valid Base64.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_encoding import decode_base64
+
+result = decode_base64(...)
+```
+
+---
+
+### `decode_url()`
+
+Decodes a URL percent-encoded string back to plain text.
+
+**Parameters:**
+- encoded_text: The percent-encoded string.
+
+**Returns:**
+- The decoded plain text string.
+
+**Raises:**
+- TypeError: If encoded_text is not a string.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_encoding import decode_url
+
+result = decode_url(...)
+```
+
+---
+
+### `dollar()`
+
+Format number as currency text with dollar sign.
+
+**Parameters:**
+- number: Numeric value to format.
+- decimals: Decimal places (default 2).
+
+**Returns:**
+- str: Dollar-formatted text.
+
+**Raises:**
+- TypeError: If number is not numeric or decimals not int.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_format import dollar
+
+result = dollar(...)
+```
+
+---
+
+### `encode_base64()`
+
+Encodes a string to Base64 representation.
+
+**Parameters:**
+- text: The input string to encode.
+- encoding: Character encoding to use before Base64 conversion.
+
+**Returns:**
+- The Base64-encoded string.
+
+**Raises:**
+- TypeError: If text is not a string.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_encoding import encode_base64
+
+result = encode_base64(...)
+```
+
+---
+
+### `encode_url()`
+
+Encodes a string using URL percent-encoding (RFC 3986).
+
+**Parameters:**
+- text: The input string to encode.
+- safe: Characters that should not be encoded.
+
+**Returns:**
+- The percent-encoded string.
+
+**Raises:**
+- TypeError: If text is not a string.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_encoding import encode_url
+
+result = encode_url(...)
+```
+
+---
+
+### `extract_urls()`
+
+Extracts all URLs from a text string.
+
+**Parameters:**
+- text: The input string to scan.
+
+**Returns:**
+- A list of extracted URL strings.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import extract_urls
+
+result = extract_urls(...)
+```
+
+---
+
+### `fixed()`
+
+Format number with a fixed number of decimal places.
+
+**Parameters:**
+- number: Numeric value to format.
+- decimals: Decimal places (default 2).
+- no_commas: If True, suppress thousands separators.
+
+**Returns:**
+- str: Formatted text representation.
+
+**Raises:**
+- TypeError: If number is not numeric or decimals not int.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_format import fixed
+
+result = fixed(...)
+```
+
+---
+
+### `format_as_currency()`
+
+Formats a number as currency text with thousands separator.
+
+**Parameters:**
+- number: The number to format.
+- decimals: Number of decimal places (default 2).
+- symbol: Currency symbol to prepend (default '$').
+
+**Returns:**
+- The formatted currency string.
+
+**Raises:**
+- TypeError: If number is not numeric or decimals is not an integer.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_format import format_as_currency
+
+result = format_as_currency(...)
+```
+
+---
+
+### `is_credit_card_format()`
+
+Validate a credit card number using the Luhn algorithm.
+
+**Parameters:**
+- text: Credit card number string.
+
+**Returns:**
+- True if the number passes the Luhn check.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import is_credit_card_format
+
+result = is_credit_card_format(...)
+```
+
+---
+
+### `is_ipv4()`
+
+Check whether a string is a valid IPv4 address.
+
+**Parameters:**
+- text: String to validate.
+
+**Returns:**
+- True if the string is a valid IPv4 address.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import is_ipv4
+
+result = is_ipv4(...)
+```
+
+---
+
+### `is_ipv6()`
+
+Check whether a string is a valid IPv6 address.
+
+**Parameters:**
+- text: String to validate.
+
+**Returns:**
+- True if the string is a valid IPv6 address.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import is_ipv6
+
+result = is_ipv6(...)
+```
+
+---
+
+### `is_json()`
+
+Check whether a string is valid JSON.
+
+**Parameters:**
+- text: String to validate.
+
+**Returns:**
+- True if the string can be parsed as JSON.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import is_json
+
+result = is_json(...)
+```
+
+---
+
+### `is_uuid()`
+
+Check whether a string matches the UUID format (any version).
+
+**Parameters:**
+- text: String to validate.
+
+**Returns:**
+- True if the string is a valid UUID.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import is_uuid
+
+result = is_uuid(...)
+```
+
+---
+
+### `slugify()`
+
+Converts text to a URL-friendly slug.
+
+**Parameters:**
+- text: The input string.
+- separator: Character used between words (default ``-``).
+
+**Returns:**
+- A URL-safe slug string.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import slugify
+
+result = slugify(...)
+```
+
+---
+
+### `snake_to_camel()`
+
+Converts a snake_case string to camelCase (or PascalCase).
+
+**Parameters:**
+- text: The snake_case string.
+- pascal: If True, returns PascalCase (first letter uppercase).
+- Defaults to False (camelCase).
+
+**Returns:**
+- The camelCase or PascalCase equivalent.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_format import snake_to_camel
+
+result = snake_to_camel(...)
+```
+
+---
+
+### `substitute()`
+
+Substitutes new text for old text in a string.
+
+**Parameters:**
+- text: The original text.
+- old_text: The text to find and replace.
+- new_text: The replacement text.
+- instance_num: Which occurrence to replace (0 = all, 1 = first, etc.).
+
+**Returns:**
+- The text with substitutions applied.
+
+**Raises:**
+- TypeError: If text, old_text, or new_text are not strings.
+- ValueError: If instance_num is negative.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import substitute
+
+result = substitute(...)
+```
+
+---
+
+### `text_after()`
+
+Returns text that occurs after a given delimiter.
+
+**Parameters:**
+- text: The input text to search.
+- delimiter: The delimiter to search for.
+- instance_num: Which occurrence (1 = first, -1 = last, etc.).
+
+**Returns:**
+- The text after the specified occurrence of the delimiter.
+
+**Raises:**
+- TypeError: If text or delimiter are not strings.
+- ValueError: If instance_num is 0 or delimiter is not found.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import text_after
+
+result = text_after(...)
+```
+
+---
+
+### `text_before()`
+
+Returns text that occurs before a given delimiter.
+
+**Parameters:**
+- text: The input text to search.
+- delimiter: The delimiter to search for.
+- instance_num: Which occurrence (1 = first, -1 = last, etc.).
+
+**Returns:**
+- The text before the specified occurrence of the delimiter.
+
+**Raises:**
+- TypeError: If text or delimiter are not strings.
+- ValueError: If instance_num is 0 or delimiter is not found.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import text_before
+
+result = text_before(...)
+```
+
+---
+
+### `text_split()`
+
+Splits text into rows and/or columns using delimiters.
+
+**Parameters:**
+- text: The input text to split.
+- col_delimiter: Delimiter for splitting into columns. If None, no
+- column splitting.
+- row_delimiter: Delimiter for splitting into rows. If None, no
+- row splitting.
+
+**Returns:**
+- A 2-D list of strings if both delimiters are provided,
+- a 1-D list if only one delimiter is provided.
+
+**Raises:**
+- TypeError: If text is not a string.
+- ValueError: If both delimiters are None.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import text_split
+
+result = text_split(...)
+```
+
+---
+
+### `text_stats()`
+
+Compute summary statistics for a text string.
+
+**Parameters:**
+- text: Input text.
+
+**Returns:**
+- Dict with keys: ``words``, ``chars``, ``chars_no_spaces``,
+- ``sentences``, ``lines``, ``avg_word_length``.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_evaluations import text_stats
+
+result = text_stats(...)
+```
+
+---
+
+### `to_full_width()`
+
+Converts half-width (single-byte) characters to full-width (double-byte).
+
+**Parameters:**
+- text: The input string containing half-width characters.
+
+**Returns:**
+- A new string with half-width characters replaced by full-width ones.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_convertions import to_full_width
+
+result = to_full_width("HELLO")  # 'ＨＥＬＬＯ'
+```
+
+---
+
+### `to_half_width()`
+
+Converts full-width (double-byte) characters to half-width (single-byte).
+
+**Parameters:**
+- text: The input string containing full-width characters.
+
+**Returns:**
+- A new string with full-width characters replaced by half-width ones.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_convertions import to_half_width
+
+result = to_half_width("ＨＥＬＬＯ")  # 'HELLO'
+```
+
+---
+
+### `value_to_text()`
+
+Converts any value to its text representation.
+
+**Parameters:**
+- value: Any Python value.
+- format_type: 0 for concise (default), 1 for quoted/repr.
+
+**Returns:**
+- The text representation of the value.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_convertions import value_to_text
+
+result = value_to_text(...)
+```
+
+---
+
+### `word_at()`
+
+Return the word at the given 1-indexed position.
+
+**Parameters:**
+- text: Input text.
+- index: 1-based word position.
+
+**Returns:**
+- The word at the specified position.
+
+**Raises:**
+- IndexError: If index is out of range.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import word_at
+
+result = word_at(...)
+```
+
+---
+
+### `word_wrap()`
+
+Wraps text to a specified line width, breaking at word boundaries.
+
+**Parameters:**
+- text: The input text to wrap.
+- width: Maximum number of characters per line. Defaults to 80.
+
+**Returns:**
+- The wrapped text with newline separators.
+
+**Raises:**
+- ValueError: If *width* is less than 1.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_format import word_wrap
+
+result = word_wrap(...)
+```
+
+---
+
+### `wrap_text()`
+
+Wraps text to a specified line width at word boundaries.
+
+**Parameters:**
+- text: The input string.
+- width: Maximum characters per line (default 80).
+
+**Returns:**
+- Word-wrapped text with newlines inserted.
+
+**Raises:**
+- ValueError: If width is less than 1.
+
+**Ejemplo:**
+```python
+from formulite.fxString.string_operations import wrap_text
+
+result = wrap_text(...)
+```
+
+---
+

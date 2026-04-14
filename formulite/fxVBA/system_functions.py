@@ -17,7 +17,6 @@ __all__ = [
     "CurDir",
     "Dir_",
     "Environ",
-    "EnvironS",
     "Error",
     "FileDateTime",
     "FileLen",
@@ -133,29 +132,6 @@ def Environ(expression: str) -> str:
             return f"{key}={os.environ[key]}"
         return ""
     return os.environ.get(expression, "")
-
-
-def EnvironS(expression: str) -> str:
-    """
-    Description
-        Retorna información del sistema (versión $).
-
-    Args
-        expression: Variable de entorno o número.
-
-    Returns
-        str: Valor de variable de entorno.
-
-    Usage Example
-        >>> environ_s("PATH")
-        'C:\\Windows\\...'
-
-    Cost
-        O(1)
-    """
-    return Environ(expression)
-
-
 def Error(err_number: int) -> str:
     """
     Description

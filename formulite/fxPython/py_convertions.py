@@ -13,8 +13,21 @@ All functions follow PEP standards with complete documentation including
 complexity analysis.
 """
 
-import json
-from typing import Iterable, Callable, Any, Union, List, Tuple, Set, Dict, Type, Optional
+from typing import Iterable, Any, Union, List, Tuple, Set, Dict, Type, Optional
+
+
+def _collection_to_string(
+    iterable: Iterable[Any], separator: str = " ", use_quotes: bool = False,
+) -> Optional[str]:
+    """Convert any iterable to a joined string, or ``None`` if empty."""
+    items = list(iterable)
+    if not items:
+        return None
+    if use_quotes:
+        parts = (f"'{str(item)}'" for item in items)
+    else:
+        parts = (str(item) for item in items)
+    return separator.join(parts)
 
 
 def convert_collection(
@@ -105,21 +118,7 @@ def set_to_string(input_set: Set[Any], separator: str = ' ', use_quotes: bool = 
 
     **Cost:** O(n), where n is the number of elements in the set.
     """
-    # Return None immediately if the set is empty, aligning with the return type.
-    if not input_set:
-        return None
-
-    # Use a generator expression to convert each item to a string.
-    # Conditionally add quotes if 'use_quotes' is True.
-    # It's important to note that the order of elements in the string
-    # will be arbitrary, as sets do not guarantee order.
-    if use_quotes:
-        string_elements = (f"'{str(item)}'" for item in input_set)
-    else:
-        string_elements = (str(item) for item in input_set)
-
-    # Join the processed string elements using the specified separator.
-    return separator.join(string_elements)
+    return _collection_to_string(input_set, separator, use_quotes)
 
 
 def set_to_list(input_set: Set[Any]) -> List[Any]:
@@ -150,12 +149,7 @@ def set_to_list(input_set: Set[Any]) -> List[Any]:
 
     **Cost:** O(n), where n is the number of elements in the set.
     """
-    # The built-in list() constructor is the most Pythonic and efficient
-    # way to convert any iterable (like a set) into a list.
-    # It handles all cases, including empty sets, correctly.
-    converted_list = list(input_set)
-
-    return converted_list
+    return convert_collection(input_set, list)
 
 
 def set_to_tuple(input_set: Set[Any]) -> Tuple[Any, ...]:
@@ -186,12 +180,7 @@ def set_to_tuple(input_set: Set[Any]) -> Tuple[Any, ...]:
 
     **Cost:** O(n), where n is the number of elements in the set.
     """
-    # The built-in tuple() constructor is the most Pythonic and efficient
-    # way to convert any iterable (like a set) into a tuple.
-    # It handles all cases, including empty sets, correctly.
-    converted_tuple = tuple(input_set)
-
-    return converted_tuple
+    return convert_collection(input_set, tuple)
 
 
 # --- Tuple Conversions ---
@@ -226,20 +215,7 @@ def tuple_to_string(input_tuple: Tuple[Any, ...], separator: str = ' ', use_quot
 
     **Cost:** O(n), where n is the number of elements in the tuple.
     """
-    # Return None immediately if the tuple is empty, aligning with the return type.
-    if not input_tuple:
-        return None
-
-    # Use a generator expression to convert each item to a string.
-    # Conditionally add quotes if 'use_quotes' is True.
-    # This approach is concise and efficient, avoiding intermediate list creation.
-    if use_quotes:
-        string_elements = (f"'{str(item)}'" for item in input_tuple)
-    else:
-        string_elements = (str(item) for item in input_tuple)
-
-    # Join the processed string elements using the specified separator.
-    return separator.join(string_elements)
+    return _collection_to_string(input_tuple, separator, use_quotes)
 
 
 def tuple_to_list(input_tuple: Tuple[Any, ...]) -> List[Any]:
@@ -269,12 +245,7 @@ def tuple_to_list(input_tuple: Tuple[Any, ...]) -> List[Any]:
 
     **Cost:** O(n), where n is the number of elements in the tuple.
     """
-    # The built-in list() constructor is the most Pythonic and efficient
-    # way to convert any iterable (like a tuple) into a list.
-    # It handles all cases, including empty tuples, correctly.
-    converted_list = list(input_tuple)
-
-    return converted_list
+    return convert_collection(input_tuple, list)
 
 
 def tuple_to_set(input_tuple: Tuple[Any, ...]) -> Set[Any]:
@@ -305,13 +276,7 @@ def tuple_to_set(input_tuple: Tuple[Any, ...]) -> Set[Any]:
 
     **Cost:** O(n), where n is the number of elements in the tuple.
     """
-    # The built-in set() constructor is the most Pythonic and efficient
-    # way to convert any iterable (like a tuple) into a set.
-    # It automatically handles duplicate removal and provides O(N) average
-    # time complexity for the conversion.
-    unique_elements_set = set(input_tuple)
-
-    return unique_elements_set
+    return convert_collection(input_tuple, set)
 
 
 # --- List Conversions ---
@@ -346,20 +311,7 @@ def list_to_string(lst: List[Any], separator: str = ' ', use_quotes: bool = Fals
 
     **Cost:** O(n), where n is the number of elements in the list.
     """
-    # Return None immediately if the list is empty, aligning with the return type.
-    if not lst:
-        return None
-
-    # Use a generator expression to convert each item to a string.
-    # Conditionally add quotes if 'use_quotes' is True.
-    # This approach is concise and efficient, avoiding intermediate list creation.
-    if use_quotes:
-        string_elements = (f"'{str(item)}'" for item in lst)
-    else:
-        string_elements = (str(item) for item in lst)
-
-    # Join the processed string elements using the specified separator.
-    return separator.join(string_elements)
+    return _collection_to_string(lst, separator, use_quotes)
 
 
 def list_to_set(input_list: List[Any]) -> Set[Any]:
@@ -390,11 +342,7 @@ def list_to_set(input_list: List[Any]) -> Set[Any]:
 
     **Cost:** O(n), where n is the number of elements in the list.
     """
-    # Create a set from the input list. This automatically handles
-    # duplicate removal and provides O(N) average time complexity.
-    unique_elements_set = set(input_list)
-
-    return unique_elements_set
+    return convert_collection(input_list, set)
 
 
 def list_to_tuple(input_list: List[Any]) -> Tuple[Any, ...]:
@@ -424,12 +372,7 @@ def list_to_tuple(input_list: List[Any]) -> Tuple[Any, ...]:
 
     **Cost:** O(n), where n is the number of elements in the list.
     """
-    # The built-in tuple() constructor is the most Pythonic and efficient
-    # way to convert any iterable (like a list) into a tuple.
-    # It handles all cases, including empty lists, correctly.
-    converted_tuple = tuple(input_list)
-
-    return converted_tuple
+    return convert_collection(input_list, tuple)
 
 
 # --- Dictionary Conversions ---
@@ -681,27 +624,6 @@ def list_of_tuples_to_dict(data_list: List[Tuple[Any, Any]]) -> Dict[Any, Any]:
 
     **Cost:** O(n), where n is the number of tuples in the list.
     """
-    return dict(data_list)
-
-
-def list_of_lists_to_dict(data_list: List[List[Any]]) -> Dict[Any, Any]:
-    """Converts a list of lists (where each inner list is a key-value pair) to a dictionary.
-
-    If there are duplicate keys, the value from the **last inner list** with that key will prevail.
-
-    Args:
-        data_list (List[List[Any]]): The input list of `[key, value]` lists.
-
-    Returns:
-        Dict[Any, Any]: The converted dictionary.
-
-    Example of use:
-        >>> list_of_lists_to_dict([["name", "Bob"], ["age", 25], ["name", "Robert"]])
-        {'name': 'Robert', 'age': 25}
-
-    **Cost:** O(n), where n is the number of lists.
-    """
-    # The `dict()` constructor also works directly with lists of lists like `[key, value]`.
     return dict(data_list)
 
 

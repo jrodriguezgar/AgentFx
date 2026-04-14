@@ -14,7 +14,7 @@ complexity analysis.
 """
 
 from collections import deque
-from typing import Iterable, Any
+from typing import Callable, Iterable, Any
 
 
 def create_key_value_dictionary(p_key_columns, p_values):
@@ -48,8 +48,7 @@ def create_key_value_dictionary(p_key_columns, p_values):
     """
     # Validate inputs to ensure they are not empty.
     if not p_key_columns or not p_values:
-        print("The request cannot be empty.")
-        return None
+        raise ValueError("The request cannot be empty.")
 
     # Normalize key_columns into a list of strings.
     if isinstance(p_key_columns, str):
@@ -61,8 +60,7 @@ def create_key_value_dictionary(p_key_columns, p_values):
         key_column_names = [col.strip() for col in p_key_columns if col.strip()]
     else:
         # Handle unexpected types for p_key_columns gracefully.
-        print("Invalid type for p_key_columns. Expected string or list.")
-        return None
+        raise TypeError("Invalid type for p_key_columns. Expected string or list.")
 
     # Normalize p_values into a tuple for consistent zipping.
     # We wrap single values in a tuple to allow iteration.
@@ -119,38 +117,35 @@ def function_call(func: callable, *args, **kwargs) -> Any:
 
 def switch_case(value, *cases, default=None):
     """Acts like a generic switch-case statement.
-    
-    Description:
-        Iterates through a sequence of cases and returns the corresponding value
-        if a match is found. If no match is found, returns the default value.
-    
+
+    Delegates to :func:`~formulite.fxPython.py_logic.switch_case`.
+    Accepts an explicit ``default`` keyword instead of the positional
+    odd-argument convention used by the core implementation.
+
     Args:
         value: The value to be evaluated.
         *cases: A sequence of cases where each pair consists of a key and a value.
                 Example: key1, value1, key2, value2, ...
         default: The value to return if no match is found. Defaults to None.
-    
+
     Returns:
         The value associated with the matching key, or the default value if no match.
-    
+
     Raises:
         ValueError: If the number of items in *cases is not an even number.
-    
+
     Usage Example:
-        >>> month_name = switch_case(2, 1, "January", 2, "February", 3, "March", default="Unknown Month")
-        >>> print(month_name)
-        February
-        >>> result = switch_case("apple", "orange", 1, "apple", 2, "banana", 3)
-        >>> print(result)
-        2
-    
+        >>> switch_case(2, 1, "January", 2, "February", 3, "March", default="Unknown Month")
+        'February'
+
     Cost: O(n) where n is the number of case pairs
     """
     if len(cases) % 2 != 0:
         raise ValueError("Cases must be provided in key-value pairs.")
 
-    case_dict = dict(zip(cases[0::2], cases[1::2]))
-    return case_dict.get(value, default)
+    from formulite.fxPython.py_logic import switch_case as _core_switch
+
+    return _core_switch(value, *cases, default)
 
 
 def loop_for(iterable, func):
@@ -371,14 +366,174 @@ def apply_expression(expression: str, iterable: Iterable[Any]) -> list[Any]:
 
     **Cost:** O(n), where n is the number of items in the iterable.
     """
-    try:
-        # We use eval() to dynamically create a lambda function from the string.
-        # It's important to understand the security implications of using eval().
-        # In a controlled environment, it's a powerful tool, but it should be
-        # used with caution when the input comes from an untrusted source.
-        lambda_func = eval(f'lambda x: {expression}')
-        return list(map(lambda_func, iterable))
-    except (SyntaxError, NameError) as e:
-        print(f"Error: Invalid expression or name in '{expression}'")
-        raise e
-    
+    import ast
+    import operator as _op
+
+    tree = ast.parse(expression, mode="eval")
+
+    _SAFE_BUILTINS: dict[str, Any] = {
+        "abs": abs, "all": all, "any": any, "bool": bool,
+        "chr": chr, "divmod": divmod, "enumerate": enumerate,
+        "float": float, "int": int, "isinstance": isinstance,
+        "len": len, "list": list, "map": map, "max": max,
+        "min": min, "ord": ord, "pow": pow, "range": range,
+        "round": round, "set": set, "sorted": sorted, "str": str,
+        "sum": sum, "tuple": tuple, "type": type, "zip": zip,
+    }
+
+    _BIN_OPS = {
+        ast.Add: _op.add, ast.Sub: _op.sub, ast.Mult: _op.mul,
+        ast.Div: _op.truediv, ast.FloorDiv: _op.floordiv,
+        ast.Mod: _op.mod, ast.Pow: _op.pow,
+    }
+    _UNARY_OPS = {ast.UAdd: _op.pos, ast.USub: _op.neg, ast.Not: _op.not_}
+    _CMP_OPS = {
+        ast.Eq: _op.eq, ast.NotEq: _op.ne, ast.Lt: _op.lt,
+        ast.LtE: _op.le, ast.Gt: _op.gt, ast.GtE: _op.ge,
+        ast.In: lambda a, b: a in b,
+        ast.NotIn: lambda a, b: a not in b,
+        ast.Is: _op.is_, ast.IsNot: _op.is_not,
+    }
+    _BOOL_OPS = {ast.And: all, ast.Or: any}
+
+    def _eval(node: ast.AST, x: Any) -> Any:  # noqa: C901
+        if isinstance(node, ast.Expression):
+            return _eval(node.body, x)
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name):
+            if node.id == "x":
+                return x
+            if node.id in _SAFE_BUILTINS:
+                return _SAFE_BUILTINS[node.id]
+            raise NameError(f"Name '{node.id}' is not allowed")
+        if isinstance(node, ast.BinOp):
+            op_fn = _BIN_OPS.get(type(node.op))
+            if op_fn is None:
+                raise SyntaxError(f"Unsupported operator: {type(node.op).__name__}")
+            return op_fn(_eval(node.left, x), _eval(node.right, x))
+        if isinstance(node, ast.UnaryOp):
+            op_fn = _UNARY_OPS.get(type(node.op))
+            if op_fn is None:
+                raise SyntaxError(f"Unsupported unary operator: {type(node.op).__name__}")
+            return op_fn(_eval(node.operand, x))
+        if isinstance(node, ast.Compare):
+            left = _eval(node.left, x)
+            for op_node, comparator in zip(node.ops, node.comparators):
+                cmp_fn = _CMP_OPS.get(type(op_node))
+                if cmp_fn is None:
+                    raise SyntaxError(f"Unsupported comparator: {type(op_node).__name__}")
+                right = _eval(comparator, x)
+                if not cmp_fn(left, right):
+                    return False
+                left = right
+            return True
+        if isinstance(node, ast.BoolOp):
+            fn = _BOOL_OPS.get(type(node.op))
+            if fn is None:
+                raise SyntaxError(f"Unsupported bool op: {type(node.op).__name__}")
+            return fn(_eval(v, x) for v in node.values)
+        if isinstance(node, ast.IfExp):
+            return _eval(node.body, x) if _eval(node.test, x) else _eval(node.orelse, x)
+        if isinstance(node, ast.Attribute):
+            return getattr(_eval(node.value, x), node.attr)
+        if isinstance(node, ast.Call):
+            func = _eval(node.func, x)
+            if node.keywords:
+                raise SyntaxError("Keyword arguments are not supported")
+            args = [_eval(a, x) for a in node.args]
+            return func(*args)
+        if isinstance(node, ast.Subscript):
+            return _eval(node.value, x)[_eval(node.slice, x)]
+        if isinstance(node, (ast.List, ast.Tuple)):
+            items = [_eval(el, x) for el in node.elts]
+            return items if isinstance(node, ast.List) else tuple(items)
+        raise SyntaxError(f"Unsupported expression element: {type(node).__name__}")
+
+    return [_eval(tree, item) for item in iterable]
+
+
+def pipe(value: Any, *functions: Callable) -> Any:
+    """Threads a value through a sequence of functions.
+
+    Applies each function to the result of the previous one, left to right.
+
+    Args:
+        value: The initial value.
+        *functions: One or more callables to apply in order.
+
+    Returns:
+        The final result after all functions have been applied.
+
+    Example:
+        >>> pipe(5, lambda x: x * 2, lambda x: x + 3, str)
+        '13'
+        >>> pipe("  hello  ", str.strip, str.upper)
+        'HELLO'
+
+    **Cost:** O(k) where k is the number of functions.
+    """
+    result = value
+
+    for func in functions:
+
+        if not callable(func):
+            raise TypeError(f"All arguments after value must be callable, got {type(func).__name__}.")
+
+        result = func(result)
+
+    return result
+
+
+def retry(
+    func: Callable,
+    max_attempts: int = 3,
+    delay: float = 1.0,
+) -> Any:
+    """Retries a function on failure up to a maximum number of attempts.
+
+    Waits ``delay`` seconds between attempts using ``time.sleep``.
+
+    Args:
+        func: A zero-argument callable to execute.
+        max_attempts: Maximum number of tries (default 3).
+        delay: Seconds to wait between retries (default 1.0).
+
+    Returns:
+        The return value of ``func`` on success.
+
+    Raises:
+        RuntimeError: If all attempts fail, wrapping the last exception.
+
+    Example:
+        >>> counter = {"n": 0}
+        >>> def flaky():
+        ...     counter["n"] += 1
+        ...     if counter["n"] < 3:
+        ...         raise ValueError("not yet")
+        ...     return "ok"
+        >>> retry(flaky, max_attempts=5, delay=0)
+        'ok'
+
+    **Cost:** O(k) where k is max_attempts.
+    """
+    import time
+
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1.")
+
+    last_exc: Exception | None = None
+
+    for attempt in range(1, max_attempts + 1):
+
+        try:
+            return func()
+        except Exception as exc:
+            last_exc = exc
+
+            if attempt < max_attempts:
+                time.sleep(delay)
+
+    raise RuntimeError(
+        f"All {max_attempts} attempts failed. Last error: {last_exc}"
+    ) from last_exc

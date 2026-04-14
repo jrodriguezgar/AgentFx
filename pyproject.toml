@@ -1,0 +1,102 @@
+[project]
+name = "formulite"
+version = "0.2.0"
+description = "A Python library for high-level functions similar to Excel formulas"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "Javier Rodríguez", email = "jrodriguezga@outlook.com" },
+]
+keywords = [
+    "formulas",
+    "excel",
+    "functions",
+    "mcp",
+    "ai-tools",
+    "date",
+    "finance",
+    "statistics",
+    "vba",
+    "string",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/jrodriguezgar/FormuLite"
+Repository = "https://github.com/jrodriguezgar/FormuLite"
+Issues = "https://github.com/jrodriguezgar/FormuLite/issues"
+Changelog = "https://github.com/jrodriguezgar/FormuLite/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+mcp = ["mcp[cli]>=1.0.0"]
+semantic = ["fastembed>=0.4.0", "truststore>=0.9.0"]
+mcp-semantic = ["mcp[cli]>=1.0.0", "fastembed>=0.4.0", "truststore>=0.9.0"]
+scipy = ["scipy>=1.10.0"]
+dateutil = ["python-dateutil>=2.8.0"]
+spellcheck = ["rapidfuzz>=3.0.0", "pyspellchecker>=0.7.0", "symspellpy>=6.7.0"]
+similarity = ["textdistance>=4.5.0", "metaphone>=0.6", "python-Levenshtein>=0.21.0", "jellyfish>=1.0.0"]
+all = [
+    "mcp[cli]>=1.0.0",
+    "fastembed>=0.4.0",
+    "truststore>=0.9.0",
+    "scipy>=1.10.0",
+    "python-dateutil>=2.8.0",
+    "rapidfuzz>=3.0.0",
+    "pyspellchecker>=0.7.0",
+    "symspellpy>=6.7.0",
+    "textdistance>=4.5.0",
+    "metaphone>=0.6",
+    "python-Levenshtein>=0.21.0",
+    "jellyfish>=1.0.0",
+]
+
+[project.scripts]
+formulite-mcp = "formulite.mcp.server:main"
+
+[dependency-groups]
+dev = [
+    "build>=1.2.0",
+    "hatchling>=1.25.0",
+    "pytest>=8.0.0",
+    "pytest-timeout>=2.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["formulite"]
+
+[tool.coverage.run]
+source = ["formulite"]
+omit = [
+    "formulite/mcp/*",
+    "formulite/mcp_server.py",
+    "formulite/__main__.py",
+    "formulite/semantic_search.py",
+    "formulite/fxExcel/statistic_formulas.py",
+    "formulite/fxExcel/engineering_formulas.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.",
+    "if TYPE_CHECKING:",
+]

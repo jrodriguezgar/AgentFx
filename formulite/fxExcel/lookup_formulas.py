@@ -3,16 +3,23 @@ Excel Lookup and Reference Functions Module.
 
 This module provides Excel-compatible lookup and reference functions for FormuLite.
 Functions include:
+- ADDRESS: Build a cell reference string
 - CHOOSE, CHOOSECOLS, CHOOSEROWS: Selection functions
+- COLUMN, COLUMNS: Column number / count
 - DROP, TAKE: Array manipulation
+- EXPAND: Expand an array to specified dimensions
 - FILTER: Filter data by criteria
 - HLOOKUP, VLOOKUP, XLOOKUP: Lookup functions
 - HSTACK, VSTACK: Array stacking
 - INDEX: Index-based lookup
+- INDIRECT: Parse a cell-reference string
 - LOOKUP: Vector lookup
 - MATCH, XMATCH: Position matching
+- OFFSET: Return a sub-range from a 2-D array
+- ROW, ROWS: Row number / count
 - SORT, SORTBY: Sorting functions
 - TOCOL, TOROW: Array reshaping
+- TRANSPOSE: Transpose a 2-D array
 - TRIMRANGE: Trim blank edges from arrays
 - UNIQUE: Extract unique values
 - WRAPCOLS, WRAPROWS: Array wrapping
@@ -20,8 +27,25 @@ Functions include:
 All functions follow Excel naming conventions and behavior.
 """
 
-from typing import List, Union, Any, Optional, Callable
-import numpy as np
+from typing import List, Union, Any, Optional, Tuple
+import math
+import re
+from bisect import bisect_right, bisect_left
+
+from formulite.fxPython.py_operations import (
+    choose_cols as _core_choose_cols,
+    choose_rows as _core_choose_rows,
+    drop_from_array as _core_drop,
+    hlookup as _core_hlookup,
+    hstack as _core_hstack,
+    take_from_array as _core_take,
+    tocol as _core_tocol,
+    torow as _core_torow,
+    vlookup as _core_vlookup,
+    vstack as _core_vstack,
+    wrap_rows as _core_wrap_rows,
+    xmatch as _core_xmatch,
+)
 
 
 # ============================================================================
@@ -73,14 +97,7 @@ def CHOOSECOLS(array: List[List[Any]], *col_nums: int) -> List[List[Any]]:
     
     Cost: O(r * c) where r=rows, c=selected columns
     """
-    arr = np.array(array)
-    selected_cols = []
-    
-    for col_num in col_nums:
-        idx = col_num - 1 if col_num > 0 else col_num
-        selected_cols.append(arr[:, idx])
-    
-    return np.column_stack(selected_cols).tolist()
+    return _core_choose_cols(array, *col_nums)
 
 
 def CHOOSEROWS(array: List[List[Any]], *row_nums: int) -> List[List[Any]]:
@@ -101,14 +118,7 @@ def CHOOSEROWS(array: List[List[Any]], *row_nums: int) -> List[List[Any]]:
     
     Cost: O(r * c) where r=selected rows, c=columns
     """
-    arr = np.array(array)
-    selected_rows = []
-    
-    for row_num in row_nums:
-        idx = row_num - 1 if row_num > 0 else row_num
-        selected_rows.append(arr[idx])
-    
-    return np.array(selected_rows).tolist()
+    return _core_choose_rows(array, *row_nums)
 
 
 # ============================================================================
@@ -134,19 +144,7 @@ def DROP(array: List[List[Any]], rows: int = 0, columns: int = 0) -> List[List[A
     
     Cost: O(r * c)
     """
-    arr = np.array(array)
-    
-    if rows > 0:
-        arr = arr[rows:]
-    elif rows < 0:
-        arr = arr[:rows]
-    
-    if columns > 0:
-        arr = arr[:, columns:]
-    elif columns < 0:
-        arr = arr[:, :columns]
-    
-    return arr.tolist()
+    return _core_drop(array, rows, columns)
 
 
 def TAKE(array: List[List[Any]], rows: int = None, columns: int = None) -> List[List[Any]]:
@@ -168,21 +166,7 @@ def TAKE(array: List[List[Any]], rows: int = None, columns: int = None) -> List[
     
     Cost: O(r * c)
     """
-    arr = np.array(array)
-    
-    if rows is not None:
-        if rows > 0:
-            arr = arr[:rows]
-        else:
-            arr = arr[rows:]
-    
-    if columns is not None:
-        if columns > 0:
-            arr = arr[:, :columns]
-        else:
-            arr = arr[:, columns:]
-    
-    return arr.tolist()
+    return _core_take(array, rows, columns)
 
 
 # ============================================================================
@@ -209,15 +193,12 @@ def FILTER(array: List[List[Any]], include: List[bool],
     
     Cost: O(r * c)
     """
-    arr = np.array(array)
-    include_arr = np.array(include)
-    
-    result = arr[include_arr]
-    
-    if len(result) == 0:
+    result = [list(array[i]) for i in range(len(array)) if include[i]]
+
+    if not result:
         return if_empty
-    
-    return result.tolist()
+
+    return result
 
 
 # ============================================================================
@@ -248,23 +229,8 @@ def HLOOKUP(lookup_value: Any, table_array: List[List[Any]],
     
     Cost: O(c) where c=columns
     """
-    arr = np.array(table_array)
-    first_row = arr[0]
-    
-    if row_index_num < 1 or row_index_num > len(arr):
-        raise ValueError(f"Row index {row_index_num} out of range")
-    
-    if range_lookup:
-        idx = np.searchsorted(first_row, lookup_value, side='right') - 1
-        if idx < 0:
-            raise ValueError(f"Value {lookup_value} not found")
-    else:
-        try:
-            idx = list(first_row).index(lookup_value)
-        except ValueError:
-            raise ValueError(f"Value {lookup_value} not found")
-    
-    return arr[row_index_num - 1, idx]
+    return _core_hlookup(lookup_value, table_array, row_index_num,
+                         approximate=range_lookup)
 
 
 def VLOOKUP(lookup_value: Any, table_array: List[List[Any]], 
@@ -291,23 +257,8 @@ def VLOOKUP(lookup_value: Any, table_array: List[List[Any]],
     
     Cost: O(r) where r=rows
     """
-    arr = np.array(table_array)
-    first_col = arr[:, 0]
-    
-    if col_index_num < 1 or col_index_num > arr.shape[1]:
-        raise ValueError(f"Column index {col_index_num} out of range")
-    
-    if range_lookup:
-        idx = np.searchsorted(first_col, lookup_value, side='right') - 1
-        if idx < 0:
-            raise ValueError(f"Value {lookup_value} not found")
-    else:
-        try:
-            idx = list(first_col).index(lookup_value)
-        except ValueError:
-            raise ValueError(f"Value {lookup_value} not found")
-    
-    return arr[idx, col_index_num - 1]
+    return _core_vlookup(lookup_value, table_array, col_index_num,
+                         approximate=range_lookup)
 
 
 def XLOOKUP(lookup_value: Any, lookup_array: List[Any], 
@@ -333,23 +284,25 @@ def XLOOKUP(lookup_value: Any, lookup_array: List[Any],
     
     Cost: O(n) for linear search, O(log n) for binary
     """
-    lookup = np.array(lookup_array)
-    returns = np.array(return_array)
-    
+    lookup = list(lookup_array)
+    returns = list(return_array)
+
     if search_mode in [2, -2]:
-        idx = np.searchsorted(lookup, lookup_value)
+        idx = bisect_left(lookup, lookup_value)
+
         if idx < len(lookup) and lookup[idx] == lookup_value:
             return returns[idx]
     else:
         try:
             if search_mode == -1:
-                idx = len(lookup) - 1 - list(reversed(lookup.tolist())).index(lookup_value)
+                idx = len(lookup) - 1 - list(reversed(lookup)).index(lookup_value)
             else:
-                idx = lookup.tolist().index(lookup_value)
+                idx = lookup.index(lookup_value)
+
             return returns[idx]
         except ValueError:
             pass
-    
+
     return if_not_found
 
 
@@ -377,16 +330,14 @@ def INDEX(array: List[List[Any]], row_num: int = 0,
     
     Cost: O(1) for single value, O(n) for row/column
     """
-    arr = np.array(array)
-    
     if row_num == 0 and column_num == 0:
-        return arr.tolist()
+        return [list(row) for row in array]
     elif row_num == 0:
-        return arr[:, column_num - 1].tolist()
+        return [row[column_num - 1] for row in array]
     elif column_num == 0:
-        return arr[row_num - 1].tolist()
+        return list(array[row_num - 1])
     else:
-        return arr[row_num - 1, column_num - 1]
+        return array[row_num - 1][column_num - 1]
 
 
 def MATCH(lookup_value: Any, lookup_array: List[Any], 
@@ -411,23 +362,28 @@ def MATCH(lookup_value: Any, lookup_array: List[Any],
     
     Cost: O(n) for linear search, O(log n) for sorted
     """
-    arr = np.array(lookup_array)
-    
+    items = list(lookup_array)
+
     if match_type == 0:
         try:
-            return arr.tolist().index(lookup_value) + 1
+            return items.index(lookup_value) + 1
         except ValueError:
             raise ValueError(f"Value {lookup_value} not found")
     elif match_type == 1:
-        idx = np.searchsorted(arr, lookup_value, side='right') - 1
+        idx = bisect_right(items, lookup_value) - 1
+
         if idx < 0:
             raise ValueError(f"No value <= {lookup_value}")
+
         return idx + 1
     else:
-        idx = np.searchsorted(arr[::-1], lookup_value, side='left')
-        if idx >= len(arr):
+        rev = items[::-1]
+        idx = bisect_left(rev, lookup_value)
+
+        if idx >= len(items):
             raise ValueError(f"No value >= {lookup_value}")
-        return len(arr) - idx
+
+        return len(items) - idx
 
 
 def XMATCH(lookup_value: Any, lookup_array: List[Any],
@@ -453,16 +409,7 @@ def XMATCH(lookup_value: Any, lookup_array: List[Any],
     
     Cost: O(n) for linear, O(log n) for binary
     """
-    arr = np.array(lookup_array)
-    
-    try:
-        if search_mode == -1:
-            idx = len(arr) - 1 - list(reversed(arr.tolist())).index(lookup_value)
-        else:
-            idx = arr.tolist().index(lookup_value)
-        return idx + 1
-    except ValueError:
-        raise ValueError(f"Value {lookup_value} not found")
+    return _core_xmatch(lookup_value, lookup_array, match_mode, search_mode)
 
 
 def LOOKUP(lookup_value: Any, lookup_vector: List[Any], 
@@ -484,17 +431,17 @@ def LOOKUP(lookup_value: Any, lookup_vector: List[Any],
     
     Cost: O(log n)
     """
-    lookup = np.array(lookup_vector)
-    
+    lookup = list(lookup_vector)
+
     if result_vector is None:
         result_vector = lookup_vector
-    
-    result = np.array(result_vector)
-    idx = np.searchsorted(lookup, lookup_value, side='right') - 1
-    
+
+    result = list(result_vector)
+    idx = bisect_right(lookup, lookup_value) - 1
+
     if idx < 0:
         idx = 0
-    
+
     return result[idx]
 
 
@@ -523,18 +470,19 @@ def SORT(array: List[List[Any]], sort_index: int = 1,
     
     Cost: O(n log n)
     """
-    arr = np.array(array)
-    
+    rows_data = [list(row) for row in array]
+    num_cols = len(rows_data[0]) if rows_data else 0
+
     if by_col:
-        idx = arr[sort_index - 1].argsort()
-        if sort_order == -1:
-            idx = idx[::-1]
-        return arr[:, idx].tolist()
+        key_row = rows_data[sort_index - 1]
+        order = sorted(range(num_cols), key=lambda c: key_row[c],
+                        reverse=(sort_order == -1))
+        return [[row[c] for c in order] for row in rows_data]
     else:
-        idx = arr[:, sort_index - 1].argsort()
-        if sort_order == -1:
-            idx = idx[::-1]
-        return arr[idx].tolist()
+        order = sorted(range(len(rows_data)),
+                        key=lambda r: rows_data[r][sort_index - 1],
+                        reverse=(sort_order == -1))
+        return [rows_data[r] for r in order]
 
 
 def SORTBY(array: List[List[Any]], by_array1: List[Any], 
@@ -559,14 +507,13 @@ def SORTBY(array: List[List[Any]], by_array1: List[Any],
     
     Cost: O(n log n)
     """
-    arr = np.array(array)
-    by = np.array(by_array1)
-    
-    idx = by.argsort()
-    if sort_order1 == -1:
-        idx = idx[::-1]
-    
-    return arr[idx].tolist()
+    rows_data = [list(row) for row in array]
+    by = list(by_array1)
+
+    order = sorted(range(len(rows_data)), key=lambda i: by[i],
+                    reverse=(sort_order1 == -1))
+
+    return [rows_data[i] for i in order]
 
 
 # ============================================================================
@@ -591,8 +538,7 @@ def HSTACK(*arrays: List[List[Any]]) -> List[List[Any]]:
     
     Cost: O(r * c)
     """
-    np_arrays = [np.array(arr) for arr in arrays]
-    return np.hstack(np_arrays).tolist()
+    return _core_hstack(*arrays)
 
 
 def VSTACK(*arrays: List[List[Any]]) -> List[List[Any]]:
@@ -613,8 +559,7 @@ def VSTACK(*arrays: List[List[Any]]) -> List[List[Any]]:
     
     Cost: O(r * c)
     """
-    np_arrays = [np.array(arr) for arr in arrays]
-    return np.vstack(np_arrays).tolist()
+    return _core_vstack(*arrays)
 
 
 # ============================================================================
@@ -641,18 +586,11 @@ def TOCOL(array: List[List[Any]], ignore: int = 0,
     
     Cost: O(r * c)
     """
-    arr = np.array(array)
-    
-    if scan_by_column:
-        flat = arr.T.flatten()
-    else:
-        flat = arr.flatten()
-    
-    result = [[x] for x in flat]
-    
+    result = _core_tocol(array, scan_by_column=scan_by_column)
+
     if ignore > 0:
         result = [x for x in result if x[0] is not None and x[0] != ""]
-    
+
     return result
 
 
@@ -676,16 +614,7 @@ def TOROW(array: List[List[Any]], ignore: int = 0,
     
     Cost: O(r * c)
     """
-    arr = np.array(array)
-    
-    if scan_by_column:
-        flat = arr.T.flatten()
-    else:
-        flat = arr.flatten()
-    
-    result = [flat.tolist()]
-    
-    return result
+    return _core_torow(array, scan_by_column=scan_by_column)
 
 
 # ============================================================================
@@ -711,14 +640,14 @@ def WRAPCOLS(vector: List[Any], wrap_count: int,
     
     Cost: O(n)
     """
-    vec = np.array(vector).flatten()
+    vec = list(vector) if not isinstance(vector[0], list) else [v for row in vector for v in row]
     rows = wrap_count
-    cols = int(np.ceil(len(vec) / rows))
-    
-    padded = np.full(rows * cols, pad_with)
-    padded[:len(vec)] = vec
-    
-    return padded.reshape(rows, cols).tolist()
+    cols = math.ceil(len(vec) / rows)
+
+    padded = vec + [pad_with] * (rows * cols - len(vec))
+
+    # Fill column-wise: result[r][c] = padded[c * rows + r]
+    return [[padded[c * rows + r] for c in range(cols)] for r in range(rows)]
 
 
 def WRAPROWS(vector: List[Any], wrap_count: int, 
@@ -740,14 +669,8 @@ def WRAPROWS(vector: List[Any], wrap_count: int,
     
     Cost: O(n)
     """
-    vec = np.array(vector).flatten()
-    cols = wrap_count
-    rows = int(np.ceil(len(vec) / cols))
-    
-    padded = np.full(rows * cols, pad_with)
-    padded[:len(vec)] = vec
-    
-    return padded.reshape(rows, cols).tolist()
+    vec = list(vector) if not isinstance(vector[0], list) else [v for row in vector for v in row]
+    return _core_wrap_rows(vec, wrap_count, pad_with=pad_with)
 
 
 # ============================================================================
@@ -773,18 +696,49 @@ def UNIQUE(array: List[Any], by_col: bool = False,
     
     Cost: O(n log n)
     """
-    arr = np.array(array)
-    
-    if arr.ndim == 1:
-        unique_vals, counts = np.unique(arr, return_counts=True)
+    # Handle 1-D list
+    if not array or not isinstance(array[0], list):
+        items = list(array)
+
         if exactly_once:
-            return unique_vals[counts == 1].tolist()
-        return unique_vals.tolist()
+            from collections import Counter
+            counts = Counter(items)
+            return [x for x in items if counts[x] == 1]
+
+        seen: set = set()
+        result: list = []
+
+        for x in items:
+            key = repr(x)
+
+            if key not in seen:
+                seen.add(key)
+                result.append(x)
+
+        return result
     else:
         if by_col:
-            arr = arr.T
-        unique_rows = np.unique(arr, axis=0)
-        return unique_rows.tolist()
+            # Transpose, deduplicate rows, transpose back
+            transposed = list(zip(*array))
+            unique_cols = _unique_rows(transposed)
+            return [list(row) for row in zip(*unique_cols)]
+        else:
+            return _unique_rows(array)
+
+
+def _unique_rows(rows: List[List[Any]]) -> List[List[Any]]:
+    """Return rows with unique content (preserving first occurrence order)."""
+    seen: set = set()
+    result: list = []
+
+    for row in rows:
+        key = tuple(row)
+
+        if key not in seen:
+            seen.add(key)
+            result.append(list(row))
+
+    return result
 
 
 # ============================================================================
@@ -811,43 +765,387 @@ def TRIMRANGE(array: List[List[Any]]) -> List[List[Any]]:
     
     Cost: O(r * c) where r=rows, c=columns
     """
-    arr = np.array(array)
-    
-    # Function to check if a row/column is all blank
+    num_rows = len(array)
+    num_cols = len(array[0]) if num_rows else 0
+
     def is_blank(values):
-        return all(v is None or v == '' or (isinstance(v, str) and v.strip() == '') 
-                   or (isinstance(v, float) and np.isnan(v)) for v in values)
-    
+        return all(
+            v is None or v == '' or (isinstance(v, str) and v.strip() == '')
+            or (isinstance(v, float) and math.isnan(v))
+            for v in values
+        )
+
     # Find first and last non-blank rows
     first_row = 0
-    last_row = arr.shape[0] - 1
-    
-    while first_row <= last_row and is_blank(arr[first_row]):
+    last_row = num_rows - 1
+
+    while first_row <= last_row and is_blank(array[first_row]):
         first_row += 1
-    
-    while last_row >= first_row and is_blank(arr[last_row]):
+
+    while last_row >= first_row and is_blank(array[last_row]):
         last_row -= 1
-    
+
     if first_row > last_row:
         return [[]]
-    
-    # Trim rows
-    arr = arr[first_row:last_row + 1]
-    
+
+    trimmed = [list(row) for row in array[first_row:last_row + 1]]
+
     # Find first and last non-blank columns
     first_col = 0
-    last_col = arr.shape[1] - 1
-    
-    while first_col <= last_col and is_blank(arr[:, first_col]):
+    last_col = num_cols - 1
+
+    while first_col <= last_col and is_blank([row[first_col] for row in trimmed]):
         first_col += 1
-    
-    while last_col >= first_col and is_blank(arr[:, last_col]):
+
+    while last_col >= first_col and is_blank([row[last_col] for row in trimmed]):
         last_col -= 1
-    
+
     if first_col > last_col:
         return [[]]
-    
-    # Trim columns
-    arr = arr[:, first_col:last_col + 1]
-    
-    return arr.tolist()
+
+    return [row[first_col:last_col + 1] for row in trimmed]
+
+
+# ============================================================================
+# CELL REFERENCE AND ARRAY DIMENSION FUNCTIONS
+# ============================================================================
+
+
+def ADDRESS(row_num: int, column_num: int, abs_num: int = 1,
+            a1: bool = True, sheet_text: str = "") -> str:
+    """Build a cell-reference string from row/column numbers.
+
+    Excel function: ADDRESS
+
+    Args:
+        row_num: Row number (1-based).
+        column_num: Column number (1-based).
+        abs_num: Reference type (1=absolute, 2=abs row/rel col,
+                 3=rel row/abs col, 4=relative).
+        a1: True for A1 style, False for R1C1 style.
+        sheet_text: Optional sheet name prefix.
+
+    Returns:
+        str: Cell reference string.
+
+    Raises:
+        ValueError: If row_num or column_num < 1 or abs_num not in 1..4.
+
+    Usage Example:
+        >>> ADDRESS(1, 1)
+        '$A$1'
+
+    Cost: O(1)
+    """
+
+    if row_num < 1 or column_num < 1:
+        raise ValueError("row_num and column_num must be >= 1")
+
+    if abs_num not in (1, 2, 3, 4):
+        raise ValueError("abs_num must be 1, 2, 3 or 4")
+
+    prefix = f"'{sheet_text}'!" if sheet_text else ""
+
+    if not a1:
+        row_part = f"R{row_num}" if abs_num in (1, 2) else f"R[{row_num}]"
+        col_part = f"C{column_num}" if abs_num in (1, 3) else f"C[{column_num}]"
+        return f"{prefix}{row_part}{col_part}"
+
+    # Convert column number to letter(s)
+    col_str = ""
+    n = column_num
+
+    while n > 0:
+        n, remainder = divmod(n - 1, 26)
+        col_str = chr(65 + remainder) + col_str
+
+    dollar_col = "$" if abs_num in (1, 3) else ""
+    dollar_row = "$" if abs_num in (1, 2) else ""
+
+    return f"{prefix}{dollar_col}{col_str}{dollar_row}{row_num}"
+
+
+def INDIRECT(ref_text: str, a1: bool = True) -> Tuple[int, int]:
+    """Parse a cell-reference string into (row, column) indices.
+
+    Excel function: INDIRECT
+
+    In a spreadsheet engine INDIRECT resolves a live reference; in FormuLite
+    it parses the text and returns the 1-based (row, column) tuple.
+
+    Args:
+        ref_text: Cell reference string (e.g. "A1", "$B$3", "R2C3").
+        a1: True for A1 style, False for R1C1 style.
+
+    Returns:
+        Tuple[int, int]: (row_number, column_number) both 1-based.
+
+    Raises:
+        ValueError: If ref_text cannot be parsed.
+
+    Usage Example:
+        >>> INDIRECT("B3")
+        (3, 2)
+
+    Cost: O(1)
+    """
+    clean = ref_text.strip().lstrip("'")
+
+    # Remove optional sheet prefix
+    if "!" in clean:
+        clean = clean.split("!")[-1]
+
+    clean = clean.replace("$", "")
+
+    if a1:
+        match = re.match(r"^([A-Za-z]+)(\d+)$", clean)
+
+        if not match:
+            raise ValueError(f"Cannot parse A1 reference: '{ref_text}'")
+
+        col_str = match.group(1).upper()
+        row = int(match.group(2))
+        col = 0
+
+        for ch in col_str:
+            col = col * 26 + (ord(ch) - 64)
+
+        return (row, col)
+
+    # R1C1 style
+    match = re.match(r"^R\[?(\d+)]?C\[?(\d+)]?$", clean, re.IGNORECASE)
+
+    if not match:
+        raise ValueError(f"Cannot parse R1C1 reference: '{ref_text}'")
+
+    return (int(match.group(1)), int(match.group(2)))
+
+
+def OFFSET(reference: List[List[Any]], rows: int, cols: int,
+           height: Optional[int] = None,
+           width: Optional[int] = None) -> List[List[Any]]:
+    """Return a sub-range from a 2-D array offset from a starting cell.
+
+    Excel function: OFFSET
+
+    Args:
+        reference: 2-D list used as the source range.
+        rows: Row offset from top-left of reference.
+        cols: Column offset from top-left of reference.
+        height: Number of rows to return (default: same as reference).
+        width: Number of columns to return (default: same as reference).
+
+    Returns:
+        List[List[Any]]: The extracted sub-range.
+
+    Raises:
+        IndexError: If the resulting range falls outside the array.
+
+    Usage Example:
+        >>> OFFSET([[1,2],[3,4],[5,6]], 1, 0, 2, 2)
+        [[3, 4], [5, 6]]
+
+    Cost: O(height * width)
+    """
+    num_rows = len(reference)
+    num_cols = len(reference[0]) if num_rows else 0
+
+    if height is None:
+        height = num_rows
+
+    if width is None:
+        width = num_cols
+
+    r_end = rows + height
+    c_end = cols + width
+
+    if (rows < 0 or cols < 0 or r_end > num_rows
+            or c_end > num_cols):
+        raise IndexError(
+            f"OFFSET range ({rows}:{r_end}, {cols}:{c_end}) "
+            f"exceeds array shape ({num_rows}, {num_cols})"
+        )
+
+    return [reference[r][cols:c_end] for r in range(rows, r_end)]
+
+
+def ROW(reference: Optional[List[List[Any]]] = None,
+        row_index: int = 1) -> int:
+    """Return the row number of a reference.
+
+    Excel function: ROW
+
+    In FormuLite, *row_index* simulates the starting row of the range.
+
+    Args:
+        reference: Ignored in FormuLite (kept for API compat).
+        row_index: The 1-based row number to return.
+
+    Returns:
+        int: Row number.
+
+    Usage Example:
+        >>> ROW(row_index=5)
+        5
+
+    Cost: O(1)
+    """
+    return row_index
+
+
+def COLUMN(reference: Optional[List[List[Any]]] = None,
+           col_index: int = 1) -> int:
+    """Return the column number of a reference.
+
+    Excel function: COLUMN
+
+    Args:
+        reference: Ignored in FormuLite (kept for API compat).
+        col_index: The 1-based column number to return.
+
+    Returns:
+        int: Column number.
+
+    Usage Example:
+        >>> COLUMN(col_index=3)
+        3
+
+    Cost: O(1)
+    """
+    return col_index
+
+
+def ROWS(array: List[List[Any]]) -> int:
+    """Return the number of rows in an array or reference.
+
+    Excel function: ROWS
+
+    Args:
+        array: 2-D list.
+
+    Returns:
+        int: Number of rows.
+
+    Raises:
+        TypeError: If array is not a list.
+
+    Usage Example:
+        >>> ROWS([[1,2],[3,4],[5,6]])
+        3
+
+    Cost: O(1)
+    """
+
+    if not isinstance(array, list):
+        raise TypeError("array must be a list")
+
+    return len(array)
+
+
+def COLUMNS(array: List[List[Any]]) -> int:
+    """Return the number of columns in an array or reference.
+
+    Excel function: COLUMNS
+
+    Args:
+        array: 2-D list.
+
+    Returns:
+        int: Number of columns.
+
+    Raises:
+        TypeError: If array is not a list.
+
+    Usage Example:
+        >>> COLUMNS([[1,2,3],[4,5,6]])
+        3
+
+    Cost: O(1)
+    """
+
+    if not isinstance(array, list):
+        raise TypeError("array must be a list")
+
+    if len(array) == 0:
+        return 0
+
+    first = array[0]
+
+    if isinstance(first, list):
+        return len(first)
+
+    return 1
+
+
+def TRANSPOSE(array: List[List[Any]]) -> List[List[Any]]:
+    """Transpose a 2-D array (swap rows and columns).
+
+    Excel function: TRANSPOSE
+
+    Args:
+        array: 2-D list to transpose.
+
+    Returns:
+        List[List[Any]]: Transposed array.
+
+    Usage Example:
+        >>> TRANSPOSE([[1,2],[3,4]])
+        [[1, 3], [2, 4]]
+
+    Cost: O(rows * cols)
+    """
+    return [list(row) for row in zip(*array)]
+
+
+def EXPAND(array: List[List[Any]], rows: Optional[int] = None,
+           columns: Optional[int] = None,
+           pad_with: Any = "") -> List[List[Any]]:
+    """Expand an array to the specified dimensions, padding with a value.
+
+    Excel function: EXPAND
+
+    Args:
+        array: 2-D list to expand.
+        rows: Target number of rows (default: keep current).
+        columns: Target number of columns (default: keep current).
+        pad_with: Value to fill in new cells.
+
+    Returns:
+        List[List[Any]]: Expanded array.
+
+    Raises:
+        ValueError: If target dimensions are smaller than the input.
+
+    Usage Example:
+        >>> EXPAND([[1,2],[3,4]], 3, 4, 0)
+        [[1, 2, 0, 0], [3, 4, 0, 0], [0, 0, 0, 0]]
+
+    Cost: O(rows * columns)
+    """
+    cur_rows = len(array)
+    cur_cols = len(array[0]) if cur_rows else 0
+
+    if rows is None:
+        rows = cur_rows
+
+    if columns is None:
+        columns = cur_cols
+
+    if rows < cur_rows or columns < cur_cols:
+        raise ValueError(
+            f"Target ({rows}, {columns}) must be >= source "
+            f"({cur_rows}, {cur_cols})"
+        )
+
+    result = []
+
+    for r in range(rows):
+
+        if r < cur_rows:
+            row = list(array[r]) + [pad_with] * (columns - cur_cols)
+        else:
+            row = [pad_with] * columns
+
+        result.append(row)
+
+    return result

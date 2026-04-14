@@ -205,41 +205,10 @@ cython_debug/
 .DS_Store
 Thumbs.db
 
-# Logs and databases
-*.log
-*.sqlite
-*.db
-logs/
-data/
-
-#my files ->
-
-# Documentation folder
-doc/
-docs/
-
-# Specific folders
-.vscode/
-tests/
-
-# Specific files
-pyproject.toml
-how_to_use_it.py
-
-
-# Excluir directorios de proyecto, tests y documentación
+# Secrets
+.env
+.env.*
 **/secrets.*
-.github/
-.vscode/
-project_structure.txt
-pyproject.toml
-tests/
-docs/
-examples/
-notebooks/
-ToDo/
-
-# API Keys and Secrets (any subdirectory)
 **/*key*.txt
 **/*key*.csv
 **/*key*.json
@@ -249,3 +218,39 @@ ToDo/
 **/*secret*.json
 **/*secret*.toml
 **/*secret*.cfg
+*.pem
+*.key
+*.p12
+*.pfx
+apikeys.csv
+*.tfvars
+
+# IDE
+.vscode/
+.idea/
+
+# Project-specific ignores
+how_to_use_it.py
+project_structure.txt
+ToDo/
+notebooks/
+formulite/fxString/quality_functions.md
+
+# Temp scripts (root only)
+/_*.py
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+logs/
+data/
+
+# GitHub Copilot / internal config (not published)
+# Keep published: .github/workflows/, .github/ISSUE_TEMPLATE/, .github/PULL_REQUEST_TEMPLATE.md
+.github/agents/
+.github/hooks/
+.github/instructions/
+.github/prompts/
+.github/skills/
+.github/copilot-instructions.md

@@ -2405,27 +2405,6 @@ print(Hex_(16))  # '10'
 
 ---
 
-### `HexS()`
-
-Returns hexadecimal value ($ version).
-
-**Parameters:**
-- `number` (int): Number to convert.
-
-**Returns:**
-- `str`: Hexadecimal representation.
-
-**Example:**
-```python
-from formulite.fxVBA.misc_functions import HexS
-
-print(HexS(255))  # 'FF'
-```
-
-**Cost:** O(log n) where n is the number
-
----
-
 ### `Oct_()`
 
 Returns string representing octal value of number.
@@ -2442,27 +2421,6 @@ from formulite.fxVBA.misc_functions import Oct_
 
 print(Oct_(8))  # '10'
 print(Oct_(64))  # '100'
-```
-
-**Cost:** O(log n) where n is the number
-
----
-
-### `OctS()`
-
-Returns octal value ($ version).
-
-**Parameters:**
-- `number` (int): Number to convert.
-
-**Returns:**
-- `str`: Octal representation.
-
-**Example:**
-```python
-from formulite.fxVBA.misc_functions import OctS
-
-print(OctS(8))  # '10'
 ```
 
 **Cost:** O(log n) where n is the number

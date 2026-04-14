@@ -6,7 +6,7 @@ Description
     Incluye Split, Join, Filter, LBound, UBound y Array.
 """
 
-from typing import Any, Optional, List
+from typing import Any, List
 
 __all__ = [
     "Array_",

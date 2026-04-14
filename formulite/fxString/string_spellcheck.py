@@ -1,11 +1,43 @@
 from collections import Counter
 from typing import List, Optional, Dict
 
-from rapidfuzz import process
-from spellchecker import SpellChecker
-from symspellpy import SymSpell, Verbosity
-
 from .string_format import normalize_text
+
+
+def _import_rapidfuzz():
+    """Lazy-load rapidfuzz."""
+    try:
+        from rapidfuzz import process
+    except ImportError:  # pragma: no cover
+        raise ImportError(
+            "rapidfuzz is required for spell-checking. "
+            "Install it with: pip install rapidfuzz"
+        )
+    return process
+
+
+def _import_spellchecker():
+    """Lazy-load pyspellchecker."""
+    try:
+        from spellchecker import SpellChecker
+    except ImportError:  # pragma: no cover
+        raise ImportError(
+            "pyspellchecker is required for spell-checking. "
+            "Install it with: pip install pyspellchecker"
+        )
+    return SpellChecker
+
+
+def _import_symspellpy():
+    """Lazy-load symspellpy."""
+    try:
+        from symspellpy import SymSpell, Verbosity
+    except ImportError:  # pragma: no cover
+        raise ImportError(
+            "symspellpy is required for spell-checking. "
+            "Install it with: pip install symspellpy"
+        )
+    return SymSpell, Verbosity
 
 # Constants
 DEFAULT_EDIT_DISTANCE = 2
@@ -27,8 +59,9 @@ class UniversalSpellChecker:
             language (str): The language code (e.g., 'es', 'en').
             custom_vocabulary (list, optional): Specific words to prioritize.
         """
-        self.spell_checker = SpellChecker(language=language)
+        self.spell_checker = _import_spellchecker()(language=language)
 
+        SymSpell, _ = _import_symspellpy()
         self.sym_spell = SymSpell(
             max_dictionary_edit_distance=DEFAULT_EDIT_DISTANCE,
             prefix_length=PREFIX_LENGTH
@@ -88,6 +121,7 @@ class UniversalSpellChecker:
 
     def _get_symspell_suggestion(self, clean_input: str) -> Optional[str]:
         """Runs SymSpell lookup and maps back to original casing."""
+        _, Verbosity = _import_symspellpy()
         suggestions = self.sym_spell.lookup(
             clean_input,
             Verbosity.CLOSEST,
@@ -103,8 +137,9 @@ class UniversalSpellChecker:
 
     def _get_fuzzy_suggestion(self, clean_input: str) -> Optional[str]:
         """Runs RapidFuzz lookup returning original casing."""
+        _process = _import_rapidfuzz()
         # process.extractOne returns (match, score, index)
-        match_result = process.extractOne(
+        match_result = _process.extractOne(
             clean_input,
             self.vocabulary,
             processor=normalize_text

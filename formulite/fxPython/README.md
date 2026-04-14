@@ -13,7 +13,7 @@ The fxPython module provides comprehensive Python collection and utility functio
 ## Module Structure
 
 - **py_convertions.py**: Functions for converting between Python collection types
-- **py_operations.py**: Core collection operations and filtering functions
+- **py_operations.py**: Core collection operations, filtering, conditional aggregation, and lookup functions
 - **py_tools.py**: Utility functions for functional programming and control flow
 - **py_logic.py**: Logical operations and conditional functions
 - **py_itertools.py**: Advanced itertools recipes and iterator utilities
@@ -55,7 +55,6 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [dictionary_to_object](#dictionary_to_object) - Converts dictionary into an object with attributes
 - [dictionary_items_to_set_of_tuples](#dictionary_items_to_set_of_tuples) - Returns dictionary items as set of tuples
 - [list_of_tuples_to_dict](#list_of_tuples_to_dict) - Converts list of tuples to dictionary
-- [list_of_lists_to_dict](#list_of_lists_to_dict) - Converts list of lists to dictionary
 - [list_of_dicts_to_merged_dict](#list_of_dicts_to_merged_dict) - Merges list of dictionaries into single dictionary
 - [string_to_list](#string_to_list) - Converts string to list of characters or substrings
 
@@ -84,6 +83,46 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [collection_min](#collection_min) - Returns the smallest value in a collection
 - [collection_stdev](#collection_stdev) - Calculates the standard deviation of values in a collection
 - [collection_sum](#collection_sum) - Calculates the sum of numeric values in a collection
+- [deep_merge](#deep_merge) - Recursively merges two nested dictionaries
+- [get_nested](#get_nested) - Safely gets value from nested dict by key path
+- [chunk](#chunk) - Splits iterable into fixed-size chunks
+- [group_by](#group_by) - Groups elements by key function
+- [partition](#partition) - Splits iterable into true/false lists by predicate
+- [pluck](#pluck) - Extracts single field from each element
+- [find](#find) - Returns first element matching predicate
+- [sort_dict_by_value](#sort_dict_by_value) - Sorts dictionary by values
+- [sort_dict_by_key](#sort_dict_by_key) - Sorts dictionary by keys
+- [deep_flatten](#deep_flatten) - Recursively flattens arbitrarily nested iterables
+- [zip_dict](#zip_dict) - Creates dict from parallel keys and values lists
+- [count_by](#count_by) - Counts elements per key group
+- [index_by](#index_by) - Indexes elements by key (last wins on duplicates)
+- [flatten_dict](#flatten_dict) - Flattens nested dict to single level with dot keys
+- [unflatten_dict](#unflatten_dict) - Reconstructs nested dict from flat dot-key dict
+- [frequencies](#frequencies) - Counts occurrences of each element
+- [sort_dicts_by_key](#sort_dicts_by_key) - Sorts list of dicts by a specific key
+
+### Conditional Aggregation & Lookups
+- [conditional_sum](#conditional_sum) - Sums values matching a criteria function (SUMIF)
+- [conditional_count](#conditional_count) - Counts values matching a criteria function (COUNTIF)
+- [conditional_average](#conditional_average) - Averages values matching a criteria function (AVERAGEIF)
+- [conditional_min](#conditional_min) - Minimum of values matching a criteria function (MINIFS)
+- [conditional_max](#conditional_max) - Maximum of values matching a criteria function (MAXIFS)
+- [vlookup](#vlookup) - Vertical lookup in table by first column (VLOOKUP)
+- [hlookup](#hlookup) - Horizontal lookup in table by first row (HLOOKUP)
+- [choose](#choose) - Returns value at index from list (CHOOSE)
+- [sort_by](#sort_by) - Sorts data by parallel key array (SORTBY)
+- [xlookup](#xlookup) - Advanced lookup with match modes (XLOOKUP)
+- [sequence](#sequence) - Generate 2-D sequential number array (SEQUENCE)
+- [index_2d](#index_2d) - Element or row/column from 2-D array (INDEX)
+- [xmatch](#xmatch) - Position of value with match modes (XMATCH)
+- [hstack](#hstack) - Horizontally concatenate 2-D arrays (HSTACK)
+- [vstack](#vstack) - Vertically stack 2-D arrays (VSTACK)
+- [choose_cols](#choose_cols) - Select columns from 2-D array (CHOOSECOLS)
+- [choose_rows](#choose_rows) - Select rows from 2-D array (CHOOSEROWS)
+- [wrap_rows](#wrap_rows) - Wrap 1-D vector into 2-D rows (WRAPROWS)
+- [drop_from_array](#drop_from_array) - Drop rows/columns from array (DROP)
+- [take_from_array](#take_from_array) - Take first/last rows/columns (TAKE)
+- [make_array](#make_array) - Generate array via function (MAKEARRAY)
 
 ### Logical Functions
 - [and_all](#and_all) - Returns True if all arguments are True
@@ -98,6 +137,7 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [is_number](#is_number) - Returns True if value is a number (int or float, not bool)
 - [is_logical](#is_logical) - Returns True if value is a boolean
 - [switch_case](#switch_case) - Evaluates expression against values and returns matching result
+- [ifs](#ifs) - First matching condition/value pair (IFS)
 
 ### Python Tools
 - [create_key_value_dictionary](#create_key_value_dictionary) - Creates dictionary mapping key names to values
@@ -108,6 +148,8 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [rotate](#rotate) - Rotates elements of iterable by steps
 - [shift](#shift) - Shifts iterable adding or removing elements
 - [apply_expression](#apply_expression) - Applies string expression to every iterable item
+- [pipe](#pipe) - Threads value through sequence of functions
+- [retry](#retry) - Retries function on failure up to max attempts
 
 ### Itertools Recipes
 - [take](#take) - Returns first n items as list
@@ -134,7 +176,6 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [iter_except](#iter_except) - Converts call-until-exception interface to iterator
 - [multinomial](#multinomial) - Calculates distinct arrangements of multiset
 - [powerset](#powerset) - Returns subsequences from shortest to longest
-- [sum_of_squares](#sum_of_squares) - Adds up squares of input values
 - [reshape](#reshape) - Reshapes 2-D matrix to given columns
 - [transpose](#transpose) - Swaps rows and columns of matrix
 - [matmul](#matmul) - Multiplies two matrices
@@ -144,7 +185,6 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [polynomial_derivative](#polynomial_derivative) - Computes first derivative of polynomial
 - [sieve](#sieve) - Returns primes less than n
 - [factor](#factor) - Returns prime factors of n
-- [is_prime](#is_prime) - Returns True if n is prime
 - [totient](#totient) - Counts natural numbers coprime to n
 
 ---
@@ -159,6 +199,9 @@ The fxPython module provides comprehensive Python collection and utility functio
 
 **C**
 - [calculate](#calculate) - Evaluates arithmetic expression from string
+- [choose](#choose) - Returns value at index from list (CHOOSE)
+- [choose_cols](#choose_cols) - Select columns from 2-D array (CHOOSECOLS)
+- [choose_rows](#choose_rows) - Select rows from 2-D array (CHOOSEROWS)
 - [collection_avg](#collection_avg) - Calculates the average of numeric values in a collection
 - [collection_count](#collection_count) - Counts the number of elements in a collection
 - [collection_filter](#collection_filter) - Filters iterable based on filtering function
@@ -167,12 +210,20 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [collection_stdev](#collection_stdev) - Calculates the standard deviation of values in a collection
 - [collection_sum](#collection_sum) - Calculates the sum of numeric values in a collection
 - [combine_dictionaries](#combine_dictionaries) - Performs union or intersection on two dictionaries
+- [conditional_average](#conditional_average) - Averages values matching a criteria function (AVERAGEIF)
+- [conditional_count](#conditional_count) - Counts values matching a criteria function (COUNTIF)
+- [conditional_max](#conditional_max) - Maximum of values matching a criteria function (MAXIFS)
+- [conditional_min](#conditional_min) - Minimum of values matching a criteria function (MINIFS)
+- [conditional_sum](#conditional_sum) - Sums values matching a criteria function (SUMIF)
 - [consume](#consume) - Advances iterator n-steps ahead
+- [chunk](#chunk) - Splits iterable into fixed-size chunks
 - [convolve](#convolve) - Discrete linear convolution of two iterables
 - [convert_collection](#convert_collection) - Converts a collection to a specified target type
 - [create_key_value_dictionary](#create_key_value_dictionary) - Creates dictionary mapping key names to values
 
 **D**
+- [deep_merge](#deep_merge) - Recursively merges two nested dictionaries
+- [drop_from_array](#drop_from_array) - Drop rows/columns from array (DROP)
 - [dict_values_to_list](#dict_values_to_list) - Returns dictionary values as a list
 - [dictionary_filter_by_keys](#dictionary_filter_by_keys) - Returns dictionary with only specified keys
 - [dictionary_items_to_list_of_tuples](#dictionary_items_to_list_of_tuples) - Returns dictionary items as list of tuples
@@ -193,19 +244,29 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [first_true](#first_true) - Returns first true value or default
 - [flatten](#flatten) - Flattens one level of nesting
 - [flatten_list](#flatten_list) - Flattens list of lists into one-dimensional list
+- [flatten_dict](#flatten_dict) - Flattens nested dict to single level with dot keys
+- [find](#find) - Returns first element matching predicate
+- [frequencies](#frequencies) - Counts occurrences of each element
 - [function_call](#function_call) - Executes callable with optional arguments
 
 **G**
+- [get_nested](#get_nested) - Safely gets value from nested dict by key path
+- [group_by](#group_by) - Groups elements by key function
 - [grouper](#grouper) - Collects data into non-overlapping fixed-length chunks
+
+**H**
+- [hlookup](#hlookup) - Horizontal lookup in table by first row (HLOOKUP)
+- [hstack](#hstack) - Horizontally concatenate 2-D arrays (HSTACK)
 
 **I**
 - [if_error](#if_error) - Returns value if not an error; otherwise returns alternative value
 - [if_then_else](#if_then_else) - Returns one value if condition is True, another if False
+- [ifs](#ifs) - First matching condition/value pair (IFS)
+- [index_2d](#index_2d) - Element or row/column from 2-D array (INDEX)
 - [is_blank](#is_blank) - Returns True if value is blank
 - [is_error](#is_error) - Returns True if evaluating value produces an error
 - [is_logical](#is_logical) - Returns True if value is a boolean
 - [is_number](#is_number) - Returns True if value is a number
-- [is_prime](#is_prime) - Returns True if n is prime
 - [is_subsequence](#is_subsequence) - Checks if sub_sequence exists maintaining element order
 - [is_text](#is_text) - Returns True if value is a string
 - [iter_except](#iter_except) - Converts call-until-exception interface to iterator
@@ -215,7 +276,6 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [list_has_list](#list_has_list) - Checks if all elements exist in another list
 - [list_intersection](#list_intersection) - Finds intersection of two lists as set
 - [list_of_dicts_to_merged_dict](#list_of_dicts_to_merged_dict) - Merges list of dictionaries into single dictionary
-- [list_of_lists_to_dict](#list_of_lists_to_dict) - Converts list of lists to dictionary
 - [list_of_tuples_to_dict](#list_of_tuples_to_dict) - Converts list of tuples to dictionary
 - [list_to_set](#list_to_set) - Converts a list into a set
 - [list_to_string](#list_to_string) - Converts list to string representation with separator
@@ -229,6 +289,7 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [merge_elements](#merge_elements) - Merges two collections into specified type
 - [merge_json_strings](#merge_json_strings) - Merges two JSON strings into one
 - [multinomial](#multinomial) - Calculates distinct arrangements of multiset
+- [make_array](#make_array) - Generate array via function (MAKEARRAY)
 
 **N**
 - [ncycles](#ncycles) - Returns sequence elements n times
@@ -239,7 +300,10 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [or_any](#or_any) - Returns True if any argument is True
 
 **P**
+- [partition](#partition) - Splits iterable into true/false lists by predicate
 - [pick_in_collection](#pick_in_collection) - Interactive selection of options from iterable collection
+- [pipe](#pipe) - Threads value through sequence of functions
+- [pluck](#pluck) - Extracts single field from each element
 - [polynomial_derivative](#polynomial_derivative) - Computes first derivative of polynomial
 - [polynomial_eval](#polynomial_eval) - Evaluates polynomial at specific value
 - [polynomial_from_roots](#polynomial_from_roots) - Computes polynomial coefficients from roots
@@ -252,6 +316,7 @@ The fxPython module provides comprehensive Python collection and utility functio
 **R**
 - [repeatfunc](#repeatfunc) - Repeats calls to function with arguments
 - [reshape](#reshape) - Reshapes 2-D matrix to given columns
+- [retry](#retry) - Retries function on failure up to max attempts
 - [rotate](#rotate) - Rotates elements of iterable by steps
 - [roundrobin](#roundrobin) - Visits input iterables in cycle
 
@@ -263,10 +328,12 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [shift](#shift) - Shifts iterable adding or removing elements
 - [sieve](#sieve) - Returns primes less than n
 - [sliding_window](#sliding_window) - Collects data into overlapping fixed-length chunks
+- [sort_by](#sort_by) - Sorts data by parallel key array (SORTBY)
+- [sequence](#sequence) - Generate 2-D sequential number array (SEQUENCE)
 - [string_to_dictionary](#string_to_dictionary) - Deserializes string back into a dictionary
 - [string_to_list](#string_to_list) - Converts string to list of characters or substrings
+- [sort_dicts_by_key](#sort_dicts_by_key) - Sorts list of dicts by a specific key
 - [subslices](#subslices) - Returns all contiguous non-empty subslices
-- [sum_of_squares](#sum_of_squares) - Adds up squares of input values
 - [switch_case](#switch_case) - Evaluates expression against values and returns matching result
 
 **T**
@@ -275,6 +342,7 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [take](#take) - Returns first n items as list
 - [totient](#totient) - Counts natural numbers coprime to n
 - [transpose](#transpose) - Swaps rows and columns of matrix
+- [take_from_array](#take_from_array) - Take first/last rows/columns (TAKE)
 - [tuple_to_list](#tuple_to_list) - Converts a tuple into a list
 - [tuple_to_set](#tuple_to_set) - Converts a tuple into a set
 - [tuple_to_string](#tuple_to_string) - Converts tuple to string representation with separator
@@ -285,9 +353,21 @@ The fxPython module provides comprehensive Python collection and utility functio
 - [unique_justseen](#unique_justseen) - Yields unique elements preserving order
 - [unique_list](#unique_list) - Returns list containing only unique elements
 - [unique_tuple_list](#unique_tuple_list) - Removes duplicate tuples based on first element
+- [unflatten_dict](#unflatten_dict) - Reconstructs nested dict from flat dot-key dict
+
+**V**
+- [vlookup](#vlookup) - Vertical lookup in table by first column (VLOOKUP)
+- [vstack](#vstack) - Vertically stack 2-D arrays (VSTACK)
+
+**W**
+- [wrap_rows](#wrap_rows) - Wrap 1-D vector into 2-D rows (WRAPROWS)
 
 **X**
+- [xlookup](#xlookup) - Advanced lookup with match modes (XLOOKUP)
+- [xmatch](#xmatch) - Position of value with match modes (XMATCH)
 - [xor_all](#xor_all) - Returns True if an odd number of arguments are True
+
+**Z**
 
 ---
 
@@ -803,29 +883,6 @@ If there are duplicate keys, the value from the last tuple with that key will pr
 ```
 
 **Cost:** O(n), where n is the number of tuples in the list
-
----
-
-### list_of_lists_to_dict
-
-Converts a list of lists (key-value pairs) to a dictionary.
-
-**Description:**
-If there are duplicate keys, the value from the last inner list with that key will prevail.
-
-**Args:**
-- `data_list` (List[List[Any]]): The input list of [key, value] lists
-
-**Returns:**
-- Dict[Any, Any]: The converted dictionary
-
-**Usage Example:**
-```python
->>> list_of_lists_to_dict([["name", "Bob"], ["age", 25], ["name", "Robert"]])
-{'name': 'Robert', 'age': 25}
-```
-
-**Cost:** O(n), where n is the number of lists
 
 ---
 
@@ -2320,26 +2377,6 @@ Subsequences of the iterable from shortest to longest.
 
 ---
 
-### sum_of_squares
-
-Add up the squares of the input values.
-
-**Args:**
-- `iterable`: The iterable of numbers
-
-**Returns:**
-- float or int: Sum of squares
-
-**Usage Example:**
-```python
->>> sum_of_squares([10, 20, 30])
-1400
-```
-
-**Cost:** O(n), where n is the number of elements
-
----
-
 ### reshape
 
 Reshape a 2-D matrix to have a given number of columns.
@@ -2521,28 +2558,6 @@ Prime factors of n.
 ```
 
 **Cost:** O(√n), where n is the number to factor
-
----
-
-### is_prime
-
-Return True if n is prime.
-
-**Args:**
-- `n` (int): Number to check
-
-**Returns:**
-- bool: True if prime
-
-**Usage Example:**
-```python
->>> is_prime(7)
-True
->>> is_prime(10)
-False
-```
-
-**Cost:** O(√n)
 
 ---
 
@@ -2900,3 +2915,928 @@ Evaluates expression against values and returns matching result.
 **Cost:** O(n) where n is the number of value-result pairs
 
 ---
+
+## Additional Collection Operations (recent)
+
+### flatten_dict
+
+Flattens a nested dictionary into a single-level dictionary with composite keys.
+
+**Parameters:**
+- `d` (dict): Nested dictionary.
+- `separator` (str): Key separator. Defaults to `"."`.
+- `parent_key` (str): Internal prefix for recursion.
+
+**Returns:**
+- `dict`: Flat dictionary.
+
+**Example:**
+```python
+>>> flatten_dict({"a": {"b": 1, "c": {"d": 2}}})
+{'a.b': 1, 'a.c.d': 2}
+```
+
+**Cost:** O(n)
+
+---
+
+### unflatten_dict
+
+Reconstructs a nested dictionary from a flat one with composite keys.
+
+**Parameters:**
+- `d` (dict): Flat dictionary with composite keys.
+- `separator` (str): Key separator. Defaults to `"."`.
+
+**Returns:**
+- `dict`: Nested dictionary.
+
+**Example:**
+```python
+>>> unflatten_dict({"a.b": 1, "a.c.d": 2})
+{'a': {'b': 1, 'c': {'d': 2}}}
+```
+
+**Cost:** O(n*k)
+
+---
+
+### frequencies
+
+Counts occurrences of each element in an iterable.
+
+**Parameters:**
+- `items` (Iterable): Collection of hashable elements.
+
+**Returns:**
+- `dict`: Element → count mapping.
+
+**Example:**
+```python
+>>> frequencies(["a", "b", "a", "c", "a"])
+{'a': 3, 'b': 1, 'c': 1}
+```
+
+**Cost:** O(n)
+
+---
+
+### sort_dicts_by_key
+
+Sorts a list of dictionaries by a specific key.
+
+**Parameters:**
+- `items` (list[dict]): List of dictionaries.
+- `key` (str): Dictionary key to sort by.
+- `reverse` (bool): Descending order. Defaults to False.
+
+**Returns:**
+- `list[dict]`: Sorted list.
+
+**Example:**
+```python
+>>> sort_dicts_by_key([{"n": 3}, {"n": 1}, {"n": 2}], "n")
+[{'n': 1}, {'n': 2}, {'n': 3}]
+```
+
+**Cost:** O(n log n)
+
+### `choose()`
+
+Chooses a value from a list of values based on a 1-based index.
+
+**Parameters:**
+- index: The 1-based position to select.
+- *values: The values to choose from.
+
+**Returns:**
+- The value at the specified index.
+
+**Raises:**
+- ValueError: If index is out of range or no values are provided.
+- TypeError: If index is not an integer.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import choose
+
+result = choose(...)
+```
+
+---
+
+### `choose_cols()`
+
+Selects specific columns from a 2-D array.
+
+**Parameters:**
+- array: A 2-D list.
+- *col_nums: 1-based column indices (negative = from right).
+
+**Returns:**
+- list[list[Any]]: Array with selected columns only.
+
+**Raises:**
+- IndexError: If any column index is out of bounds.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import choose_cols
+
+result = choose_cols(...)
+```
+
+---
+
+### `choose_rows()`
+
+Selects specific rows from a 2-D array.
+
+**Parameters:**
+- array: A 2-D list.
+- *row_nums: 1-based row indices (negative = from bottom).
+
+**Returns:**
+- list[list[Any]]: Array with selected rows only.
+
+**Raises:**
+- IndexError: If any row index is out of bounds.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import choose_rows
+
+result = choose_rows(...)
+```
+
+---
+
+### `chunk()`
+
+Splits an iterable into fixed-size chunks.
+
+**Parameters:**
+- iterable: The input iterable to split.
+- n: Size of each chunk. Must be >= 1.
+
+**Returns:**
+- A list of lists, each containing up to *n* elements.
+
+**Raises:**
+- TypeError: If *iterable* is not iterable or *n* is not int.
+- ValueError: If *n* < 1.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import chunk
+
+result = chunk(...)
+```
+
+---
+
+### `conditional_average()`
+
+Averages values that match a criteria function.
+
+**Parameters:**
+- values: A list of numeric values.
+- criteria: A callable that takes a value and returns True/False.
+
+**Returns:**
+- The average of matching values.
+
+**Raises:**
+- ValueError: If no values match the criteria.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import conditional_average
+
+result = conditional_average(...)
+```
+
+---
+
+### `conditional_count()`
+
+Counts values that match a criteria function.
+
+**Parameters:**
+- values: A list of values.
+- criteria: A callable that takes a value and returns True/False.
+
+**Returns:**
+- The count of matching values.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import conditional_count
+
+result = conditional_count(...)
+```
+
+---
+
+### `conditional_max()`
+
+Returns the maximum of values that match a criteria function.
+
+**Parameters:**
+- values: A list of numeric values.
+- criteria: A callable that takes a value and returns True/False.
+
+**Returns:**
+- The maximum matching value.
+
+**Raises:**
+- ValueError: If no values match the criteria.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import conditional_max
+
+result = conditional_max(...)
+```
+
+---
+
+### `conditional_min()`
+
+Returns the minimum of values that match a criteria function.
+
+**Parameters:**
+- values: A list of numeric values.
+- criteria: A callable that takes a value and returns True/False.
+
+**Returns:**
+- The minimum matching value.
+
+**Raises:**
+- ValueError: If no values match the criteria.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import conditional_min
+
+result = conditional_min(...)
+```
+
+---
+
+### `conditional_sum()`
+
+Sums values that match a criteria function.
+
+**Parameters:**
+- values: A list of numeric values.
+- criteria: A callable that takes a value and returns True/False.
+
+**Returns:**
+- The sum of matching values.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import conditional_sum
+
+result = conditional_sum(...)
+```
+
+---
+
+### `count_by()`
+
+Count the number of elements in each group defined by a key function.
+
+**Parameters:**
+- iterable: Input iterable.
+- key_func: Function returning the grouping key.
+
+**Returns:**
+- Dict mapping each key to its count.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import count_by
+
+result = count_by(...)
+```
+
+---
+
+### `deep_flatten()`
+
+Recursively flatten a nested structure of arbitrary depth.
+
+**Parameters:**
+- nested: Nested lists/tuples/iterables.
+
+**Returns:**
+- Flat list of all leaf elements.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import deep_flatten
+
+result = deep_flatten(...)
+```
+
+---
+
+### `deep_merge()`
+
+Recursively merges two dictionaries.
+
+**Parameters:**
+- dict1: The base dictionary.
+- dict2: The dictionary whose values override *dict1*.
+
+**Returns:**
+- A new merged dictionary. Original inputs are not mutated.
+
+**Raises:**
+- TypeError: If either argument is not a dict.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import deep_merge
+
+result = deep_merge(...)
+```
+
+---
+
+### `drop_from_array()`
+
+Drops rows and/or columns from a 2-D array.
+
+**Parameters:**
+- array: A 2-D list.
+- rows: Number of rows to drop (positive=top, negative=bottom).
+- columns: Number of columns to drop (positive=left, negative=right).
+
+**Returns:**
+- list[list[Any]]: The trimmed array.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import drop_from_array
+
+result = drop_from_array(...)
+```
+
+---
+
+### `find()`
+
+Returns the first element matching a predicate.
+
+**Parameters:**
+- predicate: A callable returning True for the desired element.
+- iterable: The collection to search.
+- default: Value returned when no match is found (default None).
+
+**Returns:**
+- The first matching element, or ``default``.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import find
+
+result = find(...)
+```
+
+---
+
+### `get_nested()`
+
+Retrieves a value from a nested dictionary using a sequence of keys.
+
+**Parameters:**
+- data: The nested dictionary.
+- keys: Ordered list of keys forming the path.
+- default: Value to return if the path does not exist.
+
+**Returns:**
+- The value at the nested path, or *default*.
+
+**Raises:**
+- TypeError: If *data* is not a dict or *keys* is not a list.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import get_nested
+
+result = get_nested(...)
+```
+
+---
+
+### `group_by()`
+
+Groups elements of an iterable by a key function.
+
+**Parameters:**
+- iterable: The collection to group.
+- key_func: A callable that returns the grouping key for each element.
+
+**Returns:**
+- A dictionary mapping each key to a list of matching elements.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import group_by
+
+result = group_by(...)
+```
+
+---
+
+### `hlookup()`
+
+Searches for a value in the first row and returns a value from another row.
+
+**Parameters:**
+- lookup_value: The value to search for in the first row.
+- table: A list of rows (lists), each with the same number of columns.
+- row_index: The 1-based row index to return (1 = first row).
+- approximate: If True, finds the closest match less than or equal
+- to the lookup value (first row must be sorted ascending).
+- If False, requires an exact match.
+
+**Returns:**
+- The value from the matching column at the specified row.
+
+**Raises:**
+- ValueError: If no match is found, row_index is out of range, or table is empty.
+- TypeError: If table is not a list of lists.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import hlookup
+
+result = hlookup(...)
+```
+
+---
+
+### `hstack()`
+
+Horizontally concatenates 2-D arrays side by side.
+
+**Parameters:**
+- *arrays: Two or more 2-D arrays.
+
+**Returns:**
+- list[list[Any]]: Combined array.
+
+**Raises:**
+- ValueError: If arrays have different row counts.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import hstack
+
+result = hstack(...)
+```
+
+---
+
+### `ifs()`
+
+Evaluates multiple conditions and returns the first matching result.
+
+**Parameters:**
+- *args: Alternating condition/value pairs. Must be an even count.
+
+**Returns:**
+- Any: The value associated with the first True condition.
+
+**Raises:**
+- ValueError: If an odd number of arguments is provided or no
+- condition is True.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_logic import ifs
+
+result = ifs(...)
+```
+
+---
+
+### `index_2d()`
+
+Returns an element or row/column from a 2-D array.
+
+**Parameters:**
+- array: A 2-D list (list of lists).
+- row_num: 1-based row index (0 to get entire column).
+- col_num: 1-based column index (None to get entire row).
+
+**Returns:**
+- Any: The element, row, or column.
+
+**Raises:**
+- IndexError: If row_num or col_num is out of bounds.
+- TypeError: If array is not a list of lists.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import index_2d
+
+result = index_2d(...)
+```
+
+---
+
+### `index_by()`
+
+Index a list of dicts by a given field, creating a lookup table.
+
+**Parameters:**
+- dicts: List of dictionaries.
+- key: Field name to use as the index key.
+
+**Returns:**
+- Dict mapping key values to their source dicts.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import index_by
+
+result = index_by(...)
+```
+
+---
+
+### `make_array()`
+
+Generates a 2-D array using a function.
+
+**Parameters:**
+- rows: Number of rows (>= 1).
+- columns: Number of columns (>= 1).
+- fn: A callable that takes (row, col) and returns a value.
+
+**Returns:**
+- list[list[Any]]: The generated array.
+
+**Raises:**
+- ValueError: If rows or columns < 1.
+- TypeError: If fn is not callable.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import make_array
+
+result = make_array(...)
+```
+
+---
+
+### `partition()`
+
+Splits an iterable into two lists based on a predicate.
+
+**Parameters:**
+- predicate: A callable returning True/False for each element.
+- iterable: The collection to partition.
+
+**Returns:**
+- A tuple ``(true_items, false_items)``.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import partition
+
+result = partition(...)
+```
+
+---
+
+### `pipe()`
+
+Threads a value through a sequence of functions.
+
+**Parameters:**
+- value: The initial value.
+- *functions: One or more callables to apply in order.
+
+**Returns:**
+- The final result after all functions have been applied.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_tools import pipe
+
+result = pipe(...)
+```
+
+---
+
+### `pluck()`
+
+Extracts a single field from each element in a collection.
+
+**Parameters:**
+- iterable: A collection of dicts or objects.
+- key: The dictionary key or attribute name to extract.
+
+**Returns:**
+- A list of extracted values.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import pluck
+
+result = pluck(...)
+```
+
+---
+
+### `retry()`
+
+Retries a function on failure up to a maximum number of attempts.
+
+**Parameters:**
+- func: A zero-argument callable to execute.
+- max_attempts: Maximum number of tries (default 3).
+- delay: Seconds to wait between retries (default 1.0).
+
+**Returns:**
+- The return value of ``func`` on success.
+
+**Raises:**
+- RuntimeError: If all attempts fail, wrapping the last exception.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_tools import retry
+
+result = retry(...)
+```
+
+---
+
+### `sequence()`
+
+Generates a 2-D array of sequential numbers.
+
+**Parameters:**
+- rows: Number of rows (>= 1).
+- columns: Number of columns (>= 1).
+- start: First value in the sequence.
+- step: Increment between consecutive values.
+
+**Returns:**
+- list[list[float]]: A 2-D list of sequential values.
+
+**Raises:**
+- ValueError: If rows or columns < 1.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import sequence
+
+result = sequence(...)
+```
+
+---
+
+### `sort_by()`
+
+Sorts data based on corresponding sort keys.
+
+**Parameters:**
+- data: The list of items to sort.
+- sort_keys: The list of values to sort by (same length as data).
+- reverse: If True, sorts in descending order.
+
+**Returns:**
+- A new sorted list of data items.
+
+**Raises:**
+- ValueError: If data and sort_keys have different lengths or are empty.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import sort_by
+
+result = sort_by(...)
+```
+
+---
+
+### `sort_dict_by_key()`
+
+Return a new dict sorted by keys.
+
+**Parameters:**
+- d: Input dictionary.
+- reverse: If True, sort descending. Defaults to False.
+
+**Returns:**
+- Ordered dict sorted by keys.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import sort_dict_by_key
+
+result = sort_dict_by_key(...)
+```
+
+---
+
+### `sort_dict_by_value()`
+
+Return a new dict sorted by values.
+
+**Parameters:**
+- d: Input dictionary.
+- reverse: If True, sort descending. Defaults to False.
+
+**Returns:**
+- Ordered dict sorted by values.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import sort_dict_by_value
+
+result = sort_dict_by_value(...)
+```
+
+---
+
+### `vlookup()`
+
+Searches for a value in the first column and returns a value from another column.
+
+**Parameters:**
+- lookup_value: The value to search for in the first column.
+- table: A list of rows (lists), each with the same number of columns.
+- col_index: The 1-based column index to return (1 = first column).
+- approximate: If True, finds the closest match less than or equal
+- to the lookup value (table must be sorted ascending by first column).
+- If False, requires an exact match.
+
+**Returns:**
+- The value from the matching row at the specified column.
+
+**Raises:**
+- ValueError: If no match is found, col_index is out of range, or table is empty.
+- TypeError: If table is not a list of lists.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import vlookup
+
+result = vlookup(...)
+```
+
+---
+
+### `vstack()`
+
+Vertically stacks 2-D arrays on top of each other.
+
+**Parameters:**
+- *arrays: Two or more 2-D arrays.
+
+**Returns:**
+- list[list[Any]]: Combined array.
+
+**Raises:**
+- ValueError: If arrays have different column counts.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import vstack
+
+result = vstack(...)
+```
+
+---
+
+### `wrap_rows()`
+
+Wraps a 1-D vector into a 2-D array by rows.
+
+**Parameters:**
+- vector: Flat list of values.
+- wrap_count: Number of elements per row (>= 1).
+- pad_with: Value used to pad the last incomplete row.
+
+**Returns:**
+- list[list[Any]]: A 2-D array.
+
+**Raises:**
+- ValueError: If wrap_count < 1.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import wrap_rows
+
+result = wrap_rows(...)
+```
+
+---
+
+### `xlookup()`
+
+Searches a lookup array and returns the corresponding value from a return array.
+
+**Parameters:**
+- lookup_value: The value to search for.
+- lookup_array: The array to search in.
+- return_array: The array to return a value from (same length).
+- if_not_found: Value to return if no match is found (default None).
+- match_mode: 0 = exact match, -1 = exact or next smaller,
+- 1 = exact or next larger.
+
+**Returns:**
+- The matching value from return_array, or if_not_found.
+
+**Raises:**
+- ValueError: If lookup_array and return_array have different lengths.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import xlookup
+
+result = xlookup(...)
+```
+
+---
+
+### `xmatch()`
+
+Returns the 1-based position of a value in an array.
+
+**Parameters:**
+- lookup_value: The value to search for.
+- lookup_array: The array to search.
+- match_mode: 0=exact, -1=exact or next smaller, 1=exact or next
+- larger, 2=wildcard (* and ?).
+- search_mode: 1=first-to-last, -1=last-to-first.
+
+**Returns:**
+- int: 1-based position of the match.
+
+**Raises:**
+- ValueError: If no match is found.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import xmatch
+
+result = xmatch(...)
+```
+
+---
+
+### `zip_dict()`
+
+Create a dictionary from two parallel lists of keys and values.
+
+**Parameters:**
+- keys: List of keys.
+- values: List of values.
+
+**Returns:**
+- Dictionary mapping keys[i] to values[i].
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import zip_dict
+
+result = zip_dict(...)
+```
+
+---
+
+
+### `take_from_array()`
+
+Takes the first or last rows/columns from a 2-D array.
+
+**Parameters:**
+- array: A 2-D list.
+- rows: Number of rows to take (positive=top, negative=bottom).
+- columns: Number of columns to take (positive=left, negative=right).
+
+**Returns:**
+- list[list[Any]]: The extracted sub-array.
+
+**Ejemplo:**
+```python
+from formulite.fxPython.py_operations import take_from_array
+
+result = take_from_array(...)
+```
+
+---
+
+## Credits
+
+Part of the [FormuLite](https://github.com/DatamanEdge/FormuLite) project.

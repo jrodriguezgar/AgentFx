@@ -1,4 +1,4 @@
-"""
+﻿"""
 Excel Database Functions Module.
 
 This module provides Excel-compatible database functions that operate on structured
@@ -17,7 +17,7 @@ from typing import List, Dict, Optional, Union, Any
 import statistics
 
 
-def evaluate_criteria(record: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
+def _evaluate_criteria(record: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
     """
     Evaluate if a record matches specified criteria.
     
@@ -56,6 +56,24 @@ def evaluate_criteria(record: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
     return True
 
 
+def _get_db_values(
+    database: List[Dict[str, Any]],
+    field: str,
+    criteria: Optional[Dict[str, Any]] = None,
+) -> List[Union[int, float]]:
+    """Extract numeric field values from records matching criteria."""
+    values = []
+
+    for record in database:
+
+        if criteria is None or _evaluate_criteria(record, criteria):
+
+            if field in record and isinstance(record[field], (int, float)):
+                values.append(record[field])
+
+    return values
+
+
 # ============================================================================
 # COUNT FUNCTIONS
 # ============================================================================
@@ -79,12 +97,7 @@ def DCOUNT(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[s
     
     Cost: O(n) where n is the number of records.
     """
-    count = 0
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                count += 1
-    return count
+    return len(_get_db_values(database, field, criteria))
 
 
 def DCOUNTA(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[str, Any]] = None) -> int:
@@ -108,7 +121,7 @@ def DCOUNTA(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[
     """
     count = 0
     for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
+        if criteria is None or _evaluate_criteria(record, criteria):
             if field in record and record[field] is not None:
                 count += 1
     return count
@@ -137,11 +150,7 @@ def DSTDEV(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[s
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return statistics.stdev(values) if len(values) > 1 else 0
 
 
@@ -164,11 +173,7 @@ def DSTDEVP(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return statistics.pstdev(values) if values else 0
 
 
@@ -195,7 +200,7 @@ def DGET(database: List[Dict[str, Any]], field: str, criteria: Dict[str, Any]) -
     Cost: O(n) where n is the number of records.
     """
     for record in database:
-        if evaluate_criteria(record, criteria):
+        if _evaluate_criteria(record, criteria):
             return record[field] if field in record else None
     return None
 
@@ -219,11 +224,7 @@ def DMAX(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[str
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return max(values) if values else None
 
 
@@ -246,11 +247,7 @@ def DMIN(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[str
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return min(values) if values else None
 
 
@@ -277,14 +274,11 @@ def DPRODUCT(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict
     
     Cost: O(n) where n is the number of records.
     """
+    values = _get_db_values(database, field, criteria)
     product = 1
-    count = 0
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                product *= record[field]
-                count += 1
-    return product if count > 0 else 0
+    for v in values:
+        product *= v
+    return product if values else 0
 
 
 def DAVERAGE(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[str, Any]] = None) -> float:
@@ -306,11 +300,7 @@ def DAVERAGE(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return sum(values) / len(values) if values else 0
 
 
@@ -333,12 +323,7 @@ def DSUM(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[str
     
     Cost: O(n) where n is the number of records.
     """
-    total = 0
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                total += record[field]
-    return total
+    return sum(_get_db_values(database, field, criteria))
 
 
 # ============================================================================
@@ -364,11 +349,7 @@ def DVAR(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[str
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return statistics.variance(values) if len(values) > 1 else 0
 
 
@@ -391,9 +372,5 @@ def DVARP(database: List[Dict[str, Any]], field: str, criteria: Optional[Dict[st
     
     Cost: O(n) where n is the number of records.
     """
-    values = []
-    for record in database:
-        if criteria is None or evaluate_criteria(record, criteria):
-            if field in record and isinstance(record[field], (int, float)):
-                values.append(record[field])
+    values = _get_db_values(database, field, criteria)
     return statistics.pvariance(values) if values else 0

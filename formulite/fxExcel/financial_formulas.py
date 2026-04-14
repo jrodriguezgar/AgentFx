@@ -1,4 +1,4 @@
-"""
+﻿"""
 Excel Financial Functions Module.
 
 This module provides Excel-compatible financial functions for FormuLite. Functions include:
@@ -14,12 +14,63 @@ This module provides Excel-compatible financial functions for FormuLite. Functio
 All functions follow Excel naming conventions and behavior.
 """
 
-from typing import Union, List, Optional
-import numpy as np
-import numpy_financial as npf
-from datetime import datetime, timedelta, date
-from dateutil.relativedelta import relativedelta
-import math
+from typing import Union, List
+from datetime import datetime, date
+
+from formulite.fxNumeric.finance_functions import (
+    accrint as _core_accrint,
+    accrintm as _core_accrintm,
+    amorlinc as _core_amorlinc,
+    coupdaybs as _core_coupdaybs,
+    coupdays as _core_coupdays,
+    coupdaysnc as _core_coupdaysnc,
+    coupncd as _core_coupncd,
+    coupnum as _core_coupnum,
+    couppcd as _core_couppcd,
+    cumipmt as _core_cumipmt,
+    cumprinc as _core_cumprinc,
+    db as _core_db,
+    ddb as _core_ddb,
+    disc as _core_disc,
+    dollarde as _core_dollarde,
+    dollarfr as _core_dollarfr,
+    duration as _core_duration,
+    effect as _core_effect,
+    future_value as _core_future_value,
+    fvschedule as _core_fvschedule,
+    intrate as _core_intrate,
+    ipmt as _core_ipmt,
+    irr as _core_irr,
+    ispmt as _core_ispmt,
+    mduration as _core_mduration,
+    mirr as _core_mirr,
+    nominal as _core_nominal,
+    nper as _core_nper,
+    npv as _core_npv,
+    pduration as _core_pduration,
+    pmt as _core_pmt,
+    ppmt as _core_ppmt,
+    present_value as _core_present_value,
+    price as _core_price,
+    pricedisc as _core_pricedisc,
+    pricemat as _core_pricemat,
+    rate as _core_rate,
+    received as _core_received,
+    rri as _core_rri,
+    sln as _core_sln,
+    syd as _core_syd,
+    tbilleq as _core_tbilleq,
+    tbillprice as _core_tbillprice,
+    tbillyield as _core_tbillyield,
+    vdb as _core_vdb,
+    xirr as _core_xirr,
+    xnpv as _core_xnpv,
+    yielddisc as _core_yielddisc,
+    yieldmat as _core_yieldmat,
+)
+from formulite.fxDate.date_operations import (
+    days_between as _core_days_between_fn,
+)
 
 
 # ============================================================================
@@ -28,34 +79,7 @@ import math
 
 def _days_between(start_date, end_date, basis=0):
     """Calculate days between dates based on day count basis."""
-    if basis == 0:  # 30/360 US
-        d1, m1, y1 = start_date.day, start_date.month, start_date.year
-        d2, m2, y2 = end_date.day, end_date.month, end_date.year
-        
-        if d1 == 31:
-            d1 = 30
-        if d2 == 31 and d1 >= 30:
-            d2 = 30
-            
-        return (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1)
-    elif basis == 1:  # Actual/actual
-        return (end_date - start_date).days
-    elif basis == 2:  # Actual/360
-        return (end_date - start_date).days
-    elif basis == 3:  # Actual/365
-        return (end_date - start_date).days
-    elif basis == 4:  # 30/360 European
-        d1, m1, y1 = start_date.day, start_date.month, start_date.year
-        d2, m2, y2 = end_date.day, end_date.month, end_date.year
-        
-        if d1 == 31:
-            d1 = 30
-        if d2 == 31:
-            d2 = 30
-            
-        return (y2 - y1) * 360 + (m2 - m1) * 30 + (d2 - d1)
-    else:
-        return (end_date - start_date).days
+    return _core_days_between_fn(start_date, end_date, basis)
 
 
 def _year_days(date_ref, basis=0):
@@ -79,6 +103,7 @@ def _coup_num_internal(start_date, end_date, frequency):
     num_coupons = 0
     current_date = start_date
     
+    from dateutil.relativedelta import relativedelta
     while current_date < end_date:
         current_date += relativedelta(months=months_per_coupon)
         num_coupons += 1
@@ -111,9 +136,7 @@ def SLN(cost: Union[int, float], salvage: Union[int, float], life: Union[int, fl
     
     Cost: O(1)
     """
-    if life <= 0:
-        raise ValueError("Life must be positive.")
-    return (cost - salvage) / life
+    return _core_sln(cost, salvage, life)
 
 
 def DDB(cost: Union[int, float], salvage: Union[int, float], life: Union[int, float], 
@@ -140,20 +163,7 @@ def DDB(cost: Union[int, float], salvage: Union[int, float], life: Union[int, fl
     
     Cost: O(n) where n is the period number.
     """
-    if not (1 <= period <= life):
-        raise ValueError("Period must be between 1 and life.")
-    
-    rate = factor / life
-    book_value = cost
-    
-    for i in range(1, period + 1):
-        depreciation = book_value * rate
-        if book_value - depreciation < salvage:
-            depreciation = book_value - salvage
-        book_value -= depreciation
-        if i == period:
-            return depreciation
-    return 0
+    return _core_ddb(cost, salvage, life, period, factor)
 
 
 # ============================================================================
@@ -179,9 +189,7 @@ def COUPDAYS(settlement: datetime, maturity: datetime, frequency: int) -> int:
     
     Cost: O(1)
     """
-    prev_coupon = COUPPCD(settlement, maturity, frequency)
-    next_coupon = COUPNCD(settlement, maturity, frequency)
-    return (next_coupon - prev_coupon).days
+    return _core_coupdays(settlement, maturity, frequency)
 
 
 def COUPDAYBS(settlement: datetime, maturity: datetime, frequency: int) -> int:
@@ -203,8 +211,7 @@ def COUPDAYBS(settlement: datetime, maturity: datetime, frequency: int) -> int:
     
     Cost: O(1)
     """
-    prev_coupon = COUPPCD(settlement, maturity, frequency)
-    return (settlement - prev_coupon).days
+    return _core_coupdaybs(settlement, maturity, frequency)
 
 
 def COUPDAYSNC(settlement: datetime, maturity: datetime, frequency: int) -> int:
@@ -226,8 +233,7 @@ def COUPDAYSNC(settlement: datetime, maturity: datetime, frequency: int) -> int:
     
     Cost: O(1)
     """
-    next_coupon = COUPNCD(settlement, maturity, frequency)
-    return (next_coupon - settlement).days
+    return _core_coupdaysnc(settlement, maturity, frequency)
 
 
 def COUPPCD(settlement: datetime, maturity: datetime, frequency: int) -> datetime:
@@ -249,12 +255,7 @@ def COUPPCD(settlement: datetime, maturity: datetime, frequency: int) -> datetim
     
     Cost: O(k) where k is the number of coupons from maturity to settlement.
     """
-    months_per_coupon = 12 // frequency
-    coupon_date = maturity
-    
-    while coupon_date > settlement:
-        coupon_date = coupon_date - relativedelta(months=months_per_coupon)
-    return coupon_date
+    return _core_couppcd(settlement, maturity, frequency)
 
 
 def COUPNCD(settlement: datetime, maturity: datetime, frequency: int) -> datetime:
@@ -276,12 +277,7 @@ def COUPNCD(settlement: datetime, maturity: datetime, frequency: int) -> datetim
     
     Cost: O(k) where k is the number of coupons from maturity to settlement.
     """
-    months_per_coupon = 12 // frequency
-    coupon_date = COUPPCD(settlement, maturity, frequency)
-    
-    if coupon_date < settlement:
-        coupon_date += relativedelta(months=months_per_coupon)
-    return coupon_date
+    return _core_coupncd(settlement, maturity, frequency)
 
 
 def COUPNUM(settlement: datetime, maturity: datetime, frequency: int) -> int:
@@ -303,14 +299,7 @@ def COUPNUM(settlement: datetime, maturity: datetime, frequency: int) -> int:
     
     Cost: O(n) where n is the number of remaining coupons.
     """
-    months_per_coupon = 12 // frequency
-    current_date = COUPNCD(settlement, maturity, frequency)
-    num_coupons = 0
-    
-    while current_date <= maturity:
-        num_coupons += 1
-        current_date += relativedelta(months=months_per_coupon)
-    return num_coupons
+    return _core_coupnum(settlement, maturity, frequency)
 
 
 # ============================================================================
@@ -340,18 +329,7 @@ def DURATION(settlement: datetime, maturity: datetime, coupon: float, yld: float
     
     Cost: O(n) where n is the number of coupons.
     """
-    price_val = PRICE(settlement, maturity, coupon, yld, 100, frequency, basis)
-    num_coupons = COUPNUM(settlement, maturity, frequency)
-    coupon_pmt = coupon * 100 / frequency
-    weighted_sum = 0
-    time = 0
-    
-    for i in range(1, num_coupons + 1):
-        time += 1 / frequency
-        cash_flow = coupon_pmt if i < num_coupons else coupon_pmt + 100
-        weighted_sum += time * cash_flow / (1 + yld / frequency) ** i
-    
-    return weighted_sum / price_val
+    return _core_duration(settlement, maturity, coupon, yld, frequency, basis)
 
 
 def MDURATION(settlement: datetime, maturity: datetime, coupon: float, yld: float, 
@@ -377,8 +355,7 @@ def MDURATION(settlement: datetime, maturity: datetime, coupon: float, yld: floa
     
     Cost: O(n) where n is the number of coupons.
     """
-    macaulay = DURATION(settlement, maturity, coupon, yld, frequency, basis)
-    return macaulay / (1 + yld / frequency)
+    return _core_mduration(settlement, maturity, coupon, yld, frequency, basis)
 
 
 # ============================================================================
@@ -409,10 +386,7 @@ def ACCRINT(issue: datetime, first_interest: datetime, settlement: datetime,
     
     Cost: O(1)
     """
-    days = COUPDAYBS(settlement, first_interest, frequency)
-    days_period = COUPDAYS(settlement, first_interest, frequency)
-    coupon = rate * par / frequency
-    return coupon * days / days_period
+    return _core_accrint(issue, first_interest, settlement, rate, par, frequency, basis)
 
 
 def ACCRINTM(issue: datetime, settlement: datetime, rate: float, 
@@ -437,9 +411,7 @@ def ACCRINTM(issue: datetime, settlement: datetime, rate: float,
     
     Cost: O(1)
     """
-    days = (settlement - issue).days
-    days_year = 365 if basis == 1 else 360
-    return rate * par * days / days_year
+    return _core_accrintm(issue, settlement, rate, par, basis)
 
 
 # ============================================================================
@@ -468,10 +440,7 @@ def CUMPRINC(rate: float, nper: int, pv: Union[int, float], start_period: int,
     
     Cost: O(n) where n is the number of periods.
     """
-    principal = 0
-    for i in range(start_period, end_period + 1):
-        principal += npf.ppmt(rate, i, nper, pv, 0, type)
-    return principal
+    return _core_cumprinc(rate, nper, pv, start_period, end_period, type)
 
 
 def PPMT(rate: float, per: int, nper: int, pv: Union[int, float], 
@@ -496,7 +465,7 @@ def PPMT(rate: float, per: int, nper: int, pv: Union[int, float],
     
     Cost: O(1)
     """
-    return npf.ppmt(rate, per, nper, pv, fv, type)
+    return _core_ppmt(rate, per, nper, pv, fv, type)
 
 
 # ============================================================================
@@ -527,20 +496,7 @@ def PRICE(settlement: datetime, maturity: datetime, rate: float, yld: float,
     
     Cost: O(n) where n is the number of coupons.
     """
-    num_coupons = COUPNUM(settlement, maturity, frequency)
-    coupon = rate * redemption / frequency
-    price = 0
-    
-    for i in range(1, num_coupons + 1):
-        price += coupon / (1 + yld / frequency) ** i
-    price += redemption / (1 + yld / frequency) ** num_coupons
-    
-    days = COUPDAYBS(settlement, maturity, frequency)
-    days_period = COUPDAYS(settlement, maturity, frequency)
-    fraction = days / days_period
-    price = price / (1 + yld / frequency) ** fraction
-    
-    return price
+    return _core_price(settlement, maturity, rate, yld, redemption, frequency, basis)
 
 
 def PRICEDISC(settlement: datetime, maturity: datetime, discount: float, 
@@ -565,16 +521,7 @@ def PRICEDISC(settlement: datetime, maturity: datetime, discount: float,
     
     Cost: O(1)
     """
-    if basis == 1:
-        days = (maturity - settlement).days
-        year_fraction = days / 365
-    else:
-        days = 360 * (maturity.year - settlement.year) + \
-               30 * (maturity.month - settlement.month) + \
-               (maturity.day - settlement.day)
-        year_fraction = days / 360
-    
-    return redemption - (discount * redemption * year_fraction)
+    return _core_pricedisc(settlement, maturity, discount, redemption, basis)
 
 
 def PRICEMAT(settlement: datetime, maturity: datetime, issue: datetime, rate: float, 
@@ -600,17 +547,7 @@ def PRICEMAT(settlement: datetime, maturity: datetime, issue: datetime, rate: fl
     
     Cost: O(1)
     """
-    if basis == 1:
-        days = (maturity - settlement).days
-        year_fraction = days / 365
-    else:
-        days = 360 * (maturity.year - settlement.year) + \
-               30 * (maturity.month - settlement.month) + \
-               (maturity.day - settlement.day)
-        year_fraction = days / 360
-    
-    interest = rate * 100 * year_fraction
-    return (100 + interest) / (1 + yld * year_fraction)
+    return _core_pricemat(settlement, maturity, issue, rate, yld, basis)
 
 
 # ============================================================================
@@ -686,16 +623,7 @@ def YIELDDISC(settlement: datetime, maturity: datetime, pr: Union[int, float],
     
     Cost: O(1)
     """
-    if basis == 1:
-        days = (maturity - settlement).days
-        year_fraction = days / 365
-    else:
-        days = 360 * (maturity.year - settlement.year) + \
-               30 * (maturity.month - settlement.month) + \
-               (maturity.day - settlement.day)
-        year_fraction = days / 360
-    
-    return (redemption - pr) / pr * (1 / year_fraction)
+    return _core_yielddisc(settlement, maturity, pr, redemption, basis)
 
 
 def YIELDMAT(settlement: datetime, maturity: datetime, issue: datetime, rate: float, 
@@ -721,17 +649,7 @@ def YIELDMAT(settlement: datetime, maturity: datetime, issue: datetime, rate: fl
     
     Cost: O(1)
     """
-    if basis == 1:
-        days = (maturity - settlement).days
-        year_fraction = days / 365
-    else:
-        days = 360 * (maturity.year - settlement.year) + \
-               30 * (maturity.month - settlement.month) + \
-               (maturity.day - settlement.day)
-        year_fraction = days / 360
-    
-    interest = rate * 100 * year_fraction
-    return (100 + interest - pr) / pr * (1 / year_fraction)
+    return _core_yieldmat(settlement, maturity, issue, rate, pr, basis)
 
 
 # ============================================================================
@@ -763,28 +681,7 @@ def XIRR(values: List[Union[int, float]], dates: List[datetime], guess: float = 
     
     Cost: O(n*m) where n is iterations and m is the number of cash flows.
     """
-    if len(values) != len(dates):
-        raise ValueError("Values and dates must have the same length.")
-    
-    rate = guess
-    tolerance = 0.00001
-    max_iterations = 100
-    
-    for _ in range(max_iterations):
-        xnpv_val = XNPV(rate, values, dates)
-        
-        if abs(xnpv_val) < tolerance:
-            return rate
-        
-        # Approximate derivative
-        rate_delta = rate * 0.001
-        xnpv_delta = XNPV(rate + rate_delta, values, dates)
-        derivative = (xnpv_delta - xnpv_val) / rate_delta
-        
-        if derivative != 0:
-            rate = rate - xnpv_val / derivative
-    
-    return rate
+    return _core_xirr(values, dates, guess)
 
 
 def XNPV(rate: float, values: List[Union[int, float]], dates: List[datetime]) -> float:
@@ -812,15 +709,7 @@ def XNPV(rate: float, values: List[Union[int, float]], dates: List[datetime]) ->
     
     Cost: O(n) where n is the number of cash flows.
     """
-    if len(values) != len(dates):
-        raise ValueError("Values and dates must have the same length.")
-    
-    total = 0
-    for i, value in enumerate(values):
-        days = (dates[i] - dates[0]).days
-        total += value / (1 + rate) ** (days / 365)
-    
-    return total
+    return _core_xnpv(rate, values, dates)
 
 
 # ============================================================================
@@ -857,17 +746,7 @@ def FV(rate: float, nper: int, pmt: Union[int, float], pv: Union[int, float] = 0
     
     Cost: O(1)
     """
-    if nper < 0:
-        raise ValueError("Number of periods must be non-negative.")
-    
-    if rate == 0:
-        return -pv - pmt * nper
-    
-    factor = (1 + rate) ** nper
-    if type == 1:
-        return -pv * factor - pmt * (1 + rate) * (factor - 1) / rate
-    else:
-        return -pv * factor - pmt * (factor - 1) / rate
+    return _core_future_value(rate, nper, pmt, pv, type)
 
 
 def FVSCHEDULE(principal: Union[int, float], schedule: List[float]) -> float:
@@ -891,10 +770,7 @@ def FVSCHEDULE(principal: Union[int, float], schedule: List[float]) -> float:
     
     Cost: O(n) where n is the number of rates in schedule.
     """
-    result = principal
-    for rate in schedule:
-        result *= (1 + rate)
-    return result
+    return _core_fvschedule(principal, schedule)
 
 
 def IRR(values: List[Union[int, float]], guess: float = 0.1) -> float:
@@ -922,7 +798,7 @@ def IRR(values: List[Union[int, float]], guess: float = 0.1) -> float:
     
     Cost: O(n*m) where n is iterations and m is the number of cash flows.
     """
-    return npf.irr(values)
+    return _core_irr(values, guess)
 
 
 def MIRR(values: List[Union[int, float]], finance_rate: float, reinvest_rate: float) -> float:
@@ -948,7 +824,7 @@ def MIRR(values: List[Union[int, float]], finance_rate: float, reinvest_rate: fl
     
     Cost: O(n) where n is the number of cash flows.
     """
-    return npf.mirr(values, finance_rate, reinvest_rate)
+    return _core_mirr(values, finance_rate, reinvest_rate)
 
 
 def NPER(rate: float, pmt: Union[int, float], pv: Union[int, float],
@@ -976,7 +852,7 @@ def NPER(rate: float, pmt: Union[int, float], pv: Union[int, float],
     
     Cost: O(1)
     """
-    return npf.nper(rate, pmt, pv, fv, type)
+    return _core_nper(rate, pmt, pv, fv, type)
 
 
 def NPV(rate: float, *values: Union[int, float]) -> float:
@@ -1000,7 +876,7 @@ def NPV(rate: float, *values: Union[int, float]) -> float:
     
     Cost: O(n) where n is the number of values.
     """
-    return npf.npv(rate, list(values))
+    return _core_npv(rate, values)
 
 
 def PMT(rate: float, nper: int, pv: Union[int, float], fv: Union[int, float] = 0,
@@ -1028,7 +904,7 @@ def PMT(rate: float, nper: int, pv: Union[int, float], fv: Union[int, float] = 0
     
     Cost: O(1)
     """
-    return npf.pmt(rate, nper, pv, fv, type)
+    return _core_pmt(rate, nper, pv, fv, type)
 
 
 def PV(rate: float, nper: int, pmt: Union[int, float], fv: Union[int, float] = 0,
@@ -1056,7 +932,7 @@ def PV(rate: float, nper: int, pmt: Union[int, float], fv: Union[int, float] = 0
     
     Cost: O(1)
     """
-    return npf.pv(rate, nper, pmt, fv, type)
+    return _core_present_value(rate, nper, pmt, fv, type)
 
 
 def RATE(nper: int, pmt: Union[int, float], pv: Union[int, float],
@@ -1085,7 +961,7 @@ def RATE(nper: int, pmt: Union[int, float], pv: Union[int, float],
     
     Cost: O(n) where n is the number of iterations needed for convergence.
     """
-    return npf.rate(nper, pmt, pv, fv, type, guess)
+    return _core_rate(nper, pmt, pv, fv, type, guess)
 
 
 def IPMT(rate: float, per: int, nper: int, pv: Union[int, float],
@@ -1117,7 +993,7 @@ def IPMT(rate: float, per: int, nper: int, pv: Union[int, float],
     
     Cost: O(1)
     """
-    return npf.ipmt(rate, per, nper, pv, fv, type)
+    return _core_ipmt(rate, per, nper, pv, fv, type)
 
 
 def EFFECT(nominal_rate: float, npery: int) -> float:
@@ -1144,12 +1020,7 @@ def EFFECT(nominal_rate: float, npery: int) -> float:
     
     Cost: O(1)
     """
-    if nominal_rate < 0:
-        raise ValueError("Nominal rate must be non-negative.")
-    if npery < 1:
-        raise ValueError("Number of periods must be at least 1.")
-    
-    return (1 + nominal_rate / npery) ** npery - 1
+    return _core_effect(nominal_rate, npery)
 
 
 def NOMINAL(effect_rate: float, npery: int) -> float:
@@ -1176,12 +1047,7 @@ def NOMINAL(effect_rate: float, npery: int) -> float:
     
     Cost: O(1)
     """
-    if effect_rate < 0:
-        raise ValueError("Effective rate must be non-negative.")
-    if npery < 1:
-        raise ValueError("Number of periods must be at least 1.")
-    
-    return npery * ((1 + effect_rate) ** (1 / npery) - 1)
+    return _core_nominal(effect_rate, npery)
 
 
 def CUMIPMT(rate: float, nper: int, pv: Union[int, float], start_period: int,
@@ -1212,18 +1078,7 @@ def CUMIPMT(rate: float, nper: int, pv: Union[int, float], start_period: int,
     
     Cost: O(n) where n is (end_period - start_period + 1).
     """
-    if start_period < 1:
-        raise ValueError("Start period must be >= 1.")
-    if end_period < start_period:
-        raise ValueError("End period must be >= start period.")
-    if end_period > nper:
-        raise ValueError("End period cannot exceed total number of periods.")
-    
-    total = 0
-    for period in range(start_period, end_period + 1):
-        total += IPMT(rate, period, nper, pv, 0, type)
-    
-    return total
+    return _core_cumipmt(rate, nper, pv, start_period, end_period, type)
 
 
 def DB(cost: Union[int, float], salvage: Union[int, float], life: int, period: int,
@@ -1254,29 +1109,7 @@ def DB(cost: Union[int, float], salvage: Union[int, float], life: int, period: i
     
     Cost: O(n) where n is the period number.
     """
-    if not (1 <= period <= life + 1):
-        raise ValueError(f"Period must be between 1 and {life + 1}.")
-    if not (1 <= month <= 12):
-        raise ValueError("Month must be between 1 and 12.")
-    
-    rate = 1 - ((salvage / cost) ** (1 / life))
-    rate = round(rate, 3)
-    
-    depreciation = 0
-    value = cost
-    
-    for p in range(1, period + 1):
-        if p == 1:
-            depreciation = cost * rate * month / 12
-        elif p == life + 1:
-            depreciation = ((value - depreciation) * rate * (12 - month)) / 12
-        else:
-            depreciation = (value - depreciation) * rate
-        
-        if p == period:
-            return depreciation
-    
-    return depreciation
+    return _core_db(cost, salvage, life, period, month)
 
 
 def VDB(cost: Union[int, float], salvage: Union[int, float], life: Union[int, float],
@@ -1308,34 +1141,7 @@ def VDB(cost: Union[int, float], salvage: Union[int, float], life: Union[int, fl
     
     Cost: O(n) where n is the period range.
     """
-    if life <= 0:
-        raise ValueError("Life must be positive.")
-    if start_period < 0 or end_period < start_period:
-        raise ValueError("Invalid period range.")
-    
-    rate = factor / life
-    total_depreciation = 0
-    book_value = cost
-    
-    for period in np.arange(0, end_period, 0.1):
-        if period >= start_period:
-            # Calculate depreciation for this sub-period
-            ddb_depreciation = book_value * rate * 0.1
-            sln_depreciation = (cost - salvage - total_depreciation) / (life - period) * 0.1 if (life - period) > 0 else 0
-            
-            if no_switch:
-                depreciation = ddb_depreciation
-            else:
-                depreciation = max(ddb_depreciation, sln_depreciation)
-            
-            # Ensure we don't go below salvage value
-            if book_value - depreciation < salvage:
-                depreciation = book_value - salvage
-            
-            total_depreciation += depreciation
-            book_value -= depreciation
-    
-    return total_depreciation
+    return _core_vdb(cost, salvage, life, start_period, end_period, factor, no_switch)
 
 
 def SYD(cost: Union[int, float], salvage: Union[int, float], life: int, per: int) -> float:
@@ -1363,11 +1169,7 @@ def SYD(cost: Union[int, float], salvage: Union[int, float], life: int, per: int
     
     Cost: O(1)
     """
-    if not (1 <= per <= life):
-        raise ValueError(f"Period must be between 1 and {life}.")
-    
-    sum_of_years = life * (life + 1) / 2
-    return ((cost - salvage) * (life - per + 1)) / sum_of_years
+    return _core_syd(cost, salvage, life, per)
 
 
 def PDURATION(rate: float, pv: Union[int, float], fv: Union[int, float]) -> float:
@@ -1395,12 +1197,7 @@ def PDURATION(rate: float, pv: Union[int, float], fv: Union[int, float]) -> floa
     
     Cost: O(1)
     """
-    if rate <= 0:
-        raise ValueError("Rate must be positive.")
-    if pv <= 0 or fv <= 0:
-        raise ValueError("Present value and future value must be positive.")
-    
-    return (math.log(fv) - math.log(pv)) / math.log(1 + rate)
+    return _core_pduration(rate, pv, fv)
 
 
 def RRI(nper: int, pv: Union[int, float], fv: Union[int, float]) -> float:
@@ -1427,12 +1224,7 @@ def RRI(nper: int, pv: Union[int, float], fv: Union[int, float]) -> float:
     
     Cost: O(1)
     """
-    if nper <= 0:
-        raise ValueError("Number of periods must be positive.")
-    if pv == 0:
-        raise ValueError("Present value cannot be zero.")
-    
-    return (fv / pv) ** (1 / nper) - 1
+    return _core_rri(nper, pv, fv)
 
 
 def AMORLINC(cost, date_purchased, first_period, salvage, period, rate, basis=0):
@@ -1466,32 +1258,109 @@ def AMORLINC(cost, date_purchased, first_period, salvage, period, rate, basis=0)
     
     **Cost:** O(1)
     """
-    if cost < 0 or salvage < 0 or rate <= 0 or period < 0:
-        raise ValueError("Invalid parameters")
-    
-    if cost <= salvage:
-        return 0
-    
-    # Calculate total depreciation
-    total_depreciation = cost - salvage
-    
-    # Calculate depreciation rate per period
-    depreciation_per_period = total_depreciation * rate
-    
-    # For period 0, calculate prorated first period
+    return _core_amorlinc(cost, date_purchased, first_period, salvage, period, rate, basis)
+
+
+def AMORDEGRC(cost, date_purchased, first_period, salvage, period, rate, basis=0):
+    """
+    Calculate depreciation for each accounting period using a depreciation coefficient.
+
+    **Description:**
+    Returns the depreciation for each accounting period. This function is
+    provided for the French accounting system. A depreciation coefficient is
+    applied depending on the asset life.
+
+    **Args:**
+        cost (float): The cost of the asset.
+        date_purchased (datetime.date): The date of the purchase of the asset.
+        first_period (datetime.date): The date of the end of the first period.
+        salvage (float): The salvage value at the end of the life of the asset.
+        period (int): The period for which to calculate depreciation.
+        rate (float): The rate of depreciation.
+        basis (int, optional): The type of day count basis to use (0-4). Default is 0.
+
+    **Returns:**
+        float: The depreciation for the specified period.
+
+    **Raises:**
+        ValueError: If parameters are invalid.
+
+    **Usage Example:**
+        >>> from datetime import date
+        >>> AMORDEGRC(2400, date(2008, 8, 19), date(2008, 12, 31), 300, 1, 0.15)
+        776.0
+
+    **Cost:** O(n) where n is the period number
+    """
+    if cost <= 0 or salvage < 0 or rate <= 0:
+        raise ValueError("cost must be > 0, salvage >= 0, rate > 0")
+
+    if salvage > cost:
+        raise ValueError("salvage must be <= cost")
+
+    # Determine the depreciation coefficient based on asset life
+    life = 1.0 / rate
+
+    if life < 3:
+        coeff = 1.0
+    elif life < 5:
+        coeff = 1.5
+    elif life <= 6:
+        coeff = 2.0
+    else:
+        coeff = 2.5
+
+    adj_rate = rate * coeff
+
+    # Compute first period prorated depreciation
+    first_dep = round(cost * adj_rate * _year_frac_financial(
+        date_purchased, first_period, basis), 0)
+
     if period == 0:
-        # Calculate months in first period
-        months = (first_period.year - date_purchased.year) * 12 + (first_period.month - date_purchased.month)
-        if first_period.day >= date_purchased.day:
-            months += 1
-        return depreciation_per_period * months / 12
-    
-    # For subsequent periods, return full depreciation until asset is fully depreciated
-    accumulated = depreciation_per_period * period
-    if accumulated > total_depreciation:
-        return max(0, total_depreciation - depreciation_per_period * (period - 1))
-    
-    return depreciation_per_period
+        return first_dep
+
+    remaining = cost - first_dep
+
+    for p in range(1, period + 1):
+
+        if remaining - salvage < 0:
+            return 0.0
+
+        dep = round(remaining * adj_rate, 0)
+
+        if p == period:
+            return dep
+
+        remaining -= dep
+
+    return 0.0
+
+
+def _year_frac_financial(start_date, end_date, basis=0):
+    """Year fraction between two dates for financial calculations."""
+    if hasattr(start_date, 'date'):
+        start_date = start_date.date()
+
+    if hasattr(end_date, 'date'):
+        end_date = end_date.date()
+
+    days = (end_date - start_date).days
+
+    if basis == 0 or basis == 4:
+        return days / 360.0
+    elif basis == 1:
+        year = start_date.year
+
+        if (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)):
+            return days / 366.0
+
+        return days / 365.0
+    elif basis == 2:
+        return days / 360.0
+    elif basis == 3:
+        return days / 365.0
+    else:
+        raise ValueError("basis must be 0, 1, 2, 3, or 4")
 
 
 def DISC(settlement, maturity, pr, redemption, basis=0):
@@ -1523,17 +1392,7 @@ def DISC(settlement, maturity, pr, redemption, basis=0):
     
     **Cost:** O(1)
     """
-    if settlement >= maturity:
-        raise ValueError("Settlement date must be before maturity date")
-    if pr <= 0 or redemption <= 0:
-        raise ValueError("Price and redemption must be positive")
-    
-    # Calculate days based on basis
-    days = _days_between(settlement, maturity, basis)
-    year_days = _year_days(settlement, basis)
-    
-    discount = (redemption - pr) / redemption
-    return discount * (year_days / days)
+    return _core_disc(settlement, maturity, pr, redemption, basis)
 
 
 def DOLLARDE(fractional_dollar, fraction):
@@ -1562,22 +1421,7 @@ def DOLLARDE(fractional_dollar, fraction):
     
     **Cost:** O(1)
     """
-    if fraction < 1:
-        raise ValueError("Fraction must be at least 1")
-    
-    # Split into integer and fractional parts
-    integer_part = int(fractional_dollar)
-    frac_part = fractional_dollar - integer_part
-    
-    # The fractional part represents numerator/fraction
-    # For example, 1.02 with fraction 16 means 1 + 2/16
-    # frac_part is 0.02, we need to extract the numerator (2)
-    numerator = round(frac_part * 100)  # Get the digits after decimal as numerator
-    
-    # Convert fraction to decimal
-    decimal_part = numerator / fraction
-    
-    return integer_part + decimal_part
+    return _core_dollarde(fractional_dollar, fraction)
 
 
 def DOLLARFR(decimal_dollar, fraction):
@@ -1606,22 +1450,7 @@ def DOLLARFR(decimal_dollar, fraction):
     
     **Cost:** O(1)
     """
-    if fraction < 1:
-        raise ValueError("Fraction must be at least 1")
-    
-    # Split into integer and fractional parts
-    integer_part = int(decimal_dollar)
-    decimal_part = decimal_dollar - integer_part
-    
-    # Convert decimal to fraction numerator
-    # For example, 0.125 with fraction 16 gives numerator 2 (0.125 * 16 = 2)
-    numerator = decimal_part * fraction
-    
-    # Return as integer part + (numerator as decimal digits)
-    # For example, 1 + 0.02 (representing 2/16)
-    frac_part = numerator / 100  # Convert numerator to decimal representation
-    
-    return integer_part + frac_part
+    return _core_dollarfr(decimal_dollar, fraction)
 
 
 def INTRATE(settlement, maturity, investment, redemption, basis=0):
@@ -1652,16 +1481,7 @@ def INTRATE(settlement, maturity, investment, redemption, basis=0):
     
     **Cost:** O(1)
     """
-    if settlement >= maturity:
-        raise ValueError("Settlement date must be before maturity date")
-    if investment <= 0 or redemption <= 0:
-        raise ValueError("Investment and redemption must be positive")
-    
-    # Calculate days based on basis
-    days = _days_between(settlement, maturity, basis)
-    year_days = _year_days(settlement, basis)
-    
-    return ((redemption - investment) / investment) * (year_days / days)
+    return _core_intrate(settlement, maturity, investment, redemption, basis)
 
 
 def ISPMT(rate, per, nper, pv):
@@ -1688,12 +1508,7 @@ def ISPMT(rate, per, nper, pv):
     
     **Cost:** O(1)
     """
-    # Calculate remaining principal at beginning of period
-    # With even principal payments, principal decreases linearly
-    remaining_principal = pv * (1 - (per - 1) / nper)
-    
-    # Interest = rate * remaining principal
-    return -rate * remaining_principal
+    return _core_ispmt(rate, per, nper, pv)
 
 
 def ODDFPRICE(settlement, maturity, issue, first_coupon, rate, yld, redemption, frequency, basis=0):
@@ -1807,7 +1622,7 @@ def ODDFYIELD(settlement, maturity, issue, first_coupon, rate, pr, redemption, f
     def price_func(yld):
         try:
             return ODDFPRICE(settlement, maturity, issue, first_coupon, rate, yld, redemption, frequency, basis)
-        except:
+        except Exception:
             return None
     
     # Initial guess
@@ -1950,7 +1765,7 @@ def ODDLYIELD(settlement, maturity, last_interest, rate, pr, redemption, frequen
     def price_func(yld):
         try:
             return ODDLPRICE(settlement, maturity, last_interest, rate, yld, redemption, frequency, basis)
-        except:
+        except Exception:
             return None
     
     # Initial guess
@@ -2014,21 +1829,7 @@ def RECEIVED(settlement, maturity, investment, discount, basis=0):
     
     **Cost:** O(1)
     """
-    if settlement >= maturity:
-        raise ValueError("Settlement date must be before maturity date")
-    if investment <= 0:
-        raise ValueError("Investment must be positive")
-    
-    # Calculate days based on basis
-    days = _days_between(settlement, maturity, basis)
-    year_days = _year_days(settlement, basis)
-    
-    # Calculate received amount
-    denominator = 1 - (discount * days / year_days)
-    if abs(denominator) < 1e-10:
-        raise ValueError("Discount rate results in division by zero")
-    
-    return investment / denominator
+    return _core_received(settlement, maturity, investment, discount, basis)
 
 
 def TBILLEQ(settlement, maturity, discount):
@@ -2057,24 +1858,7 @@ def TBILLEQ(settlement, maturity, discount):
     
     **Cost:** O(1)
     """
-    if settlement >= maturity:
-        raise ValueError("Settlement date must be before maturity date")
-    if discount <= 0:
-        raise ValueError("Discount must be positive")
-    
-    # Calculate days to maturity
-    days = (maturity - settlement).days
-    
-    if days > 365:
-        raise ValueError("Maturity must be within one year of settlement")
-    
-    # Bond-equivalent yield formula for T-bills
-    if days <= 182:
-        # For half year or less
-        return (365 * discount) / (360 - discount * days)
-    else:
-        # For more than half year
-        return (-days + ((days ** 2 - (2 * days - 365) * (365 * discount / (discount * days - 360))) ** 0.5)) / (days - 365 / 2)
+    return _core_tbilleq(settlement, maturity, discount)
 
 
 def TBILLPRICE(settlement, maturity, discount):
@@ -2103,19 +1887,7 @@ def TBILLPRICE(settlement, maturity, discount):
     
     **Cost:** O(1)
     """
-    if settlement >= maturity:
-        raise ValueError("Settlement date must be before maturity date")
-    if discount <= 0:
-        raise ValueError("Discount must be positive")
-    
-    # Calculate days to maturity (360-day year basis)
-    days = (maturity - settlement).days
-    
-    if days > 360:
-        raise ValueError("Maturity must be within one year of settlement")
-    
-    # Price formula for T-bills
-    return 100 * (1 - discount * days / 360)
+    return _core_tbillprice(settlement, maturity, discount)
 
 
 def TBILLYIELD(settlement, maturity, pr):
@@ -2143,16 +1915,6 @@ def TBILLYIELD(settlement, maturity, pr):
     
     **Cost:** O(1)
     """
-    if settlement >= maturity:
-        raise ValueError("Settlement date must be before maturity date")
-    if pr <= 0:
-        raise ValueError("Price must be positive")
-    
-    # Calculate days to maturity (360-day year basis)
-    days = (maturity - settlement).days
-    
-    if days > 360:
-        raise ValueError("Maturity must be within one year of settlement")
-    
-    # Yield formula for T-bills
-    return (100 - pr) / pr * (360 / days)
+    return _core_tbillyield(settlement, maturity, pr)
+
+

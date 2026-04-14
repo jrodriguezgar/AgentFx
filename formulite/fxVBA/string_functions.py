@@ -7,47 +7,63 @@ Description
     En Python ambas versiones son funcionalmente idénticas.
 """
 
+from formulite.fxString.string_operations import (
+    left_substring as _core_left,
+    right_substring as _core_right,
+    substring as _core_mid,
+    reverse_string as _core_reverse,
+    left_bytes as _core_left_bytes,
+    mid_bytes as _core_mid_bytes,
+    right_bytes as _core_right_bytes,
+    repeat_string as _core_repeat_string,
+)
+from formulite.fxString.string_convertions import (
+    char_from_code as _core_chr,
+    code_from_char as _core_ord,
+)
+from formulite.fxString.string_evaluations import (
+    compare_strings as _core_compare_strings,
+)
+from formulite.fxString.string_format import (
+    to_upper as _core_upper,
+    to_lower as _core_lower,
+)
+from formulite.fxString.string_operations import (
+    erase_lspaces as _core_ltrim,
+    erase_rspaces as _core_rtrim,
+    erase_lrspaces as _core_trim,
+)
+from formulite.fxNumeric.conversion_functions import (
+    number_to_string as _core_number_to_string,
+)
+
 __all__ = [
     "Asc",
     "AscB",
     "Chr_",
-    "ChrS",
     "ChrW",
-    "ChrWS",
     "InStr",
     "InStrRev",
     "LCase",
-    "LCaseS",
     "Left",
-    "LeftS",
     "LeftB",
-    "LeftBS",
     "Len_",
     "LenB",
     "LTrim",
-    "LTrimS",
     "Mid",
-    "MidS",
     "MidB",
-    "MidBS",
     "Replace",
     "Right",
-    "RightS",
     "RightB",
-    "RightBS",
     "RTrim",
-    "RTrimS",
     "Space",
     "Str_",
-    "StrS",
     "StrComp",
     "StrConv",
     "String",
     "StrReverse",
     "Trim",
-    "TrimS",
     "UCase",
-    "UCaseS",
 ]
 
 
@@ -76,7 +92,7 @@ def Asc(string: str) -> int:
     """
     if not string:
         raise ValueError("Cadena vacía")
-    return ord(string[0])
+    return _core_ord(string[0])
 
 
 def AscB(string: str) -> int:
@@ -122,30 +138,7 @@ def Chr_(char_code: int) -> str:
     Cost
         O(1)
     """
-    return chr(char_code)
-
-
-def ChrS(char_code: int) -> str:
-    """
-    Description
-        Retorna carácter asociado con código (versión $, idéntica en Python).
-
-    Args
-        char_code: Código ASCII/Unicode.
-
-    Returns
-        str: Carácter correspondiente.
-
-    Usage Example
-        >>> chr_s(65)
-        'A'
-
-    Cost
-        O(1)
-    """
-    return chr(char_code)
-
-
+    return _core_chr(char_code)
 def ChrW(char_code: int) -> str:
     """
     Description
@@ -164,30 +157,7 @@ def ChrW(char_code: int) -> str:
     Cost
         O(1)
     """
-    return chr(char_code)
-
-
-def ChrWS(char_code: int) -> str:
-    """
-    Description
-        Retorna carácter Unicode (versión $, idéntica en Python).
-
-    Args
-        char_code: Código Unicode.
-
-    Returns
-        str: Carácter Unicode.
-
-    Usage Example
-        >>> chrw_s(8364)
-        '€'
-
-    Cost
-        O(1)
-    """
-    return chr(char_code)
-
-
+    return Chr_(char_code)
 def InStr(
     start: int = 1,
     string1: str = "",
@@ -289,30 +259,7 @@ def LCase(string: str) -> str:
     Cost
         O(n) donde n es longitud de la cadena
     """
-    return string.lower()
-
-
-def LCaseS(string: str) -> str:
-    """
-    Description
-        Convierte cadena a minúsculas (versión $).
-
-    Args
-        string: Cadena de entrada.
-
-    Returns
-        str: Cadena en minúsculas.
-
-    Usage Example
-        >>> lcase_s("HOLA")
-        'hola'
-
-    Cost
-        O(n) donde n es longitud de la cadena
-    """
-    return string.lower()
-
-
+    return _core_lower(string)
 def Left(string: str, length: int) -> str:
     """
     Description
@@ -332,31 +279,7 @@ def Left(string: str, length: int) -> str:
     Cost
         O(n) donde n es length
     """
-    return string[:length]
-
-
-def LeftS(string: str, length: int) -> str:
-    """
-    Description
-        Retorna porción de cadena desde la izquierda (versión $).
-
-    Args
-        string: Cadena de entrada.
-        length: Número de caracteres a extraer.
-
-    Returns
-        str: Subcadena desde la izquierda.
-
-    Usage Example
-        >>> left_s("Hola mundo", 4)
-        'Hola'
-
-    Cost
-        O(n) donde n es length
-    """
-    return string[:length]
-
-
+    return _core_left(string, length)
 def LeftB(string: str, length: int) -> str:
     """
     Description
@@ -376,32 +299,7 @@ def LeftB(string: str, length: int) -> str:
     Cost
         O(n) donde n es length
     """
-    encoded = string.encode('utf-16-le')
-    return encoded[:length].decode('utf-16-le', errors='ignore')
-
-
-def LeftBS(string: str, length: int) -> str:
-    """
-    Description
-        Retorna porción de cadena en bytes (versión $).
-
-    Args
-        string: Cadena de entrada.
-        length: Número de bytes a extraer.
-
-    Returns
-        str: Subcadena.
-
-    Usage Example
-        >>> LeftBS("Hola", 4)
-        'Hol'
-
-    Cost
-        O(n) donde n es length
-    """
-    return LeftB(string, length)
-
-
+    return _core_left_bytes(string, length)
 def Len_(expression: str) -> int:
     """
     Description
@@ -462,30 +360,7 @@ def LTrim(string: str) -> str:
     Cost
         O(n) donde n es longitud de la cadena
     """
-    return string.lstrip()
-
-
-def LTrimS(string: str) -> str:
-    """
-    Description
-        Retorna cadena sin espacios a la izquierda (versión $).
-
-    Args
-        string: Cadena de entrada.
-
-    Returns
-        str: Cadena sin espacios a la izquierda.
-
-    Usage Example
-        >>> ltrim_s("   Hola")
-        'Hola'
-
-    Cost
-        O(n) donde n es longitud de la cadena
-    """
-    return string.lstrip()
-
-
+    return _core_ltrim(string)
 def Mid(string: str, start: int, length: int = None) -> str:
     """
     Description
@@ -506,35 +381,9 @@ def Mid(string: str, start: int, length: int = None) -> str:
     Cost
         O(n) donde n es length
     """
-    start_idx = start - 1
     if length is None:
-        return string[start_idx:]
-    return string[start_idx:start_idx + length]
-
-
-def MidS(string: str, start: int, length: int = None) -> str:
-    """
-    Description
-        Retorna fracción de cadena (versión $).
-
-    Args
-        string: Cadena de entrada.
-        start: Posición inicial (1-based).
-        length: Longitud a extraer.
-
-    Returns
-        str: Subcadena.
-
-    Usage Example
-        >>> MidS("Hola mundo", 6, 5)
-        'mundo'
-
-    Cost
-        O(n) donde n es length
-    """
-    return Mid(string, start, length)
-
-
+        return string[start - 1:]
+    return _core_mid(string, start, length)
 def MidB(string: str, start: int, length: int = None) -> str:
     """
     Description
@@ -555,38 +404,7 @@ def MidB(string: str, start: int, length: int = None) -> str:
     Cost
         O(n) donde n es length
     """
-    encoded = string.encode('utf-16-le')
-    start_idx = start - 1
-    if length is None:
-        result = encoded[start_idx:]
-    else:
-        result = encoded[start_idx:start_idx + length]
-    return result.decode('utf-16-le', errors='ignore')
-
-
-def MidBS(string: str, start: int, length: int = None) -> str:
-    """
-    Description
-        Retorna fracción (byte) de cadena (versión $).
-
-    Args
-        string: Cadena de entrada.
-        start: Posición inicial en bytes.
-        length: Longitud en bytes.
-
-    Returns
-        str: Subcadena.
-
-    Usage Example
-        >>> MidBS("Hola", 3, 4)
-        'la'
-
-    Cost
-        O(n) donde n es length
-    """
-    return MidB(string, start, length)
-
-
+    return _core_mid_bytes(string, start, length)
 def Replace(
     expression: str,
     find: str,
@@ -658,31 +476,7 @@ def Right(string: str, length: int) -> str:
     Cost
         O(n) donde n es length
     """
-    return string[-length:] if length > 0 else ""
-
-
-def RightS(string: str, length: int) -> str:
-    """
-    Description
-        Retorna porción de cadena desde la derecha (versión $).
-
-    Args
-        string: Cadena de entrada.
-        length: Número de caracteres a extraer.
-
-    Returns
-        str: Subcadena desde la derecha.
-
-    Usage Example
-        >>> right_s("Hola mundo", 5)
-        'mundo'
-
-    Cost
-        O(n) donde n es length
-    """
-    return string[-length:] if length > 0 else ""
-
-
+    return _core_right(string, length)
 def RightB(string: str, length: int) -> str:
     """
     Description
@@ -702,32 +496,7 @@ def RightB(string: str, length: int) -> str:
     Cost
         O(n) donde n es length
     """
-    encoded = string.encode('utf-16-le')
-    return encoded[-length:].decode('utf-16-le', errors='ignore')
-
-
-def RightBS(string: str, length: int) -> str:
-    """
-    Description
-        Retorna porción de cadena en bytes (versión $).
-
-    Args
-        string: Cadena de entrada.
-        length: Número de bytes a extraer.
-
-    Returns
-        str: Subcadena.
-
-    Usage Example
-        >>> RightBS("Hola", 4)
-        'la'
-
-    Cost
-        O(n) donde n es length
-    """
-    return RightB(string, length)
-
-
+    return _core_right_bytes(string, length)
 def RTrim(string: str) -> str:
     """
     Description
@@ -746,30 +515,7 @@ def RTrim(string: str) -> str:
     Cost
         O(n) donde n es longitud de la cadena
     """
-    return string.rstrip()
-
-
-def RTrimS(string: str) -> str:
-    """
-    Description
-        Recorta espacios a la derecha (versión $).
-
-    Args
-        string: Cadena de entrada.
-
-    Returns
-        str: Cadena sin espacios a la derecha.
-
-    Usage Example
-        >>> rtrim_s("Hola   ")
-        'Hola'
-
-    Cost
-        O(n) donde n es longitud de la cadena
-    """
-    return string.rstrip()
-
-
+    return _core_rtrim(string)
 def Space(number: int) -> str:
     """
     Description
@@ -788,7 +534,7 @@ def Space(number: int) -> str:
     Cost
         O(n) donde n es number
     """
-    return " " * number
+    return _core_repeat_string(" ", number)
 
 
 def Str_(number: float) -> str:
@@ -809,30 +555,7 @@ def Str_(number: float) -> str:
     Cost
         O(1)
     """
-    return str(number)
-
-
-def StrS(number: float) -> str:
-    """
-    Description
-        Convierte número en cadena (versión $).
-
-    Args
-        number: Número a convertir.
-
-    Returns
-        str: Representación en cadena.
-
-    Usage Example
-        >>> str_s(42)
-        '42'
-
-    Cost
-        O(1)
-    """
-    return str(number)
-
-
+    return _core_number_to_string(number)
 def StrComp(string1: str, string2: str, compare: int = 0) -> int:
     """
     Description
@@ -855,15 +578,7 @@ def StrComp(string1: str, string2: str, compare: int = 0) -> int:
     Cost
         O(n) donde n es longitud mínima de las cadenas
     """
-    if compare == 1:
-        string1 = string1.lower()
-        string2 = string2.lower()
-    
-    if string1 < string2:
-        return -1
-    elif string1 > string2:
-        return 1
-    return 0
+    return _core_compare_strings(string1, string2, case_sensitive=(compare != 1))
 
 
 def StrConv(string: str, conversion: int, lcid: int = None) -> str:
@@ -926,7 +641,7 @@ def String(number: int, character: str) -> str:
     """
     if isinstance(character, int):
         character = chr(character)
-    return character * number
+    return _core_repeat_string(character, number)
 
 
 def StrReverse(expression: str) -> str:
@@ -947,7 +662,7 @@ def StrReverse(expression: str) -> str:
     Cost
         O(n) donde n es longitud de la cadena
     """
-    return expression[::-1]
+    return _core_reverse(expression)
 
 
 def Trim(string: str) -> str:
@@ -968,30 +683,7 @@ def Trim(string: str) -> str:
     Cost
         O(n) donde n es longitud de la cadena
     """
-    return string.strip()
-
-
-def TrimS(string: str) -> str:
-    """
-    Description
-        Recorta espacios a izquierda y derecha (versión $).
-
-    Args
-        string: Cadena de entrada.
-
-    Returns
-        str: Cadena sin espacios en los extremos.
-
-    Usage Example
-        >>> trim_s("  Hola  ")
-        'Hola'
-
-    Cost
-        O(n) donde n es longitud de la cadena
-    """
-    return string.strip()
-
-
+    return _core_trim(string)
 def UCase(string: str) -> str:
     """
     Description
@@ -1010,25 +702,4 @@ def UCase(string: str) -> str:
     Cost
         O(n) donde n es longitud de la cadena
     """
-    return string.upper()
-
-
-def UCaseS(string: str) -> str:
-    """
-    Description
-        Convierte cadena a mayúsculas (versión $).
-
-    Args
-        string: Cadena de entrada.
-
-    Returns
-        str: Cadena en mayúsculas.
-
-    Usage Example
-        >>> ucase_s("hola")
-        'HOLA'
-
-    Cost
-        O(n) donde n es longitud de la cadena
-    """
-    return string.upper()
+    return _core_upper(string)

@@ -54,8 +54,19 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [datetime_to_filetime()](#datetime_to_filetime) - Converts Python datetime or date to Windows FILETIME value
 - [datetime_to_ad_format()](#datetime_to_ad_format) - Converts datetime or date to Active Directory format string
 - [ad_format_to_datetime()](#ad_format_to_datetime) - Converts Active Directory format string to Python datetime object
-- [datetime_to_unix_timestamp()](#datetime_to_unix_timestamp) - Converts datetime object to corresponding UNIX timestamp (float)
 - [unix_timestamp_to_datetime()](#unix_timestamp_to_datetime) - Converts UNIX timestamp to datetime object with optional timezone
+- [integer_to_datetime()](#integer_to_datetime) - Converts YYYYMMDD integer back to datetime object
+- [date_to_excel_serial()](#date_to_excel_serial) - Date to Excel serial number (days since 1899-12-30)
+- [excel_serial_to_date()](#excel_serial_to_date) - Excel serial number to date object
+- [datetime_to_cron()](#datetime_to_cron) - Datetime to cron expression (minute hour day month weekday)
+- [datetime_to_rfc2822()](#datetime_to_rfc2822) - Datetime to RFC 2822 email format string
+- [rfc2822_to_datetime()](#rfc2822_to_datetime) - Parse RFC 2822 string to datetime
+- [parse_date_flexible()](#parse_date_flexible) - Parses a date string by trying multiple common formats
+- [date_to_human_short()](#date_to_human_short) - Formats a date as a short human-readable string
+- [datetime_to_iso8601()](#datetime_to_iso8601) - Converts date/datetime to ISO 8601 string
+- [iso8601_to_datetime()](#iso8601_to_datetime) - Parses ISO 8601 string to date/datetime
+- [date_to_iso_week_date()](#date_to_iso_week_date) - Date to ISO 8601 week date string (YYYY-Www-D)
+- [iso_week_date_to_date()](#iso_week_date_to_date) - Parse ISO week date string to date object
 
 ### System Functions
 - [current_datetime()](#current_datetime) - Gets current local date and time
@@ -73,6 +84,14 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [current_is_working_day()](#current_is_working_day) - Checks if current date is working day (Monday-Friday)
 - [current_is_weekend()](#current_is_weekend) - Checks if current date is weekend (Saturday/Sunday)
 - [get_local_now()](#get_local_now) - Gets current date/time localized to specified timezone
+- [seconds_since_midnight()](#seconds_since_midnight) - Returns seconds elapsed since midnight of current day
+- [current_quarter()](#current_quarter) - Returns current quarter of the year (1-4)
+- [current_week_number()](#current_week_number) - Returns current ISO week number (1-53)
+- [current_month_name()](#current_month_name) - Returns name of current month in specified language
+- [current_first_day_of_month()](#current_first_day_of_month) - Returns first day of current month at midnight
+- [current_is_leap_year()](#current_is_leap_year) - Checks if current year is a leap year
+- [current_days_in_month()](#current_days_in_month) - Returns number of days in current month
+- [current_season()](#current_season) - Returns current season of the year
 
 ### Date Operations
 - [is_date_type()](#is_date_type) - Checks if object is date type (date, datetime, time)
@@ -111,6 +130,11 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [get_last_friday_of_month()](#get_last_friday_of_month) - Calculates last Friday of given month
 - [get_next_friday()](#get_next_friday) - Calculates next upcoming Friday from given date
 - [get_previous_friday()](#get_previous_friday) - Calculates immediately preceding Friday from given date
+- [next_weekday()](#next_weekday) - Returns next occurrence of a specific weekday after a given date
+- [previous_weekday()](#previous_weekday) - Returns most recent occurrence of a specific weekday before a given date
+- [last_weekday_of_month()](#last_weekday_of_month) - Returns last occurrence of a specific weekday in the month
+- [last_day_of_month()](#last_day_of_month) - Returns last day of the month for a given date (alias for end_of_month)
+- [add_years()](#add_years) - Shifts a date forward or backward by a given number of years
 - [get_working_days_in_range()](#get_working_days_in_range) - Calculates working days (excluding weekends/holidays) within date range
 - [get_first_business_day_of_month()](#get_first_business_day_of_month) - Returns first working day of month
 - [get_last_business_day_of_month()](#get_last_business_day_of_month) - Returns last working day of month
@@ -135,9 +159,49 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [get_week_of_year()](#get_week_of_year) - Returns ISO week number of year for date
 - [week_of_month()](#week_of_month) - Returns week number of month for given date
 - [filter_dates_by_weekday()](#filter_dates_by_weekday) - Filters list of dates, returning only specific weekday
+- [days_360()](#days_360) - Calculates days between two dates based on 360-day year
+- [network_days_intl()](#network_days_intl) - Calculates working days between dates with custom weekend definition
+- [networkdays()](#networkdays) - Working days between dates excluding weekends/holidays (NETWORKDAYS)
+- [workday()](#workday) - Returns date after a given number of working days (Mon-Fri)
+- [workday_intl()](#workday_intl) - Returns date after working days with custom weekend definition
+- [year_fraction()](#year_fraction) - Calculates fraction of year between two dates
+- [week_number()](#week_number) - Returns week number of year for a given date
+- [iso_week_number()](#iso_week_number) - Returns ISO 8601 week number for a given date
+- [datedif()](#datedif) - Date difference in Y/M/D/YM/MD/YD units (DATEDIF)
+- [quarters_between_dates()](#quarters_between_dates) - Calculates complete quarters between two dates
+- [add_months()](#add_months) - Shifts a date forward or backward by months
+- [end_of_month_offset()](#end_of_month_offset) - Returns last day of month N months from date
+- [start_of_quarter()](#start_of_quarter) - Returns first day of the quarter for a given date
+- [end_of_quarter()](#end_of_quarter) - Returns last day of the quarter for a given date
+- [next_business_day()](#next_business_day) - Returns next working day (Mon-Fri) after a given date
+- [previous_business_day()](#previous_business_day) - Returns previous working day (Mon-Fri) before a given date
+- [date_range()](#date_range) - Generates list of dates between start and end at regular intervals
+- [easter_date()](#easter_date) - Computes Easter Sunday date for a given year
+- [age()](#age) - Calculates age in complete years from a birth date
+- [overlap_dates()](#overlap_dates) - Checks whether two date ranges overlap
+- [human_readable_duration()](#human_readable_duration) - Seconds to human-readable string (e.g. "2h 30m 15s")
+- [relative_time()](#relative_time) - Human-friendly relative time (e.g. "3 hours ago", en/es)
+- [overlap_days()](#overlap_days) - Count overlapping days between two date ranges
+- [is_same_business_day()](#is_same_business_day) - Check if two datetimes fall on the same business day
+- [snap_to_weekday()](#snap_to_weekday) - Snap date to nearest/next/previous given weekday
+- [relative_time_description()](#relative_time_description) - Returns a human-readable relative time string
+- [round_datetime()](#round_datetime) - Rounds a datetime to the nearest unit
+- [recurring_dates()](#recurring_dates) - Generates recurring dates within a range
+- [business_hours_between()](#business_hours_between) - Calculates business hours between two datetimes
 
 ### Evaluations
 - [is_dateclass()](#is_dateclass) - Checks if object is of datetime type
+- [is_past()](#is_past) - Checks if a date is strictly in the past
+- [is_future()](#is_future) - Checks if a date is strictly in the future
+- [is_today()](#is_today) - Checks if a date falls on today's calendar date
+- [is_same_day()](#is_same_day) - Checks if two dates fall on the same calendar day
+- [is_same_month()](#is_same_month) - Checks if two dates fall in the same month and year
+- [is_same_year()](#is_same_year) - Checks if two dates fall in the same year
+- [is_same_week()](#is_same_week) - Checks if two dates fall in the same ISO week
+- [is_same_quarter()](#is_same_quarter) - Checks if two dates fall in the same quarter
+- [is_business_hours()](#is_business_hours) - Checks if datetime falls within business hours on a weekday
+- [is_iso_long_year()](#is_iso_long_year) - True if the ISO year has 53 weeks
+- [week_year()](#week_year) - ISO week-numbering year (may differ at year boundaries)
 
 ---
 
@@ -146,8 +210,14 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 **A**
 - [add_days_from_now()](#add_days_from_now) - Adds or subtracts days from current date and time
 - [add_microseconds()](#add_microseconds) - Adds or subtracts microseconds to/from datetime
+- [add_months()](#add_months) - Shifts a date forward or backward by months
 - [add_time_to_date()](#add_time_to_date) - Adds or subtracts specified quantity of time to/from date
+- [add_years()](#add_years) - Shifts a date forward or backward by years
 - [ad_format_to_datetime()](#ad_format_to_datetime) - Converts Active Directory format string to Python datetime object
+- [age()](#age) - Calculates age in complete years from a birth date
+
+**B**
+- [business_hours_between()](#business_hours_between) - Calculates business hours between two datetimes
 
 **C**
 - [calculate_days_between_dates()](#calculate_days_between_dates) - Calculates absolute number of days between two dates
@@ -155,25 +225,34 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [current_date()](#current_date) - Gets current local date without time component
 - [current_datetime()](#current_datetime) - Gets current local date and time
 - [current_day()](#current_day) - Gets current day of month (1-31)
+- [current_days_in_month()](#current_days_in_month) - Returns number of days in current month
+- [current_first_day_of_month()](#current_first_day_of_month) - Returns first day of current month at midnight
+- [current_is_leap_year()](#current_is_leap_year) - Checks if current year is a leap year
 - [current_is_weekend()](#current_is_weekend) - Checks if current date is weekend (Saturday/Sunday)
 - [current_is_working_day()](#current_is_working_day) - Checks if current date is working day (Monday-Friday)
 - [current_last_day_of_month()](#current_last_day_of_month) - Gets last day of current month
 - [current_last_friday_of_month()](#current_last_friday_of_month) - Gets last Friday of current month
 - [current_month()](#current_month) - Gets current month (1-12)
+- [current_month_name()](#current_month_name) - Returns name of current month in specified language
 - [current_next_friday()](#current_next_friday) - Gets next Friday after current date
 - [current_previous_friday()](#current_previous_friday) - Gets previous Friday before current date
+- [current_quarter()](#current_quarter) - Returns current quarter of the year (1-4)
+- [current_season()](#current_season) - Returns current season of the year
 - [current_time()](#current_time) - Gets current local time without date component
 - [current_weekday_name()](#current_weekday_name) - Gets name of current weekday in specified language
 - [current_weekday_number()](#current_weekday_number) - Gets current weekday number with European or US convention
+- [current_week_number()](#current_week_number) - Returns current ISO week number (1-53)
 - [current_year()](#current_year) - Gets current year as integer
 
 **D**
 - [date_intervals()](#date_intervals) - Generates list of date intervals for specific granularity
+ - [date_range()](#date_range) - Generates list of dates between start and end at regular intervals
  - [diff_time()](#diff_time) - Whole-unit difference between two dates (supported units)
 - [date_part()](#date_part) - Extracts specific part from date/time, similar to VBA DatePart
 - [date_to_iso_format()](#date_to_iso_format) - Converts datetime object to ISO 8601 formatted string
 - [date_to_julian()](#date_to_julian) - Converts standard date to Julian date representation (day of year)
 - [date_to_string()](#date_to_string) - Converts datetime object into a formatted string
+- [datedif()](#datedif) - Date difference in Y/M/D/YM/MD/YD units (DATEDIF)
 - [dates_between()](#dates_between) - Generates list of all dates between two dates, inclusive
 - [datetime_to_ad_format()](#datetime_to_ad_format) - Converts datetime or date to Active Directory format string
 - [datetime_to_date()](#datetime_to_date) - Converts datetime object to date object, discarding time components
@@ -181,11 +260,14 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [datetime_to_integer()](#datetime_to_integer) - Converts date to integer in YYYYMMDD format, ignoring time
 - [datetime_to_milliseconds_timestamp()](#datetime_to_milliseconds_timestamp) - Converts datetime object to Unix timestamp in milliseconds
 - [datetime_to_timestamp()](#datetime_to_timestamp) - Converts datetime object to Unix timestamp
-- [datetime_to_unix_timestamp()](#datetime_to_unix_timestamp) - Converts datetime object to corresponding UNIX timestamp (float)
+- [date_to_human_short()](#date_to_human_short) - Formats a date as a short human-readable string
 - [days_in_month()](#days_in_month) - Returns number of days in given month and year
 
 **E**
+- [easter_date()](#easter_date) - Computes Easter Sunday date for a given year
 - [end_of_month()](#end_of_month) - Returns last day of month for given date
+- [end_of_month_offset()](#end_of_month_offset) - Returns last day of month N months from date
+- [end_of_quarter()](#end_of_quarter) - Returns last day of the quarter for a given date
 - [end_of_year()](#end_of_year) - Returns last day of year for given date
 
 **F**
@@ -220,13 +302,24 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [get_year_calendar_by_weeks()](#get_year_calendar_by_weeks) - Generates complete list of ISO weeks for year
 
 **I**
+- [integer_to_datetime()](#integer_to_datetime) - Converts YYYYMMDD integer back to datetime object
 - [intersection_of_date_ranges()](#intersection_of_date_ranges) - Returns intersection period if two date ranges overlap
 - [is_between_dates()](#is_between_dates) - Checks if date falls within date range
+- [is_business_hours()](#is_business_hours) - Checks if datetime falls within business hours on a weekday
 - [is_date_type()](#is_date_type) - Checks if object is date type (date, datetime, time)
 - [is_dateclass()](#is_dateclass) - Checks if object is of datetime type
 - [is_duration_greater_than()](#is_duration_greater_than) - Checks if duration between dates is greater than threshold
 - [is_duration_less_than()](#is_duration_less_than) - Checks if duration between dates is less than threshold
+- [is_future()](#is_future) - Checks if a date is strictly in the future
 - [is_leap_year()](#is_leap_year) - Checks if given year is leap year
+- [is_past()](#is_past) - Checks if a date is strictly in the past
+- [is_same_day()](#is_same_day) - Checks if two dates fall on the same calendar day
+- [is_same_month()](#is_same_month) - Checks if two dates fall in the same month and year
+- [is_same_quarter()](#is_same_quarter) - Checks if two dates fall in the same quarter
+- [is_same_week()](#is_same_week) - Checks if two dates fall in the same ISO week
+- [is_same_year()](#is_same_year) - Checks if two dates fall in the same year
+- [is_today()](#is_today) - Checks if a date falls on today's calendar date
+- [iso_week_number()](#iso_week_number) - Returns ISO 8601 week number for a given date
 - [is_valid_date()](#is_valid_date) - Validates if input parameter is valid date
 - [is_valid_time()](#is_valid_time) - Verifies if hour, minute, second, microsecond represent valid time
 - [is_weekend()](#is_weekend) - Determines if date is Saturday or Sunday
@@ -236,7 +329,9 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [julian_to_date()](#julian_to_date) - Converts Julian date (day of year) to standard datetime object
 
 **L**
+- [last_day_of_month()](#last_day_of_month) - Returns last day of the month for a given date
 - [last_day_of_week()](#last_day_of_week) - Calculates last day of week for given date
+- [last_weekday_of_month()](#last_weekday_of_month) - Returns last occurrence of a specific weekday in the month
 - [list_available_timezones()](#list_available_timezones) - Retrieves sorted list of all available IANA timezone names
 
 **M**
@@ -244,14 +339,37 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [month_name()](#month_name) - Gets name of month for given date in language
 - [months_between_dates()](#months_between_dates) - Calculates number of complete months between two dates
 
+**N**
+- [network_days_intl()](#network_days_intl) - Calculates working days between dates with custom weekend definition
+- [networkdays()](#networkdays) - Working days between dates excluding weekends/holidays (NETWORKDAYS)
+- [next_business_day()](#next_business_day) - Returns next working day (Mon-Fri) after a given date
+- [next_weekday()](#next_weekday) - Returns next occurrence of a specific weekday after a given date
+
+**O**
+- [overlap_dates()](#overlap_dates) - Checks whether two date ranges overlap
+- [overlap_days()](#overlap_days) - Count overlapping days between two date ranges
+
 **P**
+- [parse_date_flexible()](#parse_date_flexible) - Parses a date string by trying multiple common formats
 - [parts_to_date()](#parts_to_date) - Creates date object from year, month, day components
 - [parts_to_datetime()](#parts_to_datetime) - Creates datetime object from numeric components
+- [previous_business_day()](#previous_business_day) - Returns previous working day (Mon-Fri) before a given date
+- [previous_weekday()](#previous_weekday) - Returns most recent occurrence of a specific weekday before a given date
+
+**Q**
+- [quarters_between_dates()](#quarters_between_dates) - Calculates complete quarters between two dates
+
+**R**
+- [recurring_dates()](#recurring_dates) - Generates recurring dates within a range
+- [relative_time_description()](#relative_time_description) - Returns a human-readable relative time string
+- [round_datetime()](#round_datetime) - Rounds a datetime to the nearest unit
 
 **S**
+- [seconds_since_midnight()](#seconds_since_midnight) - Returns seconds elapsed since midnight of current day
 - [set_date_component()](#set_date_component) - Returns new datetime with specified components modified
 - [set_microseconds()](#set_microseconds) - Sets microseconds of datetime to specific value
 - [start_of_month()](#start_of_month) - Returns first day of month for given date
+- [start_of_quarter()](#start_of_quarter) - Returns first day of the quarter for a given date
 - [start_of_year()](#start_of_year) - Returns first day of year for given date
 
 **T**
@@ -267,9 +385,15 @@ The fxDate module provides comprehensive date and time manipulation functions fo
 - [utc_to_timezone()](#utc_to_timezone) - Localizes naive datetime or converts aware datetime to target timezone
 
 **W**
+- [week_number()](#week_number) - Returns week number of year for a given date
 - [weekday_name()](#weekday_name) - Gets name of weekday for given date in language
 - [weekday_number()](#weekday_number) - Gets day of week as number for given date
 - [week_of_month()](#week_of_month) - Returns week number of month for given date
+- [workday()](#workday) - Returns date after a given number of working days (Mon-Fri)
+- [workday_intl()](#workday_intl) - Returns date after working days with custom weekend definition
+
+**Y**
+- [year_fraction()](#year_fraction) - Calculates fraction of year between two dates
 
 ---
 
@@ -2153,6 +2277,175 @@ from datetime import datetime
 from formulite.fxDate.date_operations import get_working_days_in_range
 
 # Monday to Friday (5 working days)
+start = datetime(2025, 6, 9)
+end = datetime(2025, 6, 13)
+print(get_working_days_in_range(start, end))  # 5
+```
+
+**Cost:** O(n)
+
+---
+
+### `parse_date_flexible()`
+
+Parses a date string by trying multiple common formats.
+
+**Parameters:**
+- `text` (str): The date string to parse.
+- `dayfirst` (bool): When ambiguous, treat the first number as the day. Defaults to `True`.
+
+**Returns:**
+- `Optional[Union[date, datetime]]`: A `date` or `datetime` object, or `None` if no format matches.
+
+**Example:**
+```python
+from formulite.fxDate.date_convertions import parse_date_flexible
+
+parse_date_flexible("15/01/2026")   # datetime(2026, 1, 15, 0, 0)
+parse_date_flexible("2026-04-04")   # datetime(2026, 4, 4, 0, 0)
+```
+
+**Cost:** O(f) where f is the number of formats tried
+
+---
+
+### `date_to_human_short()`
+
+Formats a date as a short human-readable string.
+
+**Parameters:**
+- `dt_value` (Union[date, datetime]): The date or datetime to format.
+- `language` (str): `"en"` for `"Apr 4, 2026"`, `"es"` for `"4 abr. 2026"`. Defaults to `"en"`.
+
+**Returns:**
+- `str`: A short formatted date string.
+
+**Example:**
+```python
+from datetime import date
+from formulite.fxDate.date_convertions import date_to_human_short
+
+date_to_human_short(date(2026, 4, 4), "en")  # 'Apr 4, 2026'
+date_to_human_short(date(2026, 4, 4), "es")  # '4 abr. 2026'
+```
+
+**Cost:** O(1)
+
+---
+
+### `relative_time_description()`
+
+Returns a human-readable relative time string such as `"2 hours ago"` or `"hace 3 días"`.
+
+**Parameters:**
+- `dt_value` (datetime): The target datetime.
+- `reference` (Optional[datetime]): The baseline datetime (defaults to `datetime.now()`).
+- `language` (str): `"en"` for English, `"es"` for Spanish.
+
+**Returns:**
+- `str`: A human-readable relative time string.
+
+**Raises:**
+- `TypeError`: If `dt_value` is not a datetime.
+
+**Example:**
+```python
+from datetime import datetime, timedelta
+from formulite.fxDate.date_operations import relative_time_description
+
+ref = datetime(2026, 4, 4, 12, 0)
+relative_time_description(ref - timedelta(hours=2), ref)  # '2 hours ago'
+```
+
+**Cost:** O(1)
+
+---
+
+### `round_datetime()`
+
+Rounds a datetime to the nearest unit.
+
+**Parameters:**
+- `dt_value` (datetime): The datetime to round.
+- `unit` (str): `"minute"`, `"hour"` or `"day"`.
+
+**Returns:**
+- `datetime`: The rounded datetime.
+
+**Raises:**
+- `TypeError`: If `dt_value` is not a datetime.
+- `ValueError`: If `unit` is invalid.
+
+**Example:**
+```python
+from datetime import datetime
+from formulite.fxDate.date_operations import round_datetime
+
+round_datetime(datetime(2026, 4, 4, 14, 35), "hour")  # datetime(2026, 4, 4, 15, 0)
+```
+
+**Cost:** O(1)
+
+---
+
+### `recurring_dates()`
+
+Generates recurring dates within a range.
+
+**Parameters:**
+- `start` (date): First date of the range (inclusive).
+- `end` (date): Last date of the range (inclusive).
+- `frequency` (str): One of `"daily"`, `"weekly"`, `"biweekly"`, `"monthly"` or `"yearly"`.
+- `weekday` (Optional[int]): For `"weekly"`/`"biweekly"` — ISO weekday (1=Monday ... 7=Sunday). Defaults to the weekday of `start`.
+
+**Returns:**
+- `List[date]`: A sorted list of dates matching the recurrence rule.
+
+**Raises:**
+- `ValueError`: If `start` > `end` or frequency is invalid.
+
+**Example:**
+```python
+from datetime import date
+from formulite.fxDate.date_operations import recurring_dates
+
+recurring_dates(date(2026, 1, 1), date(2026, 3, 1), "monthly")
+# [date(2026, 1, 1), date(2026, 2, 1), date(2026, 3, 1)]
+```
+
+**Cost:** O(n) where n is the number of occurrences
+
+---
+
+### `business_hours_between()`
+
+Calculates the number of business hours between two datetimes. Counts only Mon–Fri hours within the `[work_start, work_end)` window.
+
+**Parameters:**
+- `start_dt` (datetime): Start datetime.
+- `end_dt` (datetime): End datetime.
+- `work_start` (time): Daily work-start time (default 09:00).
+- `work_end` (time): Daily work-end time (default 17:00).
+
+**Returns:**
+- `float`: Total business hours.
+
+**Raises:**
+- `ValueError`: If `start_dt` > `end_dt` or `work_start` >= `work_end`.
+
+**Example:**
+```python
+from datetime import datetime
+from formulite.fxDate.date_operations import business_hours_between
+
+business_hours_between(
+    datetime(2026, 4, 6, 10, 0),
+    datetime(2026, 4, 6, 15, 30))  # 5.5
+```
+
+**Cost:** O(d) where d is the number of calendar days spanned
+
+# Monday to Friday (5 working days)
 print(get_working_days_in_range(datetime(2025, 6, 9), datetime(2025, 6, 13)))  # 5
 
 # With holidays
@@ -2803,29 +3096,6 @@ Functions with the `excel_` prefix or names like `DIAS`, `FECHA_MES`, etc., are 
 
 ---
 
-### `datetime_to_unix_timestamp()`
-
-Converts a datetime object to its corresponding UNIX timestamp (float).
-
-**Parameters:**
-- `dt` (datetime): The datetime object to convert.
-
-**Returns:**
-- `float`: The UNIX timestamp as a floating-point number.
-
-**Example:**
-```python
-from datetime import datetime, timezone
-from formulite.fxDate.date_convertions import datetime_to_unix_timestamp
-
-dt_utc = datetime(2025, 6, 11, 10, 27, 5, 0, tzinfo=timezone.utc)
-datetime_to_unix_timestamp(dt_utc)  # 1718092025.0
-```
-
-**Cost:** O(1)
-
----
-
 ### `unix_timestamp_to_datetime()`
 
 Converts a UNIX timestamp (seconds since the Epoch) to a datetime object.
@@ -2848,3 +3118,1178 @@ unix_timestamp_to_datetime(1718092025.0, tz_info='UTC')
 **Cost:** O(1)
 
 ---
+
+### `days_360()`
+
+Calculates days between two dates based on a 360-day year (12 months of 30 days). Commonly used in financial calculations such as bond pricing and interest accrual.
+
+**Parameters:**
+- `start_date` (datetime): The start date.
+- `end_date` (datetime): The end date.
+- `method` (str, optional): Calculation method — `'us'` for US/NASD or `'eu'` for European. Defaults to `'us'`.
+
+**Returns:**
+- `int`: Number of days based on the 360-day year convention.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import days_360
+
+days_360(datetime(2025, 1, 1), datetime(2025, 7, 1))   # 180
+days_360(datetime(2025, 1, 30), datetime(2025, 2, 28))  # 28
+days_360(datetime(2025, 1, 31), datetime(2025, 2, 28), method='eu')  # 28
+```
+
+**Cost:** O(1)
+
+---
+
+### `network_days_intl()`
+
+Calculates working days between two dates with a custom weekend definition. Extension of `get_working_days_in_range` that allows specifying which days are considered weekends.
+
+**Parameters:**
+- `start_date` (datetime): The start date (inclusive).
+- `end_date` (datetime): The end date (inclusive).
+- `weekend` (Union[int, str], optional): Weekend definition. Integer presets: 1 = Sat-Sun (default), 2 = Sun-Mon, 3 = Mon-Tue, 4 = Tue-Wed, 5 = Wed-Thu, 6 = Thu-Fri, 7 = Fri-Sat. Or a 7-char string of `'0'`/`'1'` (Mon-Sun), where `'1'` = weekend day.
+- `holidays` (Optional[List[datetime]], optional): List of holiday dates to exclude.
+
+**Returns:**
+- `int`: Number of working days.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import network_days_intl
+
+network_days_intl(datetime(2025, 1, 6), datetime(2025, 1, 10))              # 5
+network_days_intl(datetime(2025, 1, 6), datetime(2025, 1, 10), weekend=2)   # 4 (Sun-Mon off)
+network_days_intl(datetime(2025, 1, 6), datetime(2025, 1, 12), weekend='0000011')  # 5
+```
+
+**Cost:** O(n) where n is the number of days in the range
+
+---
+
+### `workday()`
+
+Returns the date after a given number of working days (Monday-Friday), skipping weekends and optional holidays. The start date itself is not counted.
+
+**Parameters:**
+- `start_date` (datetime): The starting date.
+- `days` (int): Number of working days to advance (positive) or go back (negative).
+- `holidays` (Optional[List[datetime]], optional): List of holiday dates to skip.
+
+**Returns:**
+- `datetime`: The resulting date.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import workday
+
+workday(datetime(2025, 1, 6), 5)   # datetime(2025, 1, 13) — Mon + 5 working days
+workday(datetime(2025, 1, 6), -1)  # datetime(2025, 1, 3)  — previous Friday
+```
+
+**Cost:** O(n) where n is abs(days)
+
+---
+
+### `workday_intl()`
+
+Returns the date after a given number of working days with a custom weekend definition.
+
+**Parameters:**
+- `start_date` (datetime): The starting date.
+- `days` (int): Number of working days to advance (positive) or go back (negative).
+- `weekend` (Union[int, str], optional): Weekend definition (see `network_days_intl` for details). Defaults to 1 (Sat-Sun).
+- `holidays` (Optional[List[datetime]], optional): List of holiday dates to skip.
+
+**Returns:**
+- `datetime`: The resulting date.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import workday_intl
+
+workday_intl(datetime(2025, 1, 6), 5, weekend=2)  # datetime(2025, 1, 11) — Sun-Mon off
+```
+
+**Cost:** O(n) where n is abs(days)
+
+---
+
+### `year_fraction()`
+
+Calculates the fraction of year between two dates. Useful for financial calculations such as bond accrued interest or prorated payments.
+
+**Parameters:**
+- `start_date` (datetime): The start date.
+- `end_date` (datetime): The end date.
+- `basis` (int, optional): Day-count basis. `0` = US 30/360 (default), `1` = Actual/Actual.
+
+**Returns:**
+- `float`: Fraction of the year between the dates.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import year_fraction
+
+year_fraction(datetime(2025, 1, 1), datetime(2025, 7, 1), basis=0)  # 0.5
+year_fraction(datetime(2025, 1, 1), datetime(2025, 7, 1), basis=1)  # ~0.4959
+```
+
+**Cost:** O(1)
+
+---
+
+### `week_number()`
+
+Returns the week number of the year for a given date.
+
+**Parameters:**
+- `date_input` (datetime): The date to evaluate.
+- `system` (int, optional): `1` = week begins on Sunday (default), `21` = ISO week number.
+
+**Returns:**
+- `int`: Week number (1-53).
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import week_number
+
+week_number(datetime(2025, 1, 1))             # 1
+week_number(datetime(2025, 1, 1), system=21)  # 1 (ISO)
+```
+
+**Cost:** O(1)
+
+---
+
+### `iso_week_number()`
+
+Returns the ISO 8601 week number for a given date. Week 1 is the week containing the first Thursday of the year.
+
+**Parameters:**
+- `date_input` (datetime): The date to evaluate.
+
+**Returns:**
+- `int`: ISO week number (1-53).
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import iso_week_number
+
+iso_week_number(datetime(2025, 1, 1))   # 1
+iso_week_number(datetime(2025, 6, 15))  # 24
+```
+
+**Cost:** O(1)
+
+---
+
+### `quarters_between_dates()`
+
+Calculates the number of complete quarters between two dates.
+
+**Parameters:**
+- `start_date` (datetime): The start date.
+- `end_date` (datetime): The end date.
+
+**Returns:**
+- `int`: Number of quarters (positive if end > start, negative otherwise).
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import quarters_between_dates
+
+quarters_between_dates(datetime(2025, 1, 1), datetime(2025, 10, 1))   # 3
+quarters_between_dates(datetime(2025, 1, 15), datetime(2025, 4, 14))  # 0
+```
+
+**Cost:** O(1)
+
+---
+
+### `seconds_since_midnight()`
+
+Returns the number of seconds elapsed since midnight of the current day. Equivalent to VBA's `Timer` function.
+
+**Parameters:**
+- None.
+
+**Returns:**
+- `float`: Seconds (with fractional microseconds) since 00:00:00 today.
+
+**Example:**
+```python
+from formulite.fxDate.date_sys import seconds_since_midnight
+
+secs = seconds_since_midnight()
+print(secs)  # e.g. 52200.5
+```
+
+**Cost:** O(1)
+
+---
+
+### `add_months()`
+
+Shifts a date forward or backward by a given number of months. Preserves the day-of-month when possible; clamps to the last day of the target month if it has fewer days.
+
+**Parameters:**
+- `date_input` (datetime): The starting date.
+- `months` (int): Number of months to add (positive) or subtract (negative).
+
+**Returns:**
+- `datetime`: The resulting date with time components preserved.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import add_months
+
+add_months(datetime(2025, 1, 31), 1)   # datetime(2025, 2, 28) — clamped
+add_months(datetime(2025, 3, 15), -1)  # datetime(2025, 2, 15)
+add_months(datetime(2024, 1, 31), 1)   # datetime(2024, 2, 29) — leap year
+```
+
+**Cost:** O(1)
+
+---
+
+### `end_of_month_offset()`
+
+Returns the last day of the month that is N months from the reference date. Useful for calculating payment due dates, contract expirations, or any scenario requiring the last calendar day of a future/past month.
+
+**Parameters:**
+- `date_input` (datetime): The reference date.
+- `months` (int): Number of months to offset (positive = forward, negative = back).
+
+**Returns:**
+- `datetime`: A datetime set to the last day of the target month at 23:59:59.999999.
+
+**Example:**
+```python
+from formulite.fxDate.date_operations import end_of_month_offset
+
+end_of_month_offset(datetime(2025, 1, 15), 0)   # datetime(2025, 1, 31, 23, 59, 59, 999999)
+end_of_month_offset(datetime(2025, 1, 15), 1)   # datetime(2025, 2, 28, 23, 59, 59, 999999)
+end_of_month_offset(datetime(2024, 1, 15), 1)   # datetime(2024, 2, 29, 23, 59, 59, 999999)
+end_of_month_offset(datetime(2025, 3, 10), -1)  # datetime(2025, 2, 28, 23, 59, 59, 999999)
+```
+
+**Cost:** O(1)
+
+---
+
+### `add_years()`
+
+Shifts a date forward or backward by a given number of years.
+
+**Parameters:**
+- date_input: The starting datetime.
+- years: Number of years to add (positive) or subtract (negative).
+
+**Returns:**
+- datetime: The resulting date with time components preserved.
+
+**Raises:**
+- TypeError: If *date_input* is not a datetime or *years* is not an int.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import add_years
+
+result = add_years(...)
+```
+
+---
+
+### `age()`
+
+Calculates the age in complete years from a birth date to today.
+
+**Parameters:**
+- birthdate: A date, datetime, or parseable date string.
+
+**Returns:**
+- The number of complete years elapsed.
+
+**Raises:**
+- TypeError: If birthdate cannot be interpreted as a date.
+- ValueError: If birthdate is in the future.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import age
+
+result = age(...)
+```
+
+---
+
+### `current_first_day_of_month()`
+
+Returns the first day of the current month at midnight.
+
+**Returns:**
+- datetime: First day of the current month at 00:00:00.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_first_day_of_month
+
+result = current_first_day_of_month(...)
+```
+
+---
+
+### `current_is_leap_year()`
+
+Checks if the current year is a leap year.
+
+**Returns:**
+- bool: True if the current year is a leap year, False otherwise.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_is_leap_year
+
+result = current_is_leap_year(...)
+```
+
+---
+
+### `current_quarter()`
+
+Returns the current quarter of the year (1-4).
+
+**Returns:**
+- int: Quarter number (1 for Jan-Mar, 4 for Oct-Dec).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_quarter
+
+result = current_quarter(...)
+```
+
+---
+
+### `current_season()`
+
+Returns the current season of the year.
+
+**Parameters:**
+- hemisphere: ``'northern'`` or ``'southern'``. Defaults to ``'northern'``.
+- lang: Two-letter ISO 639-1 language code. Defaults to ``'en'``.
+
+**Returns:**
+- str: Season name (e.g. ``'Spring'``, ``'Primavera'``).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_season
+
+result = current_season(...)
+```
+
+---
+
+### `current_week_number()`
+
+Returns the current ISO week number (1-53).
+
+**Returns:**
+- int: ISO 8601 week number.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_week_number
+
+result = current_week_number(...)
+```
+
+---
+
+### `date_range()`
+
+Generates a list of dates between *start* and *end* at regular intervals.
+
+**Parameters:**
+- start: Start date (inclusive). Accepts datetime, date, or ISO string.
+- end: End date (inclusive). Accepts datetime, date, or ISO string.
+- step: Number of *unit* between each generated date. Must be positive.
+- unit: Time unit for the step. Supported: 'days', 'weeks', 'hours',
+- 'minutes', 'seconds'.
+
+**Returns:**
+- List of datetime objects from *start* up to (and including) *end*.
+
+**Raises:**
+- TypeError: If inputs cannot be converted to datetime.
+- ValueError: If *step* < 1 or *unit* is unsupported.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import date_range
+
+result = date_range(...)
+```
+
+---
+
+### `date_to_excel_serial()`
+
+Convert a Python date to an Excel serial date number.
+
+**Parameters:**
+- date_input: Date or datetime to convert.
+
+**Returns:**
+- Excel serial day number.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_convertions import date_to_excel_serial
+
+result = date_to_excel_serial(...)
+```
+
+---
+
+### `datedif()`
+
+Calculates the difference between two dates in specified units.
+
+**Parameters:**
+- start_date: The earlier date.
+- end_date: The later date.
+- unit: One of "Y", "M", "D", "YM", "MD", "YD".
+
+**Returns:**
+- int: The difference in the requested unit.
+
+**Raises:**
+- TypeError: If dates are not date/datetime objects.
+- ValueError: If start_date > end_date or unit is invalid.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import datedif
+
+result = datedif(...)
+```
+
+---
+
+### `datetime_to_cron()`
+
+Convert a datetime to a cron schedule expression.
+
+**Parameters:**
+- dt_input: Datetime (or date, which defaults to midnight).
+
+**Returns:**
+- Cron expression string ``"minute hour day month *"``.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_convertions import datetime_to_cron
+
+result = datetime_to_cron(...)
+```
+
+---
+
+### `datetime_to_rfc2822()`
+
+Format a datetime as an RFC 2822 string (email header format).
+
+**Parameters:**
+- dt_input: Datetime or date to format.
+
+**Returns:**
+- RFC 2822 formatted string (e.g. ``"Sun, 15 Jun 2025 14:30:00 +0000"``).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_convertions import datetime_to_rfc2822
+
+result = datetime_to_rfc2822(...)
+```
+
+---
+
+### `easter_date()`
+
+Computes the date of Easter Sunday for a given year.
+
+**Parameters:**
+- year: The calendar year (e.g. 2025).
+
+**Returns:**
+- A ``date`` object for Easter Sunday.
+
+**Raises:**
+- TypeError: If *year* is not an integer.
+- ValueError: If *year* < 1.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import easter_date
+
+result = easter_date(...)
+```
+
+---
+
+### `end_of_quarter()`
+
+Returns the last day of the quarter for a given date.
+
+**Parameters:**
+- date_input: The date for which to get the end of the quarter.
+- input_format: Format string if date_input is a string.
+
+**Returns:**
+- datetime: Last day of the quarter at 23:59:59.999999.
+
+**Raises:**
+- TypeError: If date_input is not a datetime or string.
+- ValueError: If date_input is a string and input_format is not provided.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import end_of_quarter
+
+result = end_of_quarter(...)
+```
+
+---
+
+### `excel_serial_to_date()`
+
+Convert an Excel serial date number to a Python date.
+
+**Parameters:**
+- serial: Excel serial day number (>= 1).
+
+**Returns:**
+- Corresponding Python date object.
+
+**Raises:**
+- ValueError: If serial < 1 or serial == 60 (non-existent Feb 29 1900).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_convertions import excel_serial_to_date
+
+result = excel_serial_to_date(...)
+```
+
+---
+
+### `human_readable_duration()`
+
+Format a number of seconds as a human-readable duration string.
+
+**Parameters:**
+- seconds: Total seconds (can be float for sub-second precision).
+
+**Returns:**
+- Human-readable duration string.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import human_readable_duration
+
+result = human_readable_duration(...)
+```
+
+---
+
+### `integer_to_datetime()`
+
+Converts a YYYYMMDD integer back to a datetime object.
+
+**Parameters:**
+- yyyymmdd: Date encoded as integer (e.g. 20260103 → 2026-01-03).
+
+**Returns:**
+- datetime: The parsed date at 00:00:00.
+
+**Raises:**
+- TypeError: If *yyyymmdd* is not an integer.
+- ValueError: If the integer does not represent a valid date.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_convertions import integer_to_datetime
+
+result = integer_to_datetime(...)
+```
+
+---
+
+### `is_business_hours()`
+
+Checks if a datetime falls within business hours on a weekday.
+
+**Parameters:**
+- dt: The datetime to evaluate.
+- start_hour: Opening hour in 24-h format (default 9).
+- end_hour: Closing hour in 24-h format (default 17).
+
+**Returns:**
+- True if dt is within business hours, False otherwise.
+
+**Raises:**
+- TypeError: If dt is not a datetime object.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_business_hours
+
+result = is_business_hours(...)
+```
+
+---
+
+### `is_future()`
+
+Checks if a date is strictly in the future.
+
+**Parameters:**
+- date_input: The date or datetime to evaluate.
+
+**Returns:**
+- bool: True if the date is in the future, False otherwise.
+
+**Raises:**
+- TypeError: If *date_input* is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_future
+
+result = is_future(...)
+```
+
+---
+
+### `is_past()`
+
+Checks if a date is strictly in the past.
+
+**Parameters:**
+- date_input: The date or datetime to evaluate.
+
+**Returns:**
+- bool: True if the date is in the past, False otherwise.
+
+**Raises:**
+- TypeError: If *date_input* is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_past
+
+result = is_past(...)
+```
+
+---
+
+### `is_same_business_day()`
+
+Check whether two dates fall on the same business day.
+
+**Parameters:**
+- date1: First date.
+- date2: Second date.
+- holidays: Optional list of holiday dates.
+
+**Returns:**
+- True if both dates share the same business day.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import is_same_business_day
+
+result = is_same_business_day(...)
+```
+
+---
+
+### `is_same_day()`
+
+Checks if two dates fall on the same calendar day.
+
+**Parameters:**
+- date1: First date or datetime.
+- date2: Second date or datetime.
+
+**Returns:**
+- bool: True if both dates share the same year, month, and day.
+
+**Raises:**
+- TypeError: If either argument is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_same_day
+
+result = is_same_day(...)
+```
+
+---
+
+### `is_same_month()`
+
+Checks if two dates fall in the same month and year.
+
+**Parameters:**
+- date1: First date or datetime.
+- date2: Second date or datetime.
+
+**Returns:**
+- bool: True if both dates share the same year and month.
+
+**Raises:**
+- TypeError: If either argument is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_same_month
+
+result = is_same_month(...)
+```
+
+---
+
+### `is_same_quarter()`
+
+Checks if two dates fall in the same quarter and year.
+
+**Parameters:**
+- date1: First date or datetime.
+- date2: Second date or datetime.
+
+**Returns:**
+- bool: True if both dates share the same year and quarter (Q1-Q4).
+
+**Raises:**
+- TypeError: If either argument is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_same_quarter
+
+result = is_same_quarter(...)
+```
+
+---
+
+### `is_same_week()`
+
+Checks if two dates fall in the same ISO week and year.
+
+**Parameters:**
+- date1: First date or datetime.
+- date2: Second date or datetime.
+
+**Returns:**
+- bool: True if both dates share the same ISO year and week number.
+
+**Raises:**
+- TypeError: If either argument is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_same_week
+
+result = is_same_week(...)
+```
+
+---
+
+### `is_same_year()`
+
+Checks if two dates fall in the same year.
+
+**Parameters:**
+- date1: First date or datetime.
+- date2: Second date or datetime.
+
+**Returns:**
+- bool: True if both dates share the same year.
+
+**Raises:**
+- TypeError: If either argument is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_same_year
+
+result = is_same_year(...)
+```
+
+---
+
+### `is_today()`
+
+Checks if a date falls on today's calendar date.
+
+**Parameters:**
+- date_input: The date or datetime to evaluate.
+
+**Returns:**
+- bool: True if the date is today, False otherwise.
+
+**Raises:**
+- TypeError: If *date_input* is not a date or datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_evaluations import is_today
+
+result = is_today(...)
+```
+
+---
+
+### `last_day_of_month()`
+
+Returns the last day of the month for a given date.
+
+**Parameters:**
+- date_input: A datetime object or date string.
+- input_format: Format string when *date_input* is a string.
+
+**Returns:**
+- datetime: Last day of the month at end-of-day (23:59:59.999999).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import last_day_of_month
+
+result = last_day_of_month(...)
+```
+
+---
+
+### `last_weekday_of_month()`
+
+Returns the last occurrence of a specific weekday in the month of a given date.
+
+**Parameters:**
+- date_input: Any date within the target month.
+- target_weekday: Weekday as integer (0=Monday … 6=Sunday).
+
+**Returns:**
+- datetime: The last matching weekday of the month at midnight.
+
+**Raises:**
+- TypeError: If *date_input* is not a datetime object.
+- ValueError: If *target_weekday* is not in 0‑6.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import last_weekday_of_month
+
+result = last_weekday_of_month(...)
+```
+
+---
+
+### `networkdays()`
+
+Counts working days (Mon-Fri) between two dates, excluding holidays.
+
+**Parameters:**
+- start_date: The start date.
+- end_date: The end date.
+- holidays: Optional list of holiday dates to exclude.
+
+**Returns:**
+- int: Number of working days.
+
+**Raises:**
+- TypeError: If dates are not date/datetime objects.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import networkdays
+
+result = networkdays(...)
+```
+
+---
+
+### `next_business_day()`
+
+Returns the next business day (Mon-Fri) after the given date.
+
+**Parameters:**
+- date_input: The reference date.
+- holidays: Optional list of holiday datetimes to skip.
+
+**Returns:**
+- datetime: The next working day.
+
+**Raises:**
+- TypeError: If date_input is not a datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import next_business_day
+
+result = next_business_day(...)
+```
+
+---
+
+### `next_weekday()`
+
+Returns the next occurrence of a specific weekday after a given date.
+
+**Parameters:**
+- date_input: The starting date.
+- target_weekday: Weekday as integer (0=Monday … 6=Sunday). Constants
+- from the ``calendar`` module (e.g. ``calendar.FRIDAY``)
+- are accepted.
+
+**Returns:**
+- datetime: The next occurrence at midnight.
+
+**Raises:**
+- TypeError: If *date_input* is not a datetime object.
+- ValueError: If *target_weekday* is not in 0‑6.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import next_weekday
+
+result = next_weekday(...)
+```
+
+---
+
+### `overlap_dates()`
+
+Checks whether two date ranges overlap.
+
+**Parameters:**
+- start1: Start of the first range.
+- end1: End of the first range.
+- start2: Start of the second range.
+- end2: End of the second range.
+
+**Returns:**
+- True if the ranges share at least one common day.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import overlap_dates
+
+result = overlap_dates(...)
+```
+
+---
+
+### `overlap_days()`
+
+Counts the overlapping days between two date ranges.
+
+**Parameters:**
+- start1: Start of the first range.
+- end1: End of the first range.
+- start2: Start of the second range.
+- end2: End of the second range.
+
+**Returns:**
+- Number of overlapping days (0 if no overlap).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import overlap_days
+
+result = overlap_days(...)
+```
+
+---
+
+### `previous_business_day()`
+
+Returns the previous business day (Mon-Fri) before the given date.
+
+**Parameters:**
+- date_input: The reference date.
+- holidays: Optional list of holiday datetimes to skip.
+
+**Returns:**
+- datetime: The previous working day.
+
+**Raises:**
+- TypeError: If date_input is not a datetime.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import previous_business_day
+
+result = previous_business_day(...)
+```
+
+---
+
+### `previous_weekday()`
+
+Returns the most recent occurrence of a specific weekday before a given date.
+
+**Parameters:**
+- date_input: The starting date.
+- target_weekday: Weekday as integer (0=Monday … 6=Sunday).
+
+**Returns:**
+- datetime: The previous (or current) occurrence at midnight.
+
+**Raises:**
+- TypeError: If *date_input* is not a datetime object.
+- ValueError: If *target_weekday* is not in 0‑6.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import previous_weekday
+
+result = previous_weekday(...)
+```
+
+---
+
+### `rfc2822_to_datetime()`
+
+Parse an RFC 2822 date string to a datetime object.
+
+**Parameters:**
+- text: RFC 2822 formatted date string.
+
+**Returns:**
+- Timezone-aware datetime.
+
+**Raises:**
+- ValueError: If the string cannot be parsed.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_convertions import rfc2822_to_datetime
+
+result = rfc2822_to_datetime(...)
+```
+
+---
+
+### `snap_to_weekday()`
+
+Snap a date to the nearest specified weekday.
+
+**Parameters:**
+- date_input: Starting date.
+- target_weekday: Target weekday (0=Monday … 6=Sunday).
+- direction: ``'next'`` to move forward or ``'previous'`` to move backward.
+- If date_input is already on the target weekday, returns as-is.
+
+**Returns:**
+- Date snapped to the target weekday (same type as input).
+
+**Raises:**
+- ValueError: If target_weekday is not in [0, 6] or direction is invalid.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import snap_to_weekday
+
+result = snap_to_weekday(...)
+```
+
+---
+
+### `start_of_quarter()`
+
+Returns the first day of the quarter for a given date.
+
+**Parameters:**
+- date_input: The date for which to get the start of the quarter.
+- input_format: Format string if date_input is a string.
+
+**Returns:**
+- datetime: First day of the quarter at midnight.
+
+**Raises:**
+- TypeError: If date_input is not a datetime or string.
+- ValueError: If date_input is a string and input_format is not provided.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import start_of_quarter
+
+result = start_of_quarter(...)
+```
+
+---
+
+
+### `current_month_name()`
+
+Returns the name of the current month in the specified language.
+
+**Parameters:**
+- language: Two-letter ISO 639-1 language code. Defaults to ``'en'``.
+
+**Returns:**
+- str: Full month name (e.g. ``'January'``, ``'Enero'``).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_month_name
+
+result = current_month_name(...)
+```
+
+---
+
+### `current_days_in_month()`
+
+Returns the number of days in the current month.
+
+**Returns:**
+- int: Number of days in the current month (28-31).
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_sys import current_days_in_month
+
+result = current_days_in_month(...)
+```
+
+---
+
+### `relative_time()`
+
+Describe a datetime relative to a reference point.
+
+**Parameters:**
+- dt_input: Target date/datetime.
+- reference: Reference point (defaults to now).
+- lang: Language code (``'en'`` or ``'es'``). Defaults to ``'en'``.
+
+**Returns:**
+- Human-readable relative time string.
+
+**Ejemplo:**
+```python
+from formulite.fxDate.date_operations import relative_time
+
+result = relative_time(...)
+```
+
+---
+

@@ -14,7 +14,7 @@ ensuring safe and predictable behavior in data processing pipelines.
 """
 
 from datetime import datetime as dt, date
-from typing import Any, List, Optional
+from typing import Any, Optional
 import re
 import json
 
@@ -396,226 +396,18 @@ def string_to_datetime(input_value: str | date | dt) -> dt | None:
     Cost:
         O(N * M), where N is the number of formats and M is the length of the input string.
     """
-    if input_value is None:
+    result = string_to_date(input_value)
+
+    if result is None:
         return None
 
-    if isinstance(input_value, dt):
-        return input_value
+    if isinstance(result, dt):
+        return result
 
-    if isinstance(input_value, date):
-        # Convert date to datetime at midnight
-        return dt(input_value.year, input_value.month, input_value.day)
-
-    if not isinstance(input_value, str) or not input_value.strip():
-        return None
-
-    POSSIBLE_DATETIME_FORMATS = [
-        "%Y-%m-%dT%H:%M:%S",      # ISO 8601 with 'T'
-        "%Y-%m-%d %H:%M:%S",      # Common format
-        "%d/%m/%Y %H:%M:%S",      # European format
-        "%d-%m-%Y %H:%M:%S",
-        "%Y/%m/%d %H:%M:%S",
-        "%Y%m%d%H%M%S",
-        "%Y-%m-%d",               # Date only
-        "%d/%m/%Y",
-        "%d-%m-%Y",
-        "%Y/%m/%d"
-    ]
-
-    for fmt in POSSIBLE_DATETIME_FORMATS:
-        try:
-            parsed = dt.strptime(input_value, fmt)
-            return parsed
-        except ValueError:
-            continue
+    if isinstance(result, date):
+        return dt(result.year, result.month, result.day)
 
     return None
-
-
-# --- Splits ---    
-
-def split_all(input_string: str, delimiter_pattern: str = r'[.\-_\s,/():;\'"\\]+') -> list:
-    """
-    Splits a string by an expanded set of common delimiters and removes any empty strings from the result.
-
-    The default pattern now includes: periods, hyphens, underscores, whitespace,
-    commas, slashes, parentheses, colons, semicolons, single quotes, double quotes,
-    and backslashes. It also handles multiple consecutive delimiters.
-
-    Args:
-        input_string (str): The string to be split.
-        delimiter_pattern (str): The regular expression pattern to use as a delimiter.
-                                 Defaults to '[.\-_\s,/():;\'"\\]+'.
-
-    Returns:
-        list: A list of non-empty strings resulting from the split operation.
-
-    Raises:
-        TypeError: If 'input_string' is not a string.
-
-    Example:
-        >>> split_all("hello-world_123/test")
-        ['hello', 'world', '123', 'test']
-    """
-    if not isinstance(input_string, str):
-        raise TypeError("Input 'input_string' must be a string.")
-
-    # Split the string using the regular expression pattern and filter out empty strings
-    # The 're.split' function can produce empty strings when delimiters are at the start/end
-    # of the string or when multiple delimiters appear consecutively.
-    # The list comprehension efficiently filters these out.
-    return [part for part in re.split(delimiter_pattern, input_string) if part]
-
-    # **Cost:** O(n), where n is the length of the input string
-
-
-def split_by_substrings(input_string: str, separators: list[str]) -> list[str]:
-    """
-    Splits a string by a list of substrings (separators), preserving the separators
-    and handling the initial segment before the first separator.
-
-    This function is designed to split a string such that each resulting part
-    (except possibly the very first one) starts with one of the specified separators,
-    followed by the text until the next separator or the end of the string.
-    The segment before the first separator, if any, is included as the initial element.
-
-    Args:
-        input_string (str): The string to be split.
-        separators (list[str]): A list of strings to use as separators.
-
-    Returns:
-        list[str]: A list of strings, where each string represents a segment
-                   of the original string. The first segment may not start
-                   with a separator, but subsequent segments will.
-
-    Raises:
-        TypeError: If 'input_string' is not a string or 'separators' is not a list.
-        ValueError: If 'separators' is an empty list or contains non-string elements.
-
-    Example:
-        >>> split_by_substrings("Name: John Doe; Age: 30, City: New York", [":", ";", ","])
-        ['Name:', ' John Doe;', ' Age:', ' 30,', ' City:', ' New York']
-
-        >>> split_by_substrings("First.Second-Third", [".", "-"])
-        ['First', '.Second', '-Third']
-
-        >>> split_by_substrings("No Separators Here", ["X"])
-        ['No Separators Here']
-
-        >>> split_by_substrings(":Starts with separator; End", [":", ";"])
-        [':', 'Starts with separator;', ' End']
-    """
-    if not isinstance(input_string, str):
-        raise TypeError("Input 'input_string' must be a string.")
-    if not isinstance(separators, list):
-        raise TypeError("Input 'separators' must be a list of strings.")
-    if not separators:
-        raise ValueError("The 'separators' list cannot be empty.")
-    if not all(isinstance(sep, str) for sep in separators):
-        raise ValueError("All elements in 'separators' must be strings.")
-
-    # Escape special regular expression characters in separators.
-    # This ensures that characters like '.', '?', '*', '+' are treated as literal characters.
-    escaped_separators = [re.escape(s) for s in separators]
-
-    # Create a regular expression pattern that matches any of the escaped separators.
-    # We use a non-capturing group (?:...) for the union of separators.
-    separator_pattern = '|'.join(escaped_separators)
-
-    # Use re.split with a capturing group around the separator pattern.
-    # This ensures that the separators themselves are included in the split result.
-    # Example: re.split('(,|;)', "a,b;c") -> ['a', ',', 'b', ';', 'c']
-    parts_with_separators = re.split(f"({separator_pattern})", input_string)
-
-    # Initialize the list of final segments.
-    result_segments = []
-    current_segment = []
-
-    # Iterate through the parts and reconstruct the segments.
-    # The split result will alternate between content and separator (if a separator was matched).
-    for i, part in enumerate(parts_with_separators):
-        if part:  # Only process non-empty parts
-            # Check if the current part is one of our separators.
-            # We re-escape and join the original separators for accurate checking.
-            if re.fullmatch(f"(?:{separator_pattern})", part):
-                # If it's a separator and we have accumulated a segment, add it to results.
-                if current_segment:
-                    result_segments.append("".join(current_segment))
-                    current_segment = []
-                # Add the separator itself to the current segment.
-                current_segment.append(part)
-            else:
-                # If it's not a separator, add it to the current segment.
-                current_segment.append(part)
-
-    # Add any remaining accumulated segment.
-    if current_segment:
-        result_segments.append("".join(current_segment))
-
-    return result_segments
-
-    # **Cost:** O(n + m * k), where n is the string length, m is the number of separators, and k is the number of segments
-
-
-def split_limited(input_string: str, limit: int) -> list[str]:
-    """
-    Splits a string by whitespace into a list of words, with an optional limit
-    on the number of initial words.
-
-    If the total number of words in the string exceeds the specified limit,
-    the function returns a list containing the first 'limit' words, and all
-    remaining words are joined back into a single string as the last element
-    of the list. If the string has fewer words than the limit, all words are
-    returned individually.
-
-    Args:
-        input_string (str): The string to be split.
-        limit (int): The maximum number of initial words to return individually.
-                     Must be a non-negative integer.
-
-    Returns:
-        list[str]: A list of strings, where the last element might contain
-                   multiple words if the original string exceeded the limit.
-
-    Raises:
-        TypeError: If 'input_string' is not a string or 'limit' is not an integer.
-        ValueError: If 'limit' is a negative integer.
-
-    Example:
-        >>> split_limited("This is a test of the split function", 3)
-        ['This', 'is', 'a', 'test of the split function']
-
-        >>> split_limited("Hello world", 5)
-        ['Hello', 'world']
-
-        >>> split_limited("SingleWord", 1)
-        ['SingleWord']
-
-        >>> split_limited("", 2)
-        ['']
-    """
-    if not isinstance(input_string, str):
-        raise TypeError("Input 'input_string' must be a string.")
-    if not isinstance(limit, int):
-        raise TypeError("Input 'limit' must be an integer.")
-    if limit < 0:
-        raise ValueError("Input 'limit' cannot be negative.")
-
-    # Split the input string by whitespace.
-    # This creates a list of words from the string.
-    words = input_string.split()
-
-    # If the number of words is less than or equal to the limit,
-    # return all words as individual elements.
-    if len(words) <= limit:
-        return words
-    else:
-        # If the number of words exceeds the limit,
-        # take the first 'limit' words and join the rest back into a single string.
-        # This creates the desired output where excess words are grouped.
-        return words[:limit] + [" ".join(words[limit:])]
-
-    # **Cost:** O(n), where n is the length of the input string
 
 
 def extract_and_decode_json(text_content: str) -> Optional[dict]:
@@ -674,10 +466,7 @@ def extract_and_decode_json(text_content: str) -> Optional[dict]:
             # Attempt to parse the cleaned JSON string into a Python dictionary.
             decoded_json = json.loads(json_string)
             return decoded_json
-        except json.JSONDecodeError as e:
-            # Catch JSON-specific decoding errors and print a user-friendly
-            # message, then return None to indicate failure.
-            print(f"JSON decoding error: {e}")
+        except json.JSONDecodeError:
             return None
     
     # If the regex pattern doesn't find a match in the input string,
@@ -686,3 +475,934 @@ def extract_and_decode_json(text_content: str) -> Optional[dict]:
 
     # **Cost:** O(n), where n is the length of the text content, due to regex search
 
+
+def string_to_boolean(text: str) -> Optional[bool]:
+    """Converts a string representation to a boolean value.
+
+    Recognizes common true/false words in English and Spanish.
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        True, False, or None if the string is not recognized.
+
+    Example:
+        >>> string_to_boolean("yes")
+        True
+        >>> string_to_boolean("no")
+        False
+        >>> string_to_boolean("maybe")
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        return None
+
+    normalized = text.strip().lower()
+
+    if normalized in {"true", "yes", "1", "on", "sí", "si", "verdadero"}:
+        return True
+
+    if normalized in {"false", "no", "0", "off", "falso"}:
+        return False
+
+    return None
+
+
+def boolean_to_string(value: bool, language: str = "en") -> str:
+    """Converts a boolean value to its string representation.
+
+    Args:
+        value: The boolean to convert.
+        language: Output language — "en" for English, "es" for Spanish.
+
+    Returns:
+        String representation of the boolean.
+
+    Example:
+        >>> boolean_to_string(True)
+        'true'
+        >>> boolean_to_string(False, language="es")
+        'falso'
+
+    Complexity: O(1)
+    """
+    mapping = {
+        "en": {True: "true", False: "false"},
+        "es": {True: "verdadero", False: "falso"},
+    }
+
+    lang_map = mapping.get(language, mapping["en"])
+    return lang_map.get(bool(value), str(value))
+
+
+def string_to_list(text: str, delimiter: str = ",", strip: bool = True) -> list[str]:
+    """Parses a delimited string into a list of strings.
+
+    Args:
+        text: The input delimited string.
+        delimiter: The separator character or string.
+        strip: Whether to strip whitespace from each element.
+
+    Returns:
+        A list of string elements.
+
+    Example:
+        >>> string_to_list("a, b, c")
+        ['a', 'b', 'c']
+        >>> string_to_list("1;2;3", delimiter=";")
+        ['1', '2', '3']
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not text:
+        return []
+
+    parts = text.split(delimiter)
+
+    if strip:
+        return [p.strip() for p in parts]
+
+    return parts
+
+
+def integer_to_roman(number: int) -> str:
+    """Converts a positive integer to its Roman numeral representation.
+
+    Delegates to :func:`~formulite.fxNumeric.conversion_functions.int_to_roman`.
+
+    Args:
+        number: An integer between 1 and 3999.
+
+    Returns:
+        The Roman numeral string.
+
+    Raises:
+        ValueError: If number is out of the valid range.
+
+    Example:
+        >>> integer_to_roman(14)
+        'XIV'
+
+    Complexity: O(1)
+    """
+    from formulite.fxNumeric.conversion_functions import int_to_roman
+
+    return int_to_roman(number)
+
+
+def roman_to_integer(text: str) -> int:
+    """Converts a Roman numeral string to an integer.
+
+    Delegates to :func:`~formulite.fxNumeric.conversion_functions.roman_to_int`.
+
+    Args:
+        text: A valid Roman numeral string (e.g. "XIV").
+
+    Returns:
+        The integer value.
+
+    Raises:
+        ValueError: If the string contains invalid Roman numeral characters.
+
+    Example:
+        >>> roman_to_integer("XIV")
+        14
+
+    Complexity: O(n)
+    """
+    from formulite.fxNumeric.conversion_functions import roman_to_int
+
+    return roman_to_int(text)
+
+
+def text_to_binary(text: str, separator: str = " ") -> str:
+    """Converts text to its binary (8-bit) representation.
+
+    Args:
+        text: The input string.
+        separator: Separator between byte groups (default: space).
+
+    Returns:
+        A binary string representation.
+
+    Example:
+        >>> text_to_binary("AB")
+        '01000001 01000010'
+        >>> text_to_binary("Hi")
+        '01001000 01101001'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string.")
+
+    return separator.join(format(ord(ch), "08b") for ch in text)
+
+
+def binary_to_text(binary_str: str, separator: str = " ") -> str:
+    """Converts a binary string back to text.
+
+    Args:
+        binary_str: Space-separated 8-bit binary bytes.
+        separator: Separator used between byte groups (default: space).
+
+    Returns:
+        The decoded text string.
+
+    Raises:
+        ValueError: If any byte is not valid 8-bit binary.
+
+    Example:
+        >>> binary_to_text("01000001 01000010")
+        'AB'
+
+    Complexity: O(n)
+    """
+    if not isinstance(binary_str, str):
+        raise TypeError("Input must be a string.")
+
+    parts = binary_str.strip().split(separator)
+    chars: list[str] = []
+
+    for part in parts:
+        part = part.strip()
+
+        if not part:
+            continue
+
+        if len(part) != 8 or not all(c in "01" for c in part):
+            raise ValueError(f"Invalid binary byte: '{part}'")
+
+        chars.append(chr(int(part, 2)))
+
+    return "".join(chars)
+
+
+_MORSE_ENCODE: dict[str, str] = {
+    "A": ".-", "B": "-...", "C": "-.-.", "D": "-..", "E": ".",
+    "F": "..-.", "G": "--.", "H": "....", "I": "..", "J": ".---",
+    "K": "-.-", "L": ".-..", "M": "--", "N": "-.", "O": "---",
+    "P": ".--.", "Q": "--.-", "R": ".-.", "S": "...", "T": "-",
+    "U": "..-", "V": "...-", "W": ".--", "X": "-..-", "Y": "-.--",
+    "Z": "--..",
+    "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
+    "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
+    ".": ".-.-.-", ",": "--..--", "?": "..--..", "'": ".----.",
+    "!": "-.-.--", "/": "-..-.", "(": "-.--.", ")": "-.--.-",
+    "&": ".-...", ":": "---...", ";": "-.-.-.", "=": "-...-",
+    "+": ".-.-.", "-": "-....-", "_": "..--.-", '"': ".-..-.",
+    "@": ".--.-.",
+}
+_MORSE_DECODE: dict[str, str] = {v: k for k, v in _MORSE_ENCODE.items()}
+
+
+def text_to_morse(text: str) -> str:
+    """Converts text to International Morse Code.
+
+    Letters are separated by spaces, words by `` / ``.
+    Unknown characters are silently skipped.
+
+    Args:
+        text: The input string.
+
+    Returns:
+        The Morse code representation.
+
+    Example:
+        >>> text_to_morse("SOS")
+        '... --- ...'
+        >>> text_to_morse("HI THERE")
+        '.... .. / - .... . .-. .'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string.")
+
+    words = text.upper().split()
+    coded_words: list[str] = []
+
+    for word in words:
+        coded = " ".join(_MORSE_ENCODE[ch] for ch in word if ch in _MORSE_ENCODE)
+
+        if coded:
+            coded_words.append(coded)
+
+    return " / ".join(coded_words)
+
+
+def morse_to_text(morse: str) -> str:
+    """Decodes International Morse Code back to text.
+
+    Letters are separated by spaces, words by `` / ``.
+
+    Args:
+        morse: The Morse code string.
+
+    Returns:
+        The decoded text (uppercase).
+
+    Example:
+        >>> morse_to_text("... --- ...")
+        'SOS'
+        >>> morse_to_text(".... .. / - .... . .-. .")
+        'HI THERE'
+
+    Complexity: O(n)
+    """
+    if not isinstance(morse, str):
+        raise TypeError("Input must be a string.")
+
+    words = morse.strip().split(" / ")
+    decoded: list[str] = []
+
+    for word in words:
+        letters = word.strip().split()
+        decoded.append("".join(_MORSE_DECODE.get(letter, "") for letter in letters))
+
+    return " ".join(decoded)
+
+
+def char_from_code(code_point: int) -> str:
+    """Returns the Unicode character for a given code point.
+
+    Description:
+        Converts an integer code point to the corresponding Unicode
+        character. Equivalent to Excel UNICHAR.
+
+    Args:
+        code_point: A valid Unicode code point (1 to 1114111).
+
+    Returns:
+        The single Unicode character.
+
+    Raises:
+        TypeError: If input is not an integer.
+        ValueError: If code point is out of valid Unicode range.
+
+    Example:
+        >>> char_from_code(65)
+        'A'
+        >>> char_from_code(8364)
+        '€'
+        >>> char_from_code(128522)
+        '😊'
+
+    Complexity: O(1)
+    """
+    if not isinstance(code_point, int):
+        raise TypeError("code_point must be an integer.")
+
+    if code_point < 1 or code_point > 0x10FFFF:
+        raise ValueError("code_point must be between 1 and 1114111.")
+
+    return chr(code_point)
+
+
+def code_from_char(character: str) -> int:
+    """Returns the Unicode code point of the first character of a string.
+
+    Description:
+        Returns the numeric code point for the first character.
+        Equivalent to Excel UNICODE.
+
+    Args:
+        character: A non-empty string (first character is used).
+
+    Returns:
+        The Unicode code point as an integer.
+
+    Raises:
+        TypeError: If input is not a string.
+        ValueError: If the string is empty.
+
+    Example:
+        >>> code_from_char('A')
+        65
+        >>> code_from_char('€')
+        8364
+
+    Complexity: O(1)
+    """
+    if not isinstance(character, str):
+        raise TypeError("Input must be a string.")
+
+    if not character:
+        raise ValueError("Input string cannot be empty.")
+
+    return ord(character[0])
+
+
+def parse_text_to_number(
+    text: str,
+    decimal_separator: str = ".",
+    group_separator: str = ",",
+) -> float:
+    """Convert formatted text to a numeric value.
+
+    Description:
+        Strips currency symbols (``$``, ``€``), group separators, and
+        handles percentages and locale-specific decimal separators.
+        Equivalent to Excel ``VALUE`` / ``NUMBERVALUE``.
+
+    Args:
+        text: The text to convert.
+        decimal_separator: Character used as decimal point (default ``"."``).
+        group_separator: Character used for thousands (default ``","``).
+
+    Returns:
+        The parsed numeric value.
+
+    Raises:
+        ValueError: If the text cannot be converted.
+
+    Example:
+        >>> parse_text_to_number("$1,000.50")
+        1000.5
+        >>> parse_text_to_number("25%")
+        0.25
+        >>> parse_text_to_number("1.234,56", ",", ".")
+        1234.56
+
+    Complexity: O(n)
+    """
+    text_str = str(text).strip()
+
+    is_percentage = text_str.endswith("%")
+
+    if is_percentage:
+        text_str = text_str[:-1].strip()
+
+    if group_separator:
+        text_str = text_str.replace(group_separator, "")
+
+    if decimal_separator != ".":
+        text_str = text_str.replace(decimal_separator, ".")
+
+    text_str = (
+        text_str.replace("$", "")
+        .replace("€", "")
+        .replace("£", "")
+        .replace("¥", "")
+        .replace("฿", "")
+        .replace(" ", "")
+    )
+
+    try:
+        result = float(text_str)
+    except ValueError:
+        raise ValueError(f"Cannot convert '{text}' to a number.")
+
+    if is_percentage:
+        result /= 100
+
+    return result
+
+
+def value_to_text(value: object, format_type: int = 0) -> str:
+    """Converts any value to its text representation.
+
+    Description:
+        Returns a string representation of the given value. When
+        format_type is 0, returns a concise representation. When 1,
+        returns a quoted representation suitable for formulas.
+        Equivalent to Excel VALUETOTEXT.
+
+    Args:
+        value: Any Python value.
+        format_type: 0 for concise (default), 1 for quoted/repr.
+
+    Returns:
+        The text representation of the value.
+
+    Example:
+        >>> value_to_text(123)
+        '123'
+        >>> value_to_text("hello", 1)
+        '"hello"'
+        >>> value_to_text([1, 2, 3])
+        '[1, 2, 3]'
+
+    Complexity: O(n) where n is the string length of the representation.
+    """
+    if format_type == 1:
+        return repr(value)
+
+    return str(value)
+
+
+def to_full_width(text: str) -> str:
+    """Converts half-width (single-byte) characters to full-width (double-byte).
+
+    Transforms ASCII printable characters (``!`` through ``~``) and the
+    space character into their Unicode full-width equivalents.  Useful for
+    CJK typography where monospaced alignment is needed.
+
+    Args:
+        text: The input string containing half-width characters.
+
+    Returns:
+        A new string with half-width characters replaced by full-width ones.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> to_full_width("HELLO")
+        '\uff28\uff25\uff2c\uff2c\uff2f'
+        >>> to_full_width("123")
+        '\uff11\uff12\uff13'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Argument 'text' must be a string.")
+
+    result: list[str] = []
+
+    for char in text:
+        code = ord(char)
+
+        if 0x21 <= code <= 0x7E:
+            result.append(chr(code + 0xFEE0))
+        elif code == 0x20:
+            result.append('\u3000')
+        else:
+            result.append(char)
+
+    return ''.join(result)
+
+
+def to_half_width(text: str) -> str:
+    """Converts full-width (double-byte) characters to half-width (single-byte).
+
+    Inverse of :func:`to_full_width`.  Transforms Unicode full-width
+    printable characters back into their standard ASCII equivalents.
+
+    Args:
+        text: The input string containing full-width characters.
+
+    Returns:
+        A new string with full-width characters replaced by half-width ones.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> to_half_width('\uff28\uff25\uff2c\uff2c\uff2f')
+        'HELLO'
+        >>> to_half_width('\uff11\uff12\uff13')
+        '123'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Argument 'text' must be a string.")
+
+    result: list[str] = []
+
+    for char in text:
+        code = ord(char)
+
+        if 0xFF01 <= code <= 0xFF5E:
+            result.append(chr(code - 0xFEE0))
+        elif code == 0x3000:
+            result.append(' ')
+        else:
+            result.append(char)
+
+    return ''.join(result)
+
+
+# NATO phonetic alphabet mapping
+_NATO_ALPHABET: dict[str, str] = {
+    "A": "Alpha", "B": "Bravo", "C": "Charlie", "D": "Delta",
+    "E": "Echo", "F": "Foxtrot", "G": "Golf", "H": "Hotel",
+    "I": "India", "J": "Juliet", "K": "Kilo", "L": "Lima",
+    "M": "Mike", "N": "November", "O": "Oscar", "P": "Papa",
+    "Q": "Quebec", "R": "Romeo", "S": "Sierra", "T": "Tango",
+    "U": "Uniform", "V": "Victor", "W": "Whiskey", "X": "X-ray",
+    "Y": "Yankee", "Z": "Zulu",
+}
+_NATO_REVERSE: dict[str, str] = {v.upper(): k for k, v in _NATO_ALPHABET.items()}
+
+
+def text_to_nato_phonetic(text: str) -> str:
+    """Convert text to NATO phonetic alphabet representation.
+
+    Non-alphabetic characters are passed through unchanged.
+
+    Args:
+        text: Input text.
+
+    Returns:
+        Space-separated NATO phonetic words.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> text_to_nato_phonetic("AB")
+        'Alpha Bravo'
+        >>> text_to_nato_phonetic("SOS")
+        'Sierra Oscar Sierra'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    parts: list[str] = []
+
+    for ch in text:
+        upper = ch.upper()
+        parts.append(_NATO_ALPHABET.get(upper, ch))
+
+    return " ".join(parts)
+
+
+def nato_phonetic_to_text(phonetic: str) -> str:
+    """Convert NATO phonetic alphabet words back to plain text.
+
+    Args:
+        phonetic: Space-separated NATO phonetic words.
+
+    Returns:
+        Decoded plain text (uppercase).
+
+    Raises:
+        TypeError: If *phonetic* is not a string.
+
+    Example:
+        >>> nato_phonetic_to_text("Alpha Bravo")
+        'AB'
+        >>> nato_phonetic_to_text("Sierra Oscar Sierra")
+        'SOS'
+
+    Complexity: O(n)
+    """
+    if not isinstance(phonetic, str):
+        raise TypeError("phonetic must be a string")
+
+    parts: list[str] = []
+
+    for word in phonetic.split():
+        parts.append(_NATO_REVERSE.get(word.upper(), word))
+
+    return "".join(parts)
+
+
+# Braille mapping (ASCII printable → Braille Patterns U+2800 block)
+_BRAILLE_MAP: dict[str, str] = {
+    "a": "⠁", "b": "⠃", "c": "⠉", "d": "⠙", "e": "⠑",
+    "f": "⠋", "g": "⠛", "h": "⠓", "i": "⠊", "j": "⠚",
+    "k": "⠅", "l": "⠇", "m": "⠍", "n": "⠝", "o": "⠕",
+    "p": "⠏", "q": "⠟", "r": "⠗", "s": "⠎", "t": "⠞",
+    "u": "⠥", "v": "⠧", "w": "⠺", "x": "⠭", "y": "⠽",
+    "z": "⠵",
+    "1": "⠂", "2": "⠆", "3": "⠒", "4": "⠲", "5": "⠢",
+    "6": "⠖", "7": "⠶", "8": "⠦", "9": "⠔", "0": "⠴",
+    " ": "⠀", ".": "⠨", ",": "⠠", "!": "⠮", "?": "⠹",
+}
+
+
+def text_to_braille(text: str) -> str:
+    """Convert ASCII text to Unicode Braille representation.
+
+    Supports lowercase/uppercase letters, digits, and basic punctuation.
+    Unsupported characters are passed through unchanged.
+
+    Args:
+        text: Input text.
+
+    Returns:
+        Braille-encoded string using Unicode Braille Patterns.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> text_to_braille("ab")
+        '⠁⠃'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    parts: list[str] = []
+
+    for ch in text:
+        parts.append(_BRAILLE_MAP.get(ch.lower(), ch))
+
+    return "".join(parts)
+
+
+# Simplified English → IPA mapping (broad transcription)
+_IPA_MAP: dict[str, str] = {
+    "a": "æ", "b": "b", "c": "k", "d": "d", "e": "ɛ",
+    "f": "f", "g": "ɡ", "h": "h", "i": "ɪ", "j": "dʒ",
+    "k": "k", "l": "l", "m": "m", "n": "n", "o": "ɒ",
+    "p": "p", "q": "k", "r": "ɹ", "s": "s", "t": "t",
+    "u": "ʌ", "v": "v", "w": "w", "x": "ks", "y": "j",
+    "z": "z",
+}
+
+
+def text_to_phonetic_ipa(text: str) -> str:
+    """Convert ASCII text to a simplified IPA transcription.
+
+    Uses a basic letter-by-letter mapping for English. This is a
+    rough broad transcription, not a full phonological analysis.
+
+    Args:
+        text: Input ASCII text.
+
+    Returns:
+        IPA string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> text_to_phonetic_ipa("hello")
+        'hɛllɒ'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    parts: list[str] = []
+
+    for ch in text:
+        parts.append(_IPA_MAP.get(ch.lower(), ch))
+
+    return "".join(parts)
+
+
+def hex_color_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """Convert a hex colour string to an RGB tuple.
+
+    Accepts ``#RGB`` and ``#RRGGBB`` formats.
+
+    Args:
+        hex_color: Hex colour string starting with ``#``.
+
+    Returns:
+        Tuple of ``(red, green, blue)`` in the range 0-255.
+
+    Raises:
+        TypeError: If *hex_color* is not a string.
+        ValueError: If the format is invalid.
+
+    Example:
+        >>> hex_color_to_rgb("#FF8800")
+        (255, 136, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(hex_color, str):
+        raise TypeError("hex_color must be a string")
+
+    h = hex_color.lstrip("#")
+
+    if len(h) == 3:
+        h = h[0] * 2 + h[1] * 2 + h[2] * 2
+
+    if len(h) != 6 or not all(c in "0123456789abcdefABCDEF" for c in h):
+        raise ValueError(f"Invalid hex colour: {hex_color!r}")
+
+    return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+
+def rgb_to_hex_color(r: int, g: int, b: int) -> str:
+    """Convert RGB values to a hex colour string.
+
+    Args:
+        r: Red component (0-255).
+        g: Green component (0-255).
+        b: Blue component (0-255).
+
+    Returns:
+        Hex colour string in ``#RRGGBB`` format.
+
+    Raises:
+        TypeError: If any argument is not an integer.
+        ValueError: If any value is outside [0, 255].
+
+    Example:
+        >>> rgb_to_hex_color(255, 136, 0)
+        '#FF8800'
+
+    Complexity: O(1)
+    """
+    for name, val in (("r", r), ("g", g), ("b", b)):
+
+        if not isinstance(val, int):
+            raise TypeError(f"{name} must be an integer")
+
+        if val < 0 or val > 255:
+            raise ValueError(f"{name} must be 0-255, got {val}")
+
+    return f"#{r:02X}{g:02X}{b:02X}"
+
+
+def base64_encode(text: str, encoding: str = "utf-8") -> str:
+    """Encode a string to Base64.
+
+    Args:
+        text: Plain text to encode.
+        encoding: Character encoding for the input bytes.
+
+    Returns:
+        Base64-encoded string.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> base64_encode("Hello World")
+        'SGVsbG8gV29ybGQ='
+
+    Complexity: O(n)
+    """
+    import base64
+
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return base64.b64encode(text.encode(encoding)).decode("ascii")
+
+
+def base64_decode(encoded: str, encoding: str = "utf-8") -> str:
+    """Decode a Base64 string to plain text.
+
+    Args:
+        encoded: Base64-encoded string.
+        encoding: Character encoding for the output bytes.
+
+    Returns:
+        Decoded plain text.
+
+    Raises:
+        TypeError: If *encoded* is not a string.
+        ValueError: If *encoded* is not valid Base64.
+
+    Example:
+        >>> base64_decode("SGVsbG8gV29ybGQ=")
+        'Hello World'
+
+    Complexity: O(n)
+    """
+    import base64 as _b64
+
+    if not isinstance(encoded, str):
+        raise TypeError("encoded must be a string")
+
+    try:
+        return _b64.b64decode(encoded).decode(encoding)
+    except Exception as exc:
+        raise ValueError(f"Invalid Base64: {exc}") from exc
+
+
+def ordinal_suffix(n: int) -> str:
+    """Converts an integer to its English ordinal string.
+
+    Args:
+        n: The integer to convert.
+
+    Returns:
+        String with the number and its ordinal suffix
+        (e.g. ``'1st'``, ``'2nd'``, ``'3rd'``, ``'11th'``).
+
+    Raises:
+        TypeError: If n is not an integer.
+
+    Example:
+        >>> ordinal_suffix(1)
+        '1st'
+        >>> ordinal_suffix(22)
+        '22nd'
+        >>> ordinal_suffix(113)
+        '113th'
+
+    Complexity: O(1)
+    """
+    if not isinstance(n, int):
+        raise TypeError("n must be an integer")
+
+    abs_n = abs(n)
+
+    if 11 <= (abs_n % 100) <= 13:
+        return f"{n}th"
+
+    suffix = {1: "st", 2: "nd", 3: "rd"}.get(abs_n % 10, "th")
+
+    return f"{n}{suffix}"
+
+
+def text_to_hex(text: str, encoding: str = "utf-8") -> str:
+    """Converts text to its hexadecimal byte representation.
+
+    Description:
+        Encodes the string with the specified encoding and returns
+        the hex string (lowercase, no prefix).
+
+    Args:
+        text: The input text.
+        encoding: Character encoding to use.
+
+    Returns:
+        Hexadecimal string representation.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> text_to_hex("Hello")
+        '48656c6c6f'
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return text.encode(encoding).hex()
+
+
+def hex_to_text(hex_str: str, encoding: str = "utf-8") -> str:
+    """Converts a hexadecimal string back to text.
+
+    Description:
+        Interprets the hex string as bytes and decodes with the
+        specified encoding.
+
+    Args:
+        hex_str: The hexadecimal string (no prefix).
+        encoding: Character encoding to use.
+
+    Returns:
+        Decoded text string.
+
+    Raises:
+        TypeError: If *hex_str* is not a string.
+        ValueError: If the hex string is invalid.
+
+    Usage Example:
+        >>> hex_to_text("48656c6c6f")
+        'Hello'
+
+    Complexity: O(n)
+    """
+    if not isinstance(hex_str, str):
+        raise TypeError("hex_str must be a string")
+
+    cleaned = hex_str.strip().replace(" ", "")
+
+    try:
+        return bytes.fromhex(cleaned).decode(encoding)
+    except Exception as exc:
+        raise ValueError(f"Invalid hex string: {exc}") from exc

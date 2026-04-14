@@ -1,14 +1,230 @@
-"""
+﻿"""
 FormuLite fxExcel - Statistical Functions Module
 
 Excel-compatible statistical functions using official English Excel function names.
 All functions follow Excel's standard naming conventions.
 """
 
-import numpy as np
-import scipy.stats as stats
 import math
 from typing import List, Union, Optional, Any
+
+from formulite.fxNumeric.distribution_functions import (
+    binom_dist as _core_binom_dist,
+    binom_dist_range as _core_binom_dist_range,
+    binom_inv as _core_binom_inv,
+    chisq_dist as _core_chisq_dist,
+    chisq_dist_rt as _core_chisq_dist_rt,
+    chisq_inv as _core_chisq_inv,
+    chisq_inv_rt as _core_chisq_inv_rt,
+    expon_dist as _core_expon_dist,
+    f_dist as _core_f_dist,
+    f_dist_rt as _core_f_dist_rt,
+    f_inv as _core_f_inv,
+    f_inv_rt as _core_f_inv_rt,
+    gamma_dist as _core_gamma_dist,
+    gamma_inv as _core_gamma_inv,
+    gauss as _core_gauss,
+    hypgeom_dist as _core_hypgeom_dist,
+    lognorm_dist as _core_lognorm_dist,
+    lognorm_inv as _core_lognorm_inv,
+    negbinom_dist as _core_negbinom_dist,
+    norm_dist as _core_norm_dist,
+    norm_inv as _core_norm_inv,
+    norm_s_dist as _core_norm_s_dist,
+    norm_s_inv as _core_norm_s_inv,
+    phi as _core_phi,
+    poisson_dist as _core_poisson_dist,
+    t_dist as _core_t_dist,
+    t_dist_2t as _core_t_dist_2t,
+    t_dist_rt as _core_t_dist_rt,
+    t_inv as _core_t_inv,
+    t_inv_2t as _core_t_inv_2t,
+    weibull_dist as _core_weibull_dist,
+)
+from formulite.fxNumeric.statistics_functions import (
+    average_deviation as _core_average_deviation,
+    calculate_covariance as _core_covariance,
+    calculate_mean as _core_mean,
+    calculate_median as _core_median,
+    calculate_pearson_correlation as _core_pearson,
+    calculate_standard_deviation as _core_std_dev,
+    calculate_variance as _core_variance,
+    confidence_norm as _core_confidence_norm,
+    confidence_t as _core_confidence_t,
+    fisher as _core_fisher,
+    forecast_ets as _core_forecast_ets,
+    forecast_linear as _core_forecast_linear,
+    geometric_mean as _core_geometric_mean,
+    harmonic_mean as _core_harmonic_mean,
+    intercept as _core_intercept,
+    kurtosis as _core_kurtosis,
+    frequency_bins as _core_frequency,
+    fisher_inv as _core_fisher_inv,
+    large as _core_large,
+    max_if as _core_max_if,
+    min_if as _core_min_if,
+    mode_mult as _core_mode_mult,
+    percentile_exc as _core_percentile_exc,
+    percentrank_exc as _core_percentrank_exc,
+    probability_range as _core_probability_range,
+    small as _core_small,
+    standard_error_estimate as _core_standard_error_estimate,
+    average_if as _core_average_if,
+    slope as _core_slope,
+    standardize as _core_standardize,
+    sum_of_squared_deviations as _core_devsq,
+    t_test as _core_t_test,
+    trimmed_mean as _core_trimmed_mean,
+    calculate_percentile as _core_percentile,
+    rank as _core_rank,
+    mode_single as _core_mode_single,
+    trend as _core_trend,
+)
+from formulite.fxNumeric.arithmetic_functions import (
+    gamma as _core_gamma,
+    log_gamma as _core_log_gamma,
+    permutations as _core_permutations,
+    permutations_with_repetition as _core_permutationa,
+)
+from formulite.fxPython.py_operations import (
+    count_numbers as _core_count_numbers,
+    count_values as _core_count_values,
+    count_blank as _core_count_blank,
+    count_if as _core_count_if,
+    count_ifs as _core_count_ifs,
+)
+
+
+def _get_scipy_stats():
+    """Lazy-load scipy.stats, raising ImportError with guidance."""
+    try:
+        import scipy.stats as _stats
+    except ImportError:  # pragma: no cover
+        raise ImportError(
+            "scipy is required for Excel statistical functions. "
+            "Install it with: pip install scipy"
+        )
+    return _stats
+
+
+def _polyfit1(x: list, y: list) -> tuple:
+    """Simple degree-1 least-squares fit. Returns (slope, intercept)."""
+    n = len(x)
+    sx = sum(x)
+    sy = sum(y)
+    sxy = sum(xi * yi for xi, yi in zip(x, y))
+    sxx = sum(xi * xi for xi in x)
+    denom = n * sxx - sx * sx
+    slope = (n * sxy - sx * sy) / denom
+    intercept = (sy - slope * sx) / n
+    return (slope, intercept)
+
+
+def _percentile(arr: list, pct: float, method: str = 'linear') -> float:
+    """Compute percentile (0-100) with linear or Weibull interpolation."""
+    n = len(arr)
+
+    if method == 'weibull':
+        rank = pct / 100 * (n + 1) - 1
+    else:
+        rank = pct / 100 * (n - 1)
+
+    lower = int(math.floor(rank))
+    upper = int(math.ceil(rank))
+    lower = max(0, min(lower, n - 1))
+    upper = max(0, min(upper, n - 1))
+
+    if lower == upper:
+        return arr[lower]
+
+    frac = rank - lower
+    return arr[lower] + frac * (arr[upper] - arr[lower])
+
+
+def _meets_criteria(value, criteria):
+    """Check if a value meets a given Excel-style criteria expression."""
+
+    if isinstance(criteria, str):
+
+        for op in ['>=', '<=', '<>', '>', '<', '=']:
+
+            if criteria.startswith(op):
+                criteria_val = criteria[len(op):]
+
+                try:
+                    criteria_num = float(criteria_val)
+                    value_num = float(value) if isinstance(value, (int, float)) else 0
+
+                    if op == '>=':
+                        return value_num >= criteria_num
+                    elif op == '<=':
+                        return value_num <= criteria_num
+                    elif op == '<>':
+                        return value_num != criteria_num
+                    elif op == '>':
+                        return value_num > criteria_num
+                    elif op == '<':
+                        return value_num < criteria_num
+                    elif op == '=':
+                        return value_num == criteria_num
+                except Exception:
+                    return str(value) == criteria_val if op == '=' else str(value) != criteria_val
+
+        return str(value) == criteria
+    else:
+        return value == criteria
+
+
+def _extract_numerics(*values: Union[float, int, List]) -> List[Union[int, float]]:
+    """Flatten variadic args and filter to numeric values, excluding booleans."""
+    result = []
+
+    for val in values:
+
+        if isinstance(val, (list, tuple)):
+
+            for v in val:
+
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    result.append(v)
+
+        elif isinstance(val, (int, float)) and not isinstance(val, bool):
+            result.append(val)
+
+    return result
+
+
+def _convert_values_a(*values: Union[float, int, str, bool, List]) -> List[Union[int, float]]:
+    """Flatten variadic args converting textâ†’0, Trueâ†’1, Falseâ†’0, skipping None/empty."""
+    result = []
+
+    for val in values:
+
+        if isinstance(val, (list, tuple)):
+
+            for v in val:
+
+                if v is None or v == "":
+                    continue
+                elif isinstance(v, bool):
+                    result.append(1 if v else 0)
+                elif isinstance(v, str):
+                    result.append(0)
+                elif isinstance(v, (int, float)):
+                    result.append(v)
+
+        else:
+
+            if val is None or val == "":
+                continue
+            elif isinstance(val, bool):
+                result.append(1 if val else 0)
+            elif isinstance(val, str):
+                result.append(0)
+            elif isinstance(val, (int, float)):
+                result.append(val)
+
+    return result
 
 
 # ============================================================================
@@ -40,7 +256,36 @@ def CORREL(array1: List[float], array2: List[float]) -> float:
     """
     if len(array1) != len(array2) or len(array1) < 2:
         raise ValueError("Arrays must have equal length and at least 2 elements")
-    return float(np.corrcoef(array1, array2)[0, 1])
+    return _core_pearson(array1, array2)
+
+
+def PEARSON(array1: List[float], array2: List[float]) -> float:
+    """Returns the Pearson product-moment correlation coefficient.
+
+    Identical to CORREL. Measures the linear relationship between two
+    data sets, returning a value between -1 and 1.
+
+    Excel function: PEARSON
+
+    Args:
+        array1: First array of values.
+        array2: Second array of values.
+
+    Returns:
+        float: Pearson correlation coefficient between -1 and 1.
+
+    Raises:
+        ValueError: If arrays have different lengths or less than 2 elements.
+
+    Usage Example:
+        >>> round(PEARSON([1, 2, 3, 4, 5], [2, 4, 6, 8, 10]), 10)
+        1.0
+        >>> round(PEARSON([1, 2, 3], [3, 1, 2]), 6)
+        -0.5
+
+    Cost: O(n)
+    """
+    return CORREL(array1, array2)
 
 
 # ============================================================================
@@ -66,7 +311,7 @@ def COUNT(*values: Union[float, int]) -> int:
         >>> COUNT(1, 2, "text", None, 3.5)
         3
     """
-    return sum(1 for val in values if isinstance(val, (int, float)) and not isinstance(val, bool))
+    return _core_count_numbers(*values)
 
 
 def COUNTA(*values: Any) -> int:
@@ -88,7 +333,7 @@ def COUNTA(*values: Any) -> int:
         >>> COUNTA(1, 2, "text", None, 3.5)
         4
     """
-    return sum(1 for val in values if val is not None and val != "")
+    return _core_count_values(*values)
 
 
 def COUNTBLANK(range_values: List[Any]) -> int:
@@ -110,7 +355,7 @@ def COUNTBLANK(range_values: List[Any]) -> int:
         >>> COUNTBLANK([1, None, "", 3, None])
         3
     """
-    return sum(1 for val in range_values if val is None or val == "")
+    return _core_count_blank(range_values)
 
 
 def COUNTIF(range_values: List[Any], criteria: Any) -> int:
@@ -134,37 +379,7 @@ def COUNTIF(range_values: List[Any], criteria: Any) -> int:
         >>> COUNTIF([1, 2, 3, 4, 5], ">3")
         2
     """
-    if isinstance(criteria, str) and criteria and criteria[0] in "><!=":
-        # Extract operator and value
-        if criteria[:2] in {">=", "<=", "<>", "!="}:
-            op = criteria[:2]
-            val_str = criteria[2:]
-        else:
-            op = criteria[0]
-            val_str = criteria[1:]
-        
-        try:
-            value = float(val_str)
-            count = 0
-            for x in range_values:
-                if isinstance(x, (int, float)):
-                    if op == ">=" and x >= value:
-                        count += 1
-                    elif op == "<=" and x <= value:
-                        count += 1
-                    elif op == ">" and x > value:
-                        count += 1
-                    elif op == "<" and x < value:
-                        count += 1
-                    elif op == "=" and x == value:
-                        count += 1
-                    elif op in {"<>", "!="} and x != value:
-                        count += 1
-            return count
-        except ValueError:
-            pass
-    
-    return sum(1 for x in range_values if x == criteria)
+    return _core_count_if(range_values, criteria)
 
 
 def COUNTIFS(*args) -> int:
@@ -191,66 +406,12 @@ def COUNTIFS(*args) -> int:
     """
     if len(args) % 2 != 0:
         raise ValueError("Arguments must be in range/criteria pairs")
-    
-    pairs = [(args[i], args[i+1]) for i in range(0, len(args), 2)]
-    if not pairs:
+
+    if len(args) < 2:
         return 0
-    
-    # All ranges must have the same length
-    length = len(pairs[0][0])
-    if not all(len(rng) == length for rng, _ in pairs):
-        raise ValueError("All ranges must have the same length")
-    
-    count = 0
-    for i in range(length):
-        meets_all = True
-        for rng, criteria in pairs:
-            value = rng[i]
-            
-            if isinstance(criteria, str) and criteria and criteria[0] in "><!=":
-                # Extract operator and value
-                if criteria[:2] in {">=", "<=", "<>", "!="}:
-                    op = criteria[:2]
-                    val_str = criteria[2:]
-                else:
-                    op = criteria[0]
-                    val_str = criteria[1:]
-                
-                try:
-                    crit_value = float(val_str)
-                    if not isinstance(value, (int, float)):
-                        meets_all = False
-                        break
-                    
-                    if op == ">=" and not (value >= crit_value):
-                        meets_all = False
-                        break
-                    elif op == "<=" and not (value <= crit_value):
-                        meets_all = False
-                        break
-                    elif op == ">" and not (value > crit_value):
-                        meets_all = False
-                        break
-                    elif op == "<" and not (value < crit_value):
-                        meets_all = False
-                        break
-                    elif op == "=" and not (value == crit_value):
-                        meets_all = False
-                        break
-                    elif op in {"<>", "!="} and not (value != crit_value):
-                        meets_all = False
-                        break
-                except ValueError:
-                    meets_all = False
-                    break
-            elif value != criteria:
-                meets_all = False
-                break
-        
-        if meets_all:
-            count += 1
-    
-    return count
+
+    first_range = args[0]
+    return _core_count_ifs(first_range, *args)
 
 
 # ============================================================================
@@ -282,7 +443,7 @@ def COVARIANCE_P(array1: List[float], array2: List[float]) -> float:
     """
     if len(array1) != len(array2) or len(array1) < 1:
         raise ValueError("Arrays must have equal length and at least 1 element")
-    return float(np.cov(array1, array2, bias=True)[0, 1])
+    return _core_covariance(list(array1), list(array2), sample=False)
 
 
 def COVARIANCE_S(array1: List[float], array2: List[float]) -> float:
@@ -310,7 +471,7 @@ def COVARIANCE_S(array1: List[float], array2: List[float]) -> float:
     """
     if len(array1) != len(array2) or len(array1) < 2:
         raise ValueError("Arrays must have equal length and at least 2 elements")
-    return float(np.cov(array1, array2, bias=False)[0, 1])
+    return _core_covariance(list(array1), list(array2), sample=True)
 
 
 def COVAR(array1: List[float], array2: List[float]) -> float:
@@ -369,15 +530,17 @@ def GROWTH(known_y: List[float], known_x: Optional[List[float]] = None,
     if len(known_y) != len(known_x):
         raise ValueError("known_y and known_x must have equal length")
     
-    log_y = np.log(np.array(known_y))
-    coeffs = np.polyfit(known_x, log_y, 1)
-    
+    log_y = [math.log(y) for y in known_y]
+    slope, intercept = _polyfit1(known_x, log_y)
+
     if const:
-        return [float(np.exp(coeffs[1] + coeffs[0] * x)) for x in new_x]
+        return [math.exp(intercept + slope * x) for x in new_x]
     else:
-        # Force constant term to 1 (coeffs[1] = 0)
-        slope = np.sum(np.array(known_x) * log_y) / np.sum(np.array(known_x) ** 2)
-        return [float(np.exp(slope * x)) for x in new_x]
+        # Force constant term to 1 (intercept = 0)
+        s_xy = sum(x * ly for x, ly in zip(known_x, log_y))
+        s_xx = sum(x * x for x in known_x)
+        slope = s_xy / s_xx
+        return [math.exp(slope * x) for x in new_x]
 
 
 # ============================================================================
@@ -406,9 +569,7 @@ def KURT(values: List[float]) -> float:
         >>> KURT([3, 4, 5, 2, 3, 4, 5, 6, 4, 7])
         -0.1518...
     """
-    if len(values) < 4:
-        raise ValueError("At least 4 data points required")
-    return float(stats.kurtosis(values, fisher=True))
+    return _core_kurtosis(list(values), excess=True)
 
 
 def AVEDEV(values: List[float]) -> float:
@@ -433,10 +594,7 @@ def AVEDEV(values: List[float]) -> float:
         >>> AVEDEV([4, 5, 6, 7, 5, 4, 3])
         1.020...
     """
-    if not values:
-        raise ValueError("Values cannot be empty")
-    mean = np.mean(values)
-    return float(np.mean([abs(x - mean) for x in values]))
+    return _core_average_deviation(list(values))
 
 
 def DEVSQ(values: List[float]) -> float:
@@ -461,10 +619,7 @@ def DEVSQ(values: List[float]) -> float:
         >>> DEVSQ([4, 5, 6, 7, 5, 4, 3])
         16.857...
     """
-    if not values:
-        raise ValueError("Values cannot be empty")
-    mean = np.mean(values)
-    return float(sum((x - mean) ** 2 for x in values))
+    return _core_devsq(list(values))
 
 
 def GEOMEAN(values: List[float]) -> float:
@@ -491,7 +646,7 @@ def GEOMEAN(values: List[float]) -> float:
     """
     if any(x <= 0 for x in values):
         raise ValueError("Geometric mean requires positive values")
-    return float(np.exp(np.mean(np.log(values))))
+    return float(_core_geometric_mean(list(values)))
 
 
 def HARMEAN(values: List[float]) -> float:
@@ -518,7 +673,7 @@ def HARMEAN(values: List[float]) -> float:
     """
     if any(x <= 0 for x in values):
         raise ValueError("Harmonic mean requires positive values")
-    return float(len(values) / sum(1/x for x in values))
+    return float(_core_harmonic_mean(list(values)))
 
 
 def LARGE(array: List[float], k: int) -> float:
@@ -544,9 +699,7 @@ def LARGE(array: List[float], k: int) -> float:
         >>> LARGE([3, 5, 3, 5, 4], 3)
         4
     """
-    if k < 1 or k > len(array):
-        raise ValueError(f"k must be between 1 and {len(array)}")
-    return float(sorted(array, reverse=True)[k-1])
+    return float(_core_large(list(array), k))
 
 
 def MAX(*values: Union[float, int]) -> float:
@@ -637,64 +790,27 @@ def MAXIFS(max_range: List[float], *args) -> float:
     """
     if len(args) % 2 != 0:
         raise ValueError("Criteria arguments must be in range/criteria pairs")
-    
-    pairs = [(args[i], args[i+1]) for i in range(0, len(args), 2)]
-    
-    valid_values = []
+
+    if len(args) == 2:
+        return float(_core_max_if(max_range, args[0], args[1]))
+
+    # Multiple criteria pairs â€” intersect matches
+    pairs = [(args[i], args[i + 1]) for i in range(0, len(args), 2)]
+    valid = []
+
     for i in range(len(max_range)):
-        meets_all = True
-        for rng, criteria in pairs:
-            if i >= len(rng):
-                meets_all = False
-                break
-            
-            value = rng[i]
-            
-            if isinstance(criteria, str) and criteria and criteria[0] in "><!=":
-                if criteria[:2] in {">=", "<=", "<>", "!="}:
-                    op = criteria[:2]
-                    val_str = criteria[2:]
-                else:
-                    op = criteria[0]
-                    val_str = criteria[1:]
-                
-                try:
-                    crit_value = float(val_str)
-                    if not isinstance(value, (int, float)):
-                        meets_all = False
-                        break
-                    
-                    if op == ">=" and not (value >= crit_value):
-                        meets_all = False
-                        break
-                    elif op == "<=" and not (value <= crit_value):
-                        meets_all = False
-                        break
-                    elif op == ">" and not (value > crit_value):
-                        meets_all = False
-                        break
-                    elif op == "<" and not (value < crit_value):
-                        meets_all = False
-                        break
-                    elif op == "=" and not (value == crit_value):
-                        meets_all = False
-                        break
-                    elif op in {"<>", "!="} and not (value != crit_value):
-                        meets_all = False
-                        break
-                except ValueError:
-                    meets_all = False
-                    break
-            elif value != criteria:
-                meets_all = False
-                break
-        
-        if meets_all:
-            valid_values.append(max_range[i])
-    
-    if not valid_values:
+
+        if all(
+            _meets_criteria(rng[i], crit)
+            for rng, crit in pairs
+            if i < len(rng)
+        ):
+            valid.append(max_range[i])
+
+    if not valid:
         raise ValueError("No values meet the criteria")
-    return float(max(valid_values))
+
+    return float(max(valid))
 
 
 # ============================================================================
@@ -710,8 +826,8 @@ def BETA_DIST(x: float, alpha: float, beta: float, cumulative: bool = True,
     
     Args:
         x: Value between A and B at which to evaluate
-        alpha: First parameter of the distribution (α > 0)
-        beta: Second parameter of the distribution (β > 0)
+        alpha: First parameter of the distribution (Î± > 0)
+        beta: Second parameter of the distribution (Î² > 0)
         cumulative: If True, returns CDF; if False, returns PDF
         A: Lower bound of interval (default 0)
         B: Upper bound of interval (default 1)
@@ -727,9 +843,9 @@ def BETA_DIST(x: float, alpha: float, beta: float, cumulative: bool = True,
         0.685...
     """
     if cumulative:
-        return float(stats.beta.cdf(x, alpha, beta, loc=A, scale=B-A))
+        return float(_get_scipy_stats().beta.cdf(x, alpha, beta, loc=A, scale=B-A))
     else:
-        return float(stats.beta.pdf(x, alpha, beta, loc=A, scale=B-A))
+        return float(_get_scipy_stats().beta.pdf(x, alpha, beta, loc=A, scale=B-A))
 
 
 def BETA_INV(probability: float, alpha: float, beta: float, 
@@ -752,7 +868,7 @@ def BETA_INV(probability: float, alpha: float, beta: float,
     Cost:
         O(1) - Constant time
     """
-    return float(stats.beta.ppf(probability, alpha, beta, loc=A, scale=B-A))
+    return float(_get_scipy_stats().beta.ppf(probability, alpha, beta, loc=A, scale=B-A))
 
 
 def BINOM_DIST(number_s: int, trials: int, probability_s: float, 
@@ -778,10 +894,7 @@ def BINOM_DIST(number_s: int, trials: int, probability_s: float,
         >>> BINOM_DIST(6, 10, 0.5, False)
         0.205...
     """
-    if cumulative:
-        return float(stats.binom.cdf(number_s, trials, probability_s))
-    else:
-        return float(stats.binom.pmf(number_s, trials, probability_s))
+    return _core_binom_dist(number_s, trials, probability_s, cumulative)
 
 
 def BINOM_DIST_RANGE(trials: int, probability_s: float, 
@@ -803,13 +916,7 @@ def BINOM_DIST_RANGE(trials: int, probability_s: float,
     Cost:
         O(k) - where k is the range size
     """
-    if number_s2 is None:
-        number_s2 = number_s
-    
-    prob = 0.0
-    for k in range(number_s, number_s2 + 1):
-        prob += stats.binom.pmf(k, trials, probability_s)
-    return float(prob)
+    return _core_binom_dist_range(trials, probability_s, number_s, number_s2)
 
 
 def BINOM_INV(trials: int, probability_s: float, alpha: float) -> int:
@@ -829,31 +936,7 @@ def BINOM_INV(trials: int, probability_s: float, alpha: float) -> int:
     Cost:
         O(1) - Constant time
     """
-    return int(stats.binom.ppf(alpha, trials, probability_s))
-
-
-def BINOM_CRIT(trials: int, probability_s: float, alpha: float) -> int:
-    """
-    Returns the smallest value for which the cumulative binomial distribution is >= criterion.
-    
-    Excel function: BINOM.CRIT (Compatibility function, same as BINOM.INV)
-    
-    Args:
-        trials: Number of Bernoulli trials
-        probability_s: Probability of success on each trial
-        alpha: Criterion value
-    
-    Returns:
-        int: Smallest number of successes
-    
-    Cost:
-        O(1) - Constant time
-    
-    Usage:
-        >>> BINOM_CRIT(10, 0.5, 0.75)
-        6
-    """
-    return BINOM_INV(trials, probability_s, alpha)
+    return _core_binom_inv(trials, probability_s, alpha)
 
 
 def CHISQ_DIST(x: float, deg_freedom: int, cumulative: bool = True) -> float:
@@ -873,10 +956,7 @@ def CHISQ_DIST(x: float, deg_freedom: int, cumulative: bool = True) -> float:
     Cost:
         O(1) - Constant time
     """
-    if cumulative:
-        return float(stats.chi2.cdf(x, deg_freedom))
-    else:
-        return float(stats.chi2.pdf(x, deg_freedom))
+    return _core_chisq_dist(x, deg_freedom, cumulative)
 
 
 def CHISQ_DIST_RT(x: float, deg_freedom: int) -> float:
@@ -895,7 +975,7 @@ def CHISQ_DIST_RT(x: float, deg_freedom: int) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(1 - stats.chi2.cdf(x, deg_freedom))
+    return _core_chisq_dist_rt(x, deg_freedom)
 
 
 def CHISQ_INV(probability: float, deg_freedom: int) -> float:
@@ -914,7 +994,7 @@ def CHISQ_INV(probability: float, deg_freedom: int) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(stats.chi2.ppf(probability, deg_freedom))
+    return _core_chisq_inv(probability, deg_freedom)
 
 
 def CHISQ_INV_RT(probability: float, deg_freedom: int) -> float:
@@ -933,7 +1013,7 @@ def CHISQ_INV_RT(probability: float, deg_freedom: int) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(stats.chi2.ppf(1 - probability, deg_freedom))
+    return _core_chisq_inv_rt(probability, deg_freedom)
 
 
 def EXPON_DIST(x: float, lambda_: float, cumulative: bool) -> float:
@@ -953,10 +1033,7 @@ def EXPON_DIST(x: float, lambda_: float, cumulative: bool) -> float:
     Cost:
         O(1) - Constant time
     """
-    if cumulative:
-        return float(stats.expon.cdf(x, scale=1/lambda_))
-    else:
-        return float(stats.expon.pdf(x, scale=1/lambda_))
+    return _core_expon_dist(x, lambda_, cumulative)
 
 
 def F_DIST(x: float, deg_freedom1: int, deg_freedom2: int, cumulative: bool = True) -> float:
@@ -977,10 +1054,7 @@ def F_DIST(x: float, deg_freedom1: int, deg_freedom2: int, cumulative: bool = Tr
     Cost:
         O(1) - Constant time
     """
-    if cumulative:
-        return float(stats.f.cdf(x, deg_freedom1, deg_freedom2))
-    else:
-        return float(stats.f.pdf(x, deg_freedom1, deg_freedom2))
+    return _core_f_dist(x, deg_freedom1, deg_freedom2, cumulative)
 
 
 def F_DIST_RT(x: float, deg_freedom1: int, deg_freedom2: int) -> float:
@@ -1000,7 +1074,7 @@ def F_DIST_RT(x: float, deg_freedom1: int, deg_freedom2: int) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(1 - stats.f.cdf(x, deg_freedom1, deg_freedom2))
+    return _core_f_dist_rt(x, deg_freedom1, deg_freedom2)
 
 
 def F_INV(probability: float, deg_freedom1: int, deg_freedom2: int) -> float:
@@ -1020,7 +1094,7 @@ def F_INV(probability: float, deg_freedom1: int, deg_freedom2: int) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(stats.f.ppf(probability, deg_freedom1, deg_freedom2))
+    return _core_f_inv(probability, deg_freedom1, deg_freedom2)
 
 
 def F_INV_RT(probability: float, deg_freedom1: int, deg_freedom2: int) -> float:
@@ -1040,7 +1114,7 @@ def F_INV_RT(probability: float, deg_freedom1: int, deg_freedom2: int) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(stats.f.ppf(1 - probability, deg_freedom1, deg_freedom2))
+    return _core_f_inv_rt(probability, deg_freedom1, deg_freedom2)
 
 
 def GAMMA_DIST(x: float, alpha: float, beta: float, cumulative: bool) -> float:
@@ -1061,10 +1135,7 @@ def GAMMA_DIST(x: float, alpha: float, beta: float, cumulative: bool) -> float:
     Cost:
         O(1) - Constant time
     """
-    if cumulative:
-        return float(stats.gamma.cdf(x, a=alpha, scale=beta))
-    else:
-        return float(stats.gamma.pdf(x, a=alpha, scale=beta))
+    return _core_gamma_dist(x, alpha, beta, cumulative)
 
 
 def GAMMA_INV(probability: float, alpha: float, beta: float) -> float:
@@ -1084,7 +1155,7 @@ def GAMMA_INV(probability: float, alpha: float, beta: float) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(stats.gamma.ppf(probability, a=alpha, scale=beta))
+    return _core_gamma_inv(probability, alpha, beta)
 
 
 def HYPGEOM_DIST(sample_s: int, number_sample: int, population_s: int, 
@@ -1107,10 +1178,7 @@ def HYPGEOM_DIST(sample_s: int, number_sample: int, population_s: int,
     Cost:
         O(1) - Constant time
     """
-    if cumulative:
-        return float(stats.hypergeom.cdf(sample_s, number_pop, population_s, number_sample))
-    else:
-        return float(stats.hypergeom.pmf(sample_s, number_pop, population_s, number_sample))
+    return _core_hypgeom_dist(sample_s, number_sample, population_s, number_pop, cumulative)
 
 
 def LOGNORM_DIST(x: float, mean: float, standard_dev: float, cumulative: bool) -> float:
@@ -1131,10 +1199,7 @@ def LOGNORM_DIST(x: float, mean: float, standard_dev: float, cumulative: bool) -
     Cost:
         O(1) - Constant time
     """
-    if cumulative:
-        return float(stats.lognorm.cdf(x, s=standard_dev, scale=np.exp(mean)))
-    else:
-        return float(stats.lognorm.pdf(x, s=standard_dev, scale=np.exp(mean)))
+    return _core_lognorm_dist(x, mean, standard_dev, cumulative)
 
 
 def LOGNORM_INV(probability: float, mean: float, standard_dev: float) -> float:
@@ -1154,7 +1219,7 @@ def LOGNORM_INV(probability: float, mean: float, standard_dev: float) -> float:
     Cost:
         O(1) - Constant time
     """
-    return float(stats.lognorm.ppf(probability, s=standard_dev, scale=np.exp(mean)))
+    return _core_lognorm_inv(probability, mean, standard_dev)
 
 
 # ============================================================================
@@ -1190,21 +1255,21 @@ def LINEST(known_y: List[float], known_x: Optional[List[float]] = None,
         raise ValueError("known_y and known_x must have equal length")
     
     if const:
-        coeffs = np.polyfit(known_x, known_y, 1)
-        slope, intercept = float(coeffs[0]), float(coeffs[1])
+        slope, intercept = _polyfit1(known_x, known_y)
     else:
         # Force through origin
-        slope = float(np.sum(np.array(known_x) * np.array(known_y)) / np.sum(np.array(known_x) ** 2))
+        s_xy = sum(x * y for x, y in zip(known_x, known_y))
+        s_xx = sum(x * x for x in known_x)
+        slope = s_xy / s_xx
         intercept = 0.0
-    
+
     if stats_flag:
-        # Return extended statistics: slope, intercept, r_squared, std_error, F_statistic
         y_pred = [slope * x + intercept for x in known_x]
         ss_res = sum((y - yp) ** 2 for y, yp in zip(known_y, y_pred))
-        ss_tot = sum((y - np.mean(known_y)) ** 2 for y in known_y)
+        ss_tot = sum((y - _core_mean(list(known_y))) ** 2 for y in known_y)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
         return (slope, intercept, r_squared)
-    
+
     return (slope, intercept)
 
 
@@ -1232,17 +1297,19 @@ def LOGEST(known_y: List[float], known_x: Optional[List[float]] = None,
     if len(known_y) != len(known_x):
         raise ValueError("known_y and known_x must have equal length")
     
-    log_y = np.log(np.array(known_y))
-    
+    log_y = [math.log(y) for y in known_y]
+
     if const:
-        coeffs = np.polyfit(known_x, log_y, 1)
-        base = float(np.exp(coeffs[0]))
-        multiplier = float(np.exp(coeffs[1]))
+        slope, intercept = _polyfit1(known_x, log_y)
+        base = math.exp(slope)
+        multiplier = math.exp(intercept)
     else:
-        slope = float(np.sum(np.array(known_x) * log_y) / np.sum(np.array(known_x) ** 2))
-        base = float(np.exp(slope))
+        s_xy = sum(x * ly for x, ly in zip(known_x, log_y))
+        s_xx = sum(x * x for x in known_x)
+        slope_val = s_xy / s_xx
+        base = math.exp(slope_val)
         multiplier = 1.0
-    
+
     return (base, multiplier)
 
 
@@ -1266,8 +1333,7 @@ def INTERCEPT(known_y: List[float], known_x: Optional[List[float]] = None) -> fl
         >>> INTERCEPT([2, 3, 9, 1, 8], [6, 5, 11, 7, 5])
         0.048...
     """
-    _, intercept = LINEST(known_y, known_x)
-    return float(intercept)
+    return _core_intercept(known_y, known_x)
 
 
 def SLOPE(known_y: List[float], known_x: Optional[List[float]] = None) -> float:
@@ -1290,8 +1356,7 @@ def SLOPE(known_y: List[float], known_x: Optional[List[float]] = None) -> float:
         >>> SLOPE([2, 3, 9, 1, 8], [6, 5, 11, 7, 5])
         0.305...
     """
-    slope, _ = LINEST(known_y, known_x)
-    return float(slope)
+    return _core_slope(known_y, known_x)
 
 
 # ============================================================================
@@ -1319,12 +1384,7 @@ def FORECAST_LINEAR(x: float, known_y: List[float], known_x: Optional[List[float
         >>> FORECAST_LINEAR(30, [6, 7, 9, 15, 21], [20, 28, 31, 38, 40])
         10.607...
     """
-    slope, intercept = LINEST(known_y, known_x)
-    return float(slope * x + intercept)
-
-
-# Alias for backward compatibility
-FORECAST = FORECAST_LINEAR
+    return _core_forecast_linear(x, known_y, known_x)
 
 
 def FORECAST_ETS(target_date: float, values: List[float], timeline: List[float], 
@@ -1352,7 +1412,11 @@ def FORECAST_ETS(target_date: float, values: List[float], timeline: List[float],
         O(n) - Linear time complexity
     """
     # Simplified: use linear trend if no obvious seasonality
-    return FORECAST_LINEAR(target_date, values, timeline)
+    return float(_core_forecast_ets(
+        target_date, values, timeline,
+        seasonality if seasonality is not None else 1,
+        data_completion, aggregation,
+    ))
 
 
 def FORECAST_ETS_CONFINT(target_date: float, values: List[float], timeline: List[float], 
@@ -1379,8 +1443,8 @@ def FORECAST_ETS_CONFINT(target_date: float, values: List[float], timeline: List
         O(n) - Linear time complexity
     """
     forecast = FORECAST_ETS(target_date, values, timeline, seasonality, data_completion, aggregation)
-    std_err = np.std(values) / np.sqrt(len(values))
-    z = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+    std_err = _core_std_dev(list(values), sample=False) / math.sqrt(len(values))
+    z = _get_scipy_stats().norm.ppf(1 - (1 - confidence_level) / 2)
     margin = z * std_err
     return (float(forecast - margin), float(forecast + margin))
 
@@ -1467,9 +1531,7 @@ def FISHER(x: float) -> float:
         >>> FISHER(0.75)
         0.972...
     """
-    if abs(x) >= 1:
-        raise ValueError("Value must be between -1 and 1")
-    return float(0.5 * np.log((1 + x) / (1 - x)))
+    return _core_fisher(x)
 
 
 def FISHERINV(y: float) -> float:
@@ -1491,8 +1553,7 @@ def FISHERINV(y: float) -> float:
         >>> FISHERINV(0.972)
         0.75...
     """
-    e2y = np.exp(2 * y)
-    return float((e2y - 1) / (e2y + 1))
+    return float(_core_fisher_inv(y))
 
 
 def GAMMA(number: float) -> float:
@@ -1514,7 +1575,7 @@ def GAMMA(number: float) -> float:
         >>> GAMMA(2.5)
         1.329...
     """
-    return float(math.gamma(number))
+    return float(_core_gamma(number))
 
 
 def GAMMALN(x: float) -> float:
@@ -1536,7 +1597,7 @@ def GAMMALN(x: float) -> float:
         >>> GAMMALN(4)
         1.791...
     """
-    return float(math.lgamma(x))
+    return float(_core_log_gamma(x))
 
 
 def GAMMALN_PRECISE(x: float) -> float:
@@ -1576,7 +1637,7 @@ def GAUSS(z: float) -> float:
         >>> GAUSS(2)
         0.477...
     """
-    return float(stats.norm.cdf(z) - 0.5)
+    return _core_gauss(z)
 
 
 def FREQUENCY(data_array: List[float], bins_array: List[float]) -> List[int]:
@@ -1599,8 +1660,7 @@ def FREQUENCY(data_array: List[float], bins_array: List[float]) -> List[int]:
         >>> FREQUENCY([79, 85, 78, 85, 50, 81, 95, 88, 97], [70, 79, 89])
         [1, 2, 4, 2]
     """
-    counts, _ = np.histogram(data_array, bins=bins_array + [float('inf')])
-    return counts.tolist()
+    return _core_frequency(list(data_array), list(bins_array))
 
 
 def CONFIDENCE_NORM(alpha: float, standard_dev: float, size: int) -> float:
@@ -1624,8 +1684,7 @@ def CONFIDENCE_NORM(alpha: float, standard_dev: float, size: int) -> float:
         >>> CONFIDENCE_NORM(0.05, 2.5, 50)
         0.692...
     """
-    z = stats.norm.ppf(1 - alpha / 2)
-    return float(z * standard_dev / np.sqrt(size))
+    return _core_confidence_norm(alpha, standard_dev, size)
 
 
 def CONFIDENCE_T(alpha: float, standard_dev: float, size: int) -> float:
@@ -1649,12 +1708,7 @@ def CONFIDENCE_T(alpha: float, standard_dev: float, size: int) -> float:
         >>> CONFIDENCE_T(0.05, 1, 50)
         0.284...
     """
-    t = stats.t.ppf(1 - alpha / 2, df=size - 1)
-    return float(t * standard_dev / np.sqrt(size))
-
-
-# Alias for backward compatibility
-CONFIDENCE = CONFIDENCE_NORM
+    return _core_confidence_t(alpha, standard_dev, size)
 
 
 # ============================================================================
@@ -1691,20 +1745,12 @@ def AVERAGE(*values: Union[float, int, List]) -> float:
         >>> AVERAGE(10, 20, "text", 30)
         20.0
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if not numeric_values:
         raise ValueError("AVERAGE requires at least one numeric value")
-    
-    return sum(numeric_values) / len(numeric_values)
+
+    return _core_mean(numeric_values)
 
 
 def AVERAGEA(*values: Union[float, int, str, bool, List]) -> float:
@@ -1737,33 +1783,12 @@ def AVERAGEA(*values: Union[float, int, str, bool, List]) -> float:
         >>> AVERAGEA(10, "text", 20)
         10.0
     """
-    converted_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if v is None or v == "":
-                    continue
-                elif isinstance(v, bool):
-                    converted_values.append(1 if v else 0)
-                elif isinstance(v, str):
-                    converted_values.append(0)
-                elif isinstance(v, (int, float)):
-                    converted_values.append(v)
-        else:
-            if val is None or val == "":
-                continue
-            elif isinstance(val, bool):
-                converted_values.append(1 if val else 0)
-            elif isinstance(val, str):
-                converted_values.append(0)
-            elif isinstance(val, (int, float)):
-                converted_values.append(val)
-    
+    converted_values = _convert_values_a(*values)
+
     if not converted_values:
         raise ValueError("AVERAGEA requires at least one value")
-    
-    return sum(converted_values) / len(converted_values)
+
+    return _core_mean(converted_values)
 
 
 def AVERAGEIF(range_values: List, criteria, average_range: Optional[List] = None) -> float:
@@ -1798,44 +1823,8 @@ def AVERAGEIF(range_values: List, criteria, average_range: Optional[List] = None
     """
     if average_range is None:
         average_range = range_values
-    
-    if len(range_values) != len(average_range):
-        raise ValueError("Range and average_range must have the same length")
-    
-    # Parse criteria
-    def meets_criteria(value, criteria):
-        if isinstance(criteria, str):
-            # Handle comparison operators
-            for op in ['>=', '<=', '<>', '>', '<', '=']:
-                if criteria.startswith(op):
-                    criteria_val = criteria[len(op):]
-                    try:
-                        criteria_num = float(criteria_val)
-                        value_num = float(value) if isinstance(value, (int, float)) else 0
-                        
-                        if op == '>=': return value_num >= criteria_num
-                        elif op == '<=': return value_num <= criteria_num
-                        elif op == '<>': return value_num != criteria_num
-                        elif op == '>': return value_num > criteria_num
-                        elif op == '<': return value_num < criteria_num
-                        elif op == '=': return value_num == criteria_num
-                    except:
-                        return str(value) == criteria_val if op == '=' else str(value) != criteria_val
-            # Exact text match
-            return str(value) == criteria
-        else:
-            # Direct value comparison
-            return value == criteria
-    
-    values_to_average = [
-        average_range[i] for i in range(len(range_values))
-        if meets_criteria(range_values[i], criteria) and isinstance(average_range[i], (int, float))
-    ]
-    
-    if not values_to_average:
-        raise ValueError("No values meet the criterion")
-    
-    return sum(values_to_average) / len(values_to_average)
+
+    return _core_average_if(average_range, range_values, criteria)
 
 
 def AVERAGEIFS(average_range: List, *criteria_pairs) -> float:
@@ -1867,56 +1856,38 @@ def AVERAGEIFS(average_range: List, *criteria_pairs) -> float:
     """
     if len(criteria_pairs) % 2 != 0:
         raise ValueError("Criteria must be provided as pairs of (range, criterion)")
-    
-    # Parse criteria pairs
+
+    if len(criteria_pairs) == 2:
+        return _core_average_if(average_range, criteria_pairs[0], criteria_pairs[1])
+
+    # Multiple criteria pairs â€” intersect matches
     criteria_list = []
+
     for i in range(0, len(criteria_pairs), 2):
         criteria_range = criteria_pairs[i]
         criterion = criteria_pairs[i + 1]
+
         if len(criteria_range) != len(average_range):
             raise ValueError("All ranges must have the same length")
+
         criteria_list.append((criteria_range, criterion))
-    
-    # Helper function from AVERAGEIF
-    def meets_criteria(value, criteria):
-        if isinstance(criteria, str):
-            for op in ['>=', '<=', '<>', '>', '<', '=']:
-                if criteria.startswith(op):
-                    criteria_val = criteria[len(op):]
-                    try:
-                        criteria_num = float(criteria_val)
-                        value_num = float(value) if isinstance(value, (int, float)) else 0
-                        
-                        if op == '>=': return value_num >= criteria_num
-                        elif op == '<=': return value_num <= criteria_num
-                        elif op == '<>': return value_num != criteria_num
-                        elif op == '>': return value_num > criteria_num
-                        elif op == '<': return value_num < criteria_num
-                        elif op == '=': return value_num == criteria_num
-                    except:
-                        return str(value) == criteria_val if op == '=' else str(value) != criteria_val
-            return str(value) == criteria
-        else:
-            return value == criteria
-    
-    # Find values that meet all criteria
+
+    from formulite.fxNumeric.statistics_functions import _parse_criteria
+
+    preds = [_parse_criteria(crit) for _, crit in criteria_list]
     values_to_average = []
+
     for i in range(len(average_range)):
+
         if not isinstance(average_range[i], (int, float)):
             continue
-        
-        all_criteria_met = True
-        for criteria_range, criterion in criteria_list:
-            if not meets_criteria(criteria_range[i], criterion):
-                all_criteria_met = False
-                break
-        
-        if all_criteria_met:
+
+        if all(pred(criteria_list[j][0][i]) for j, pred in enumerate(preds)):
             values_to_average.append(average_range[i])
-    
+
     if not values_to_average:
         raise ValueError("No values meet all criteria")
-    
+
     return sum(values_to_average) / len(values_to_average)
 
 
@@ -1952,19 +1923,11 @@ def MIN(*values: Union[float, int, List]) -> float:
         >>> MIN([10, 20, 5, 30])
         5
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if not numeric_values:
         raise ValueError("MIN requires at least one numeric value")
-    
+
     return min(numeric_values)
 
 
@@ -2052,53 +2015,35 @@ def MINIFS(min_range: List, *criteria_pairs) -> float:
     """
     if len(criteria_pairs) % 2 != 0:
         raise ValueError("Criteria must be provided as pairs of (range, criterion)")
-    
+
+    if len(criteria_pairs) == 2:
+        return float(_core_min_if(min_range, criteria_pairs[0], criteria_pairs[1]))
+
+    # Multiple criteria pairs
     criteria_list = []
+
     for i in range(0, len(criteria_pairs), 2):
         criteria_range = criteria_pairs[i]
         criterion = criteria_pairs[i + 1]
+
         if len(criteria_range) != len(min_range):
             raise ValueError("All ranges must have the same length")
+
         criteria_list.append((criteria_range, criterion))
-    
-    def meets_criteria(value, criteria):
-        if isinstance(criteria, str):
-            for op in ['>=', '<=', '<>', '>', '<', '=']:
-                if criteria.startswith(op):
-                    criteria_val = criteria[len(op):]
-                    try:
-                        criteria_num = float(criteria_val)
-                        value_num = float(value) if isinstance(value, (int, float)) else 0
-                        
-                        if op == '>=': return value_num >= criteria_num
-                        elif op == '<=': return value_num <= criteria_num
-                        elif op == '<>': return value_num != criteria_num
-                        elif op == '>': return value_num > criteria_num
-                        elif op == '<': return value_num < criteria_num
-                        elif op == '=': return value_num == criteria_num
-                    except:
-                        return str(value) == criteria_val if op == '=' else str(value) != criteria_val
-            return str(value) == criteria
-        else:
-            return value == criteria
-    
+
     values_to_check = []
+
     for i in range(len(min_range)):
+
         if not isinstance(min_range[i], (int, float)):
             continue
-        
-        all_criteria_met = True
-        for criteria_range, criterion in criteria_list:
-            if not meets_criteria(criteria_range[i], criterion):
-                all_criteria_met = False
-                break
-        
-        if all_criteria_met:
+
+        if all(_meets_criteria(cr[i], crit) for cr, crit in criteria_list):
             values_to_check.append(min_range[i])
-    
+
     if not values_to_check:
         raise ValueError("No values meet all criteria")
-    
+
     return min(values_to_check)
 
 
@@ -2130,20 +2075,12 @@ def MEDIAN(*values: Union[float, int, List]) -> float:
         >>> MEDIAN(1, 2, 3, 4)
         2.5
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if not numeric_values:
         raise ValueError("MEDIAN requires at least one numeric value")
-    
-    return float(np.median(numeric_values))
+
+    return float(_core_median(numeric_values))
 
 
 # ============================================================================
@@ -2177,23 +2114,8 @@ def MODE_MULT(values: List[Union[float, int]]) -> List[float]:
         [3.0, 4.0]
     """
     numeric_values = [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]
-    
-    if not numeric_values:
-        raise ValueError("MODE.MULT requires at least one numeric value")
-    
-    # Count frequencies
-    from collections import Counter
-    freq = Counter(numeric_values)
-    
-    # Find maximum frequency
-    max_freq = max(freq.values())
-    
-    if max_freq == 1:
-        raise ValueError("No repeated values found")
-    
-    # Return all values with maximum frequency
-    modes = [float(val) for val, count in freq.items() if count == max_freq]
-    return sorted(modes)
+    result = _core_mode_mult(numeric_values)
+    return [float(v) for v in result]
 
 
 def MODE_SNGL(values: List[Union[float, int]]) -> float:
@@ -2223,28 +2145,11 @@ def MODE_SNGL(values: List[Union[float, int]]) -> float:
         3.0
     """
     numeric_values = [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]
-    
+
     if not numeric_values:
         raise ValueError("MODE.SNGL requires at least one numeric value")
-    
-    from collections import Counter
-    freq = Counter(numeric_values)
-    
-    max_freq = max(freq.values())
-    
-    if max_freq == 1:
-        raise ValueError("No repeated values found")
-    
-    # Return first value with maximum frequency (in order of appearance)
-    for val in numeric_values:
-        if freq[val] == max_freq:
-            return float(val)
-    
-    return float(numeric_values[0])
 
-
-# Alias for backward compatibility
-MODE = MODE_SNGL
+    return _core_mode_single(numeric_values)
 
 
 # ============================================================================
@@ -2298,7 +2203,7 @@ def CHISQ_TEST(actual_range: List[Union[float, int]], expected_range: List[Union
     df = len(actual) - 1
     
     # Return p-value
-    return float(1 - stats.chi2.cdf(chi2_stat, df))
+    return float(1 - _get_scipy_stats().chi2.cdf(chi2_stat, df))
 
 
 def F_TEST(array1: List[Union[float, int]], array2: List[Union[float, int]]) -> float:
@@ -2336,8 +2241,8 @@ def F_TEST(array1: List[Union[float, int]], array2: List[Union[float, int]]) -> 
         raise ValueError("Each array must contain at least 2 values")
     
     # Calculate variances
-    var1 = np.var(arr1, ddof=1)
-    var2 = np.var(arr2, ddof=1)
+    var1 = _core_variance(arr1, sample=True)
+    var2 = _core_variance(arr2, sample=True)
     
     # F statistic (larger variance / smaller variance)
     if var1 >= var2:
@@ -2350,7 +2255,8 @@ def F_TEST(array1: List[Union[float, int]], array2: List[Union[float, int]]) -> 
         df2 = len(arr1) - 1
     
     # Two-tailed p-value
-    p_value = 2 * min(stats.f.cdf(f_stat, df1, df2), 1 - stats.f.cdf(f_stat, df1, df2))
+    _st = _get_scipy_stats()
+    p_value = 2 * min(_st.f.cdf(f_stat, df1, df2), 1 - _st.f.cdf(f_stat, df1, df2))
     
     return float(p_value)
 
@@ -2388,33 +2294,17 @@ def T_TEST(array1: List[Union[float, int]], array2: List[Union[float, int]],
     """
     arr1 = [float(v) for v in array1 if isinstance(v, (int, float)) and not isinstance(v, bool)]
     arr2 = [float(v) for v in array2 if isinstance(v, (int, float)) and not isinstance(v, bool)]
-    
+
     if tails not in [1, 2]:
         raise ValueError("Tails must be 1 or 2")
-    
+
     if test_type not in [1, 2, 3]:
         raise ValueError("Test type must be 1, 2, or 3")
-    
+
     if len(arr1) < 2 or len(arr2) < 2:
         raise ValueError("Each array must contain at least 2 values")
-    
-    if test_type == 1:
-        # Paired t-test
-        if len(arr1) != len(arr2):
-            raise ValueError("For paired t-test, arrays must have equal length")
-        t_stat, p_value = stats.ttest_rel(arr1, arr2)
-    elif test_type == 2:
-        # Two-sample t-test with equal variances
-        t_stat, p_value = stats.ttest_ind(arr1, arr2, equal_var=True)
-    else:
-        # Two-sample t-test with unequal variances (Welch's t-test)
-        t_stat, p_value = stats.ttest_ind(arr1, arr2, equal_var=False)
-    
-    # Adjust for one-tailed test
-    if tails == 1:
-        p_value = p_value / 2
-    
-    return float(p_value)
+
+    return float(_core_t_test(arr1, arr2, tails, test_type))
 
 
 def Z_TEST(array: List[Union[float, int]], x: float, sigma: Optional[float] = None) -> float:
@@ -2451,16 +2341,16 @@ def Z_TEST(array: List[Union[float, int]], x: float, sigma: Optional[float] = No
     if len(arr) < 2:
         raise ValueError("Array must contain at least 2 values")
     
-    mean = np.mean(arr)
-    
+    mean = _core_mean(arr)
+
     if sigma is None:
-        sigma = np.std(arr, ddof=1)
-    
+        sigma = _core_std_dev(arr, sample=True)
+
     # Calculate z-score
-    z = (mean - x) / (sigma / np.sqrt(len(arr)))
+    z = (mean - x) / (sigma / math.sqrt(len(arr)))
     
     # One-tailed p-value
-    p_value = 1 - stats.norm.cdf(z)
+    p_value = 1 - _get_scipy_stats().norm.cdf(z)
     
     return float(p_value)
 
@@ -2499,16 +2389,7 @@ def NEGBINOM_DIST(number_f: int, number_s: int, probability_s: float, cumulative
         >>> NEGBINOM_DIST(10, 5, 0.25)
         0.055...
     """
-    if number_f < 0 or number_s < 1:
-        raise ValueError("number_f must be >= 0 and number_s must be >= 1")
-    
-    if probability_s <= 0 or probability_s >= 1:
-        raise ValueError("probability_s must be between 0 and 1 (exclusive)")
-    
-    if cumulative:
-        return float(stats.nbinom.cdf(number_f, number_s, probability_s))
-    else:
-        return float(stats.nbinom.pmf(number_f, number_s, probability_s))
+    return _core_negbinom_dist(number_f, number_s, probability_s, cumulative)
 
 
 # ============================================================================
@@ -2546,11 +2427,8 @@ def NORM_DIST(x: float, mean: float, standard_dev: float, cumulative: bool = Fal
     """
     if standard_dev <= 0:
         raise ValueError("Standard deviation must be positive")
-    
-    if cumulative:
-        return float(stats.norm.cdf(x, mean, standard_dev))
-    else:
-        return float(stats.norm.pdf(x, mean, standard_dev))
+
+    return float(_core_norm_dist(x, mean, standard_dev, cumulative))
 
 
 def NORM_INV(probability: float, mean: float, standard_dev: float) -> float:
@@ -2583,11 +2461,11 @@ def NORM_INV(probability: float, mean: float, standard_dev: float) -> float:
     """
     if probability <= 0 or probability >= 1:
         raise ValueError("Probability must be between 0 and 1 (exclusive)")
-    
+
     if standard_dev <= 0:
         raise ValueError("Standard deviation must be positive")
-    
-    return float(stats.norm.ppf(probability, mean, standard_dev))
+
+    return float(_core_norm_inv(probability, mean, standard_dev))
 
 
 def NORM_S_DIST(z: float, cumulative: bool = False) -> float:
@@ -2613,10 +2491,7 @@ def NORM_S_DIST(z: float, cumulative: bool = False) -> float:
         >>> NORM_S_DIST(1.333333)
         0.181...
     """
-    if cumulative:
-        return float(stats.norm.cdf(z))
-    else:
-        return float(stats.norm.pdf(z))
+    return _core_norm_s_dist(z, cumulative)
 
 
 def NORM_S_INV(probability: float) -> float:
@@ -2645,10 +2520,7 @@ def NORM_S_INV(probability: float) -> float:
         >>> NORM_S_INV(0.908789)
         1.333...
     """
-    if probability <= 0 or probability >= 1:
-        raise ValueError("Probability must be between 0 and 1 (exclusive)")
-    
-    return float(stats.norm.ppf(probability))
+    return _core_norm_s_inv(probability)
 
 
 # ============================================================================
@@ -2695,8 +2567,8 @@ def PERCENTILE_EXC(array: List[Union[float, int]], k: float) -> float:
     # Excel's PERCENTILE.EXC uses (n+1)*k formula
     if k < 1/(n+1) or k > n/(n+1):
         raise ValueError(f"k must be between {1/(n+1)} and {n/(n+1)}")
-    
-    return float(np.percentile(arr, k * 100, method='weibull'))
+
+    return float(_core_percentile_exc(arr, k))
 
 
 def PERCENTILE_INC(array: List[Union[float, int]], k: float) -> float:
@@ -2734,11 +2606,69 @@ def PERCENTILE_INC(array: List[Union[float, int]], k: float) -> float:
     if k < 0 or k > 1:
         raise ValueError("k must be between 0 and 1 (inclusive)")
     
-    return float(np.percentile(arr, k * 100, method='linear'))
+    return float(_core_percentile(arr, k * 100))
 
 
-# Alias for backward compatibility
-PERCENTILE = PERCENTILE_INC
+def QUARTILE_EXC(
+    array: List[Union[float, int]],
+    quart: int,
+) -> float:
+    """Returns the quartile of a data set (exclusive of 0 and 4).
+
+    Excel function: QUARTILE.EXC (CUARTIL.EXC in Spanish)
+
+    Args:
+        array: Array or range of numeric data.
+        quart: Quartile to return (1, 2, or 3).
+
+    Returns:
+        float: The requested quartile value.
+
+    Raises:
+        ValueError: If *quart* is not 1, 2, or 3, or array is empty.
+
+    Usage Example:
+        >>> QUARTILE_EXC([1, 2, 3, 4, 5, 6, 7, 8], 1)
+        2.25
+
+    Cost: O(n log n)
+    """
+    if quart not in (1, 2, 3):
+        raise ValueError("quart must be 1, 2, or 3 for QUARTILE.EXC.")
+
+    k = quart / 4.0
+    return PERCENTILE_EXC(array, k)
+
+
+def QUARTILE_INC(
+    array: List[Union[float, int]],
+    quart: int,
+) -> float:
+    """Returns the quartile of a data set (inclusive of 0 and 4).
+
+    Excel function: QUARTILE.INC (CUARTIL.INC in Spanish) / QUARTILE
+
+    Args:
+        array: Array or range of numeric data.
+        quart: Quartile to return (0 = min, 1 = Q1, 2 = median, 3 = Q3, 4 = max).
+
+    Returns:
+        float: The requested quartile value.
+
+    Raises:
+        ValueError: If *quart* is not in 0..4, or array is empty.
+
+    Usage Example:
+        >>> QUARTILE_INC([1, 2, 3, 4], 2)
+        2.5
+
+    Cost: O(n log n)
+    """
+    if quart not in (0, 1, 2, 3, 4):
+        raise ValueError("quart must be between 0 and 4 for QUARTILE.INC.")
+
+    k = quart / 4.0
+    return PERCENTILE_INC(array, k)
 
 
 def PERCENTRANK_EXC(array: List[Union[float, int]], x: float, significance: int = 3) -> float:
@@ -2770,28 +2700,14 @@ def PERCENTRANK_EXC(array: List[Union[float, int]], x: float, significance: int 
         0.667
     """
     arr = sorted([float(v) for v in array if isinstance(v, (int, float)) and not isinstance(v, bool)])
-    
+
     if not arr:
         raise ValueError("Array must contain at least one numeric value")
-    
+
     if x < arr[0] or x > arr[-1]:
         raise ValueError("x must be within the range of array values")
-    
-    n = len(arr)
-    
-    # Find position
-    if x <= arr[0]:
-        rank = 0
-    elif x >= arr[-1]:
-        rank = 1
-    else:
-        # Linear interpolation
-        for i in range(len(arr) - 1):
-            if arr[i] <= x <= arr[i + 1]:
-                rank = (i + 1 + (x - arr[i]) / (arr[i + 1] - arr[i])) / (n + 1)
-                break
-    
-    return round(rank, significance)
+
+    return _core_percentrank_exc(arr, x, significance)
 
 
 def PERCENTRANK_INC(array: List[Union[float, int]], x: float, significance: int = 3) -> float:
@@ -2850,10 +2766,6 @@ def PERCENTRANK_INC(array: List[Union[float, int]], x: float, significance: int 
     return round(rank, significance)
 
 
-# Alias for backward compatibility
-PERCENTRANK = PERCENTRANK_INC
-
-
 # ============================================================================
 # PERMUTATION AND COMBINATION FUNCTIONS
 # ============================================================================
@@ -2886,18 +2798,7 @@ def PERMUT(number: int, number_chosen: int) -> int:
         >>> PERMUT(100, 3)
         970200
     """
-    if number < 0 or number_chosen < 0:
-        raise ValueError("Arguments must be non-negative")
-    
-    if number_chosen > number:
-        raise ValueError("number_chosen cannot be greater than number")
-    
-    # P(n,k) = n! / (n-k)!
-    result = 1
-    for i in range(number, number - number_chosen, -1):
-        result *= i
-    
-    return result
+    return _core_permutations(number, number_chosen)
 
 
 def PERMUTATIONA(number: int, number_chosen: int) -> int:
@@ -2929,9 +2830,8 @@ def PERMUTATIONA(number: int, number_chosen: int) -> int:
     """
     if number < 0 or number_chosen < 0:
         raise ValueError("Arguments must be non-negative")
-    
-    # Permutations with repetition = n^k
-    return int(number ** number_chosen)
+
+    return _core_permutationa(number, number_chosen)
 
 
 # ============================================================================
@@ -2961,7 +2861,7 @@ def PHI(x: float) -> float:
         >>> PHI(0.75)
         0.301...
     """
-    return float(stats.norm.pdf(x))
+    return _core_phi(x)
 
 
 def POISSON_DIST(x: int, mean: float, cumulative: bool = False) -> float:
@@ -2993,16 +2893,7 @@ def POISSON_DIST(x: int, mean: float, cumulative: bool = False) -> float:
         >>> POISSON_DIST(2, 5, False)
         0.084...
     """
-    if x < 0:
-        raise ValueError("x must be non-negative")
-    
-    if mean <= 0:
-        raise ValueError("mean must be positive")
-    
-    if cumulative:
-        return float(stats.poisson.cdf(x, mean))
-    else:
-        return float(stats.poisson.pmf(x, mean))
+    return _core_poisson_dist(x, mean, cumulative)
 
 
 # ============================================================================
@@ -3036,54 +2927,47 @@ def SKEW(*values: Union[float, int, List]) -> float:
         >>> SKEW(3, 4, 5, 2, 3, 4, 5, 6, 4, 7)
         0.359...
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if len(numeric_values) < 3:
         raise ValueError("SKEW requires at least 3 values")
-    
-    return float(stats.skew(numeric_values, bias=False))
+
+    return float(_get_scipy_stats().skew(numeric_values, bias=False))
 
 
-def SKEW_P(values: List[Union[float, int]]) -> float:
+def SKEW_P(*values: Union[float, int, List]) -> float:
     """
     Returns the skewness of a distribution based on a population.
-    
+
     Excel function: SKEW.P (COEFICIENTE.ASIMETRIA.P in Spanish)
-    
+
     Description:
-        Returns the skewness of a distribution based on a population: a
-        characterization of the degree of asymmetry of a distribution around its mean.
-    
+        Returns the skewness of a distribution based on a population:
+        a characterization of the degree of asymmetry of a distribution
+        around its mean.
+
     Args:
-        values: Array or range for which you want the skewness
-    
+        *values: Numbers or lists for which you want to calculate population skewness
+
     Returns:
         float: Population skewness value
-    
+
     Raises:
         ValueError: If less than 3 values provided
-    
+
     Cost:
         O(n) - Linear time complexity
-    
+
     Usage:
-        >>> SKEW_P([3, 4, 5, 2, 3, 4, 5, 6, 4, 7])
+        >>> SKEW_P(3, 4, 5, 2, 3, 4, 5, 6, 4, 7)
         0.303...
     """
-    numeric_values = [v for v in values if isinstance(v, (int, float)) and not isinstance(v, bool)]
-    
+    numeric_values = _extract_numerics(*values)
+
     if len(numeric_values) < 3:
         raise ValueError("SKEW.P requires at least 3 values")
-    
-    return float(stats.skew(numeric_values, bias=True))
+
+    return float(_get_scipy_stats().skew(numeric_values, bias=True))
 
 
 # ============================================================================
@@ -3117,15 +3001,8 @@ def SMALL(array: List[Union[float, int]], k: int) -> float:
         >>> SMALL([3, 4, 5, 2, 3, 4, 6, 4, 7], 4)
         4
     """
-    numeric_values = sorted([v for v in array if isinstance(v, (int, float)) and not isinstance(v, bool)])
-    
-    if not numeric_values:
-        raise ValueError("Array must contain at least one numeric value")
-    
-    if k < 1 or k > len(numeric_values):
-        raise ValueError(f"k must be between 1 and {len(numeric_values)}")
-    
-    return float(numeric_values[k - 1])
+    numeric_values = [v for v in array if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    return float(_core_small(numeric_values, k))
 
 
 def STANDARDIZE(x: float, mean: float, standard_dev: float) -> float:
@@ -3156,10 +3033,7 @@ def STANDARDIZE(x: float, mean: float, standard_dev: float) -> float:
         >>> STANDARDIZE(42, 40, 1.5)
         1.333...
     """
-    if standard_dev <= 0:
-        raise ValueError("Standard deviation must be positive")
-    
-    return (x - mean) / standard_dev
+    return _core_standardize(x, mean, standard_dev)
 
 
 # ============================================================================
@@ -3192,20 +3066,12 @@ def STDEV_P(*values: Union[float, int, List]) -> float:
         >>> STDEV_P(1345, 1301, 1368, 1322, 1310, 1370, 1318, 1350, 1303, 1299)
         27.46...
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if len(numeric_values) < 1:
         raise ValueError("STDEV.P requires at least one value")
-    
-    return float(np.std(numeric_values, ddof=0))
+
+    return _core_std_dev(numeric_values, sample=False)
 
 
 def STDEV_S(*values: Union[float, int, List]) -> float:
@@ -3234,24 +3100,12 @@ def STDEV_S(*values: Union[float, int, List]) -> float:
         >>> STDEV_S(1345, 1301, 1368, 1322, 1310, 1370, 1318, 1350, 1303, 1299)
         29.05...
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if len(numeric_values) < 2:
         raise ValueError("STDEV.S requires at least 2 values")
-    
-    return float(np.std(numeric_values, ddof=1))
 
-
-# Alias for backward compatibility
-STDEV = STDEV_S
+    return _core_std_dev(numeric_values, sample=True)
 
 
 def STDEVA(*values: Union[float, int, str, bool, List]) -> float:
@@ -3280,33 +3134,12 @@ def STDEVA(*values: Union[float, int, str, bool, List]) -> float:
         >>> STDEVA(1345, 1301, 1368, True, False, "test")
         623.79...
     """
-    converted_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if v is None or v == "":
-                    continue
-                elif isinstance(v, bool):
-                    converted_values.append(1 if v else 0)
-                elif isinstance(v, str):
-                    converted_values.append(0)
-                elif isinstance(v, (int, float)):
-                    converted_values.append(v)
-        else:
-            if val is None or val == "":
-                continue
-            elif isinstance(val, bool):
-                converted_values.append(1 if val else 0)
-            elif isinstance(val, str):
-                converted_values.append(0)
-            elif isinstance(val, (int, float)):
-                converted_values.append(val)
-    
+    converted_values = _convert_values_a(*values)
+
     if len(converted_values) < 2:
         raise ValueError("STDEVA requires at least 2 values")
-    
-    return float(np.std(converted_values, ddof=1))
+
+    return _core_std_dev(converted_values, sample=True)
 
 
 def STDEVPA(*values: Union[float, int, str, bool, List]) -> float:
@@ -3335,33 +3168,12 @@ def STDEVPA(*values: Union[float, int, str, bool, List]) -> float:
         >>> STDEVPA(1345, 1301, 1368, True, False, "test")
         590.69...
     """
-    converted_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if v is None or v == "":
-                    continue
-                elif isinstance(v, bool):
-                    converted_values.append(1 if v else 0)
-                elif isinstance(v, str):
-                    converted_values.append(0)
-                elif isinstance(v, (int, float)):
-                    converted_values.append(v)
-        else:
-            if val is None or val == "":
-                continue
-            elif isinstance(val, bool):
-                converted_values.append(1 if val else 0)
-            elif isinstance(val, str):
-                converted_values.append(0)
-            elif isinstance(val, (int, float)):
-                converted_values.append(val)
-    
+    converted_values = _convert_values_a(*values)
+
     if len(converted_values) < 1:
         raise ValueError("STDEVPA requires at least 1 value")
-    
-    return float(np.std(converted_values, ddof=0))
+
+    return _core_std_dev(converted_values, sample=False)
 
 
 def STEYX(known_y: List[float], known_x: List[float]) -> float:
@@ -3394,23 +3206,14 @@ def STEYX(known_y: List[float], known_x: List[float]) -> float:
     """
     if len(known_y) != len(known_x):
         raise ValueError("Arrays must have equal length")
-    
+
     if len(known_y) < 3:
         raise ValueError("At least 3 data points required")
-    
-    y_arr = np.array([float(v) for v in known_y])
-    x_arr = np.array([float(v) for v in known_x])
-    
-    # Calculate regression
-    slope, intercept = np.polyfit(x_arr, y_arr, 1)
-    y_pred = slope * x_arr + intercept
-    
-    # Calculate standard error
-    n = len(y_arr)
-    sse = np.sum((y_arr - y_pred) ** 2)
-    steyx = np.sqrt(sse / (n - 2))
-    
-    return float(steyx)
+
+    y_vals = [float(v) for v in known_y]
+    x_vals = [float(v) for v in known_x]
+
+    return float(_core_standard_error_estimate(y_vals, x_vals))
 
 
 # ============================================================================
@@ -3444,13 +3247,7 @@ def T_DIST(x: float, deg_freedom: int, cumulative: bool = False) -> float:
         >>> T_DIST(1.959999998, 60, True)
         0.973...
     """
-    if deg_freedom < 1:
-        raise ValueError("Degrees of freedom must be at least 1")
-    
-    if cumulative:
-        return float(stats.t.cdf(x, deg_freedom))
-    else:
-        return float(stats.t.pdf(x, deg_freedom))
+    return _core_t_dist(x, deg_freedom, cumulative)
 
 
 def T_DIST_2T(x: float, deg_freedom: int) -> float:
@@ -3479,13 +3276,7 @@ def T_DIST_2T(x: float, deg_freedom: int) -> float:
         >>> T_DIST_2T(1.959999998, 60)
         0.054...
     """
-    if x < 0:
-        raise ValueError("x must be non-negative")
-    
-    if deg_freedom < 1:
-        raise ValueError("Degrees of freedom must be at least 1")
-    
-    return float(2 * (1 - stats.t.cdf(x, deg_freedom)))
+    return _core_t_dist_2t(x, deg_freedom)
 
 
 def T_DIST_RT(x: float, deg_freedom: int) -> float:
@@ -3514,10 +3305,7 @@ def T_DIST_RT(x: float, deg_freedom: int) -> float:
         >>> T_DIST_RT(1.959999998, 60)
         0.027...
     """
-    if deg_freedom < 1:
-        raise ValueError("Degrees of freedom must be at least 1")
-    
-    return float(1 - stats.t.cdf(x, deg_freedom))
+    return _core_t_dist_rt(x, deg_freedom)
 
 
 def T_INV(probability: float, deg_freedom: int) -> float:
@@ -3547,13 +3335,7 @@ def T_INV(probability: float, deg_freedom: int) -> float:
         >>> T_INV(0.75, 2)
         0.816...
     """
-    if probability <= 0 or probability >= 1:
-        raise ValueError("Probability must be between 0 and 1 (exclusive)")
-    
-    if deg_freedom < 1:
-        raise ValueError("Degrees of freedom must be at least 1")
-    
-    return float(stats.t.ppf(probability, deg_freedom))
+    return _core_t_inv(probability, deg_freedom)
 
 
 def T_INV_2T(probability: float, deg_freedom: int) -> float:
@@ -3583,14 +3365,7 @@ def T_INV_2T(probability: float, deg_freedom: int) -> float:
         >>> T_INV_2T(0.05, 60)
         2.000...
     """
-    if probability <= 0 or probability >= 1:
-        raise ValueError("Probability must be between 0 and 1 (exclusive)")
-    
-    if deg_freedom < 1:
-        raise ValueError("Degrees of freedom must be at least 1")
-    
-    # Two-tailed: use 1 - probability/2
-    return float(stats.t.ppf(1 - probability / 2, deg_freedom))
+    return _core_t_inv_2t(probability, deg_freedom)
 
 
 def TRIMMEAN(array: List[Union[float, int]], fraction: float) -> float:
@@ -3624,26 +3399,12 @@ def TRIMMEAN(array: List[Union[float, int]], fraction: float) -> float:
     if fraction < 0 or fraction >= 1:
         raise ValueError("Fraction must be in range [0, 1)")
     
-    numeric_values = sorted([v for v in array if isinstance(v, (int, float)) and not isinstance(v, bool)])
+    numeric_values = [v for v in array if isinstance(v, (int, float)) and not isinstance(v, bool)]
     
     if not numeric_values:
         raise ValueError("Array must contain at least one numeric value")
     
-    n = len(numeric_values)
-    
-    # Calculate number of points to exclude from each end
-    exclude = int(n * fraction / 2)
-    
-    if exclude * 2 >= n:
-        raise ValueError("Fraction too large for the number of data points")
-    
-    # Trim and calculate mean
-    if exclude > 0:
-        trimmed = numeric_values[exclude:-exclude]
-    else:
-        trimmed = numeric_values
-    
-    return float(np.mean(trimmed))
+    return float(_core_trimmed_mean(numeric_values, fraction / 2))
 
 
 # ============================================================================
@@ -3676,20 +3437,12 @@ def VAR_P(*values: Union[float, int, List]) -> float:
         >>> VAR_P(1345, 1301, 1368, 1322, 1310, 1370, 1318, 1350, 1303, 1299)
         754.27...
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if len(numeric_values) < 1:
         raise ValueError("VAR.P requires at least one value")
-    
-    return float(np.var(numeric_values, ddof=0))
+
+    return _core_variance(numeric_values, sample=False)
 
 
 def VAR_S(*values: Union[float, int, List]) -> float:
@@ -3717,24 +3470,12 @@ def VAR_S(*values: Union[float, int, List]) -> float:
         >>> VAR_S(1345, 1301, 1368, 1322, 1310, 1370, 1318, 1350, 1303, 1299)
         843.63...
     """
-    numeric_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if isinstance(v, (int, float)) and not isinstance(v, bool):
-                    numeric_values.append(v)
-        elif isinstance(val, (int, float)) and not isinstance(val, bool):
-            numeric_values.append(val)
-    
+    numeric_values = _extract_numerics(*values)
+
     if len(numeric_values) < 2:
         raise ValueError("VAR.S requires at least 2 values")
-    
-    return float(np.var(numeric_values, ddof=1))
 
-
-# Alias for backward compatibility
-VAR = VAR_S
+    return _core_variance(numeric_values, sample=True)
 
 
 def VARA(*values: Union[float, int, str, bool, List]) -> float:
@@ -3763,33 +3504,12 @@ def VARA(*values: Union[float, int, str, bool, List]) -> float:
         >>> VARA(1345, 1301, 1368, True, False, "test")
         389054.8
     """
-    converted_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if v is None or v == "":
-                    continue
-                elif isinstance(v, bool):
-                    converted_values.append(1 if v else 0)
-                elif isinstance(v, str):
-                    converted_values.append(0)
-                elif isinstance(v, (int, float)):
-                    converted_values.append(v)
-        else:
-            if val is None or val == "":
-                continue
-            elif isinstance(val, bool):
-                converted_values.append(1 if val else 0)
-            elif isinstance(val, str):
-                converted_values.append(0)
-            elif isinstance(val, (int, float)):
-                converted_values.append(val)
-    
+    converted_values = _convert_values_a(*values)
+
     if len(converted_values) < 2:
         raise ValueError("VARA requires at least 2 values")
-    
-    return float(np.var(converted_values, ddof=1))
+
+    return _core_variance(converted_values, sample=True)
 
 
 def VARPA(*values: Union[float, int, str, bool, List]) -> float:
@@ -3818,33 +3538,12 @@ def VARPA(*values: Union[float, int, str, bool, List]) -> float:
         >>> VARPA(1345, 1301, 1368, True, False, "test")
         348924.72...
     """
-    converted_values = []
-    
-    for val in values:
-        if isinstance(val, (list, tuple)):
-            for v in val:
-                if v is None or v == "":
-                    continue
-                elif isinstance(v, bool):
-                    converted_values.append(1 if v else 0)
-                elif isinstance(v, str):
-                    converted_values.append(0)
-                elif isinstance(v, (int, float)):
-                    converted_values.append(v)
-        else:
-            if val is None or val == "":
-                continue
-            elif isinstance(val, bool):
-                converted_values.append(1 if val else 0)
-            elif isinstance(val, str):
-                converted_values.append(0)
-            elif isinstance(val, (int, float)):
-                converted_values.append(val)
-    
+    converted_values = _convert_values_a(*values)
+
     if len(converted_values) < 1:
         raise ValueError("VARPA requires at least 1 value")
-    
-    return float(np.var(converted_values, ddof=0))
+
+    return _core_variance(converted_values, sample=False)
 
 
 # ============================================================================
@@ -3880,17 +3579,804 @@ def WEIBULL_DIST(x: float, alpha: float, beta: float, cumulative: bool = False) 
         >>> WEIBULL_DIST(105, 20, 100, True)
         0.929...
     """
-    if x < 0:
-        raise ValueError("x must be non-negative")
-    
-    if alpha <= 0:
-        raise ValueError("alpha must be positive")
-    
-    if beta <= 0:
-        raise ValueError("beta must be positive")
-    
-    # scipy uses (c, scale) where c=alpha (shape) and scale=beta
-    if cumulative:
-        return float(stats.weibull_min.cdf(x, alpha, scale=beta))
-    else:
-        return float(stats.weibull_min.pdf(x, alpha, scale=beta))
+    return _core_weibull_dist(x, alpha, beta, cumulative)
+
+
+# ============================================================================
+# RANKING FUNCTIONS
+# ============================================================================
+
+def RANK_EQ(number: Union[float, int], ref: List[Union[float, int]],
+            order: int = 0) -> int:
+    """Returns the rank of a number in a list. Duplicate values receive the same rank.
+
+    Excel function: RANK.EQ (JERARQUIA.EQV in Spanish)
+
+    Description:
+        Returns the rank of a number within a list. If more than one value
+        has the same rank, the top rank of that set is returned (like a
+        competition ranking).
+
+    Args:
+        number: Value whose rank you want to find.
+        ref: List of numeric values (the reference).
+        order: 0 = descending (largest is rank 1), nonzero = ascending
+            (smallest is rank 1).
+
+    Returns:
+        int: Rank of the number within the list.
+
+    Raises:
+        ValueError: If number is not found in ref or ref is empty.
+
+    Usage Example:
+        >>> RANK_EQ(3, [7, 3, 3, 1])
+        2
+        >>> RANK_EQ(1, [7, 3, 3, 1], order=1)
+        1
+
+    Cost: O(n log n) â€” due to sorting.
+    """
+    numeric = [v for v in ref if isinstance(v, (int, float)) and not isinstance(v, bool)]
+
+    if not numeric:
+        raise ValueError("ref must contain at least one numeric value.")
+
+    if number not in numeric:
+        raise ValueError("number is not found in the reference list.")
+
+    ranks = _core_rank(numeric, method='min', ascending=(order != 0))
+    idx = numeric.index(number)
+
+    return int(ranks[idx])
+
+
+def RANK_AVG(number: Union[float, int], ref: List[Union[float, int]],
+             order: int = 0) -> float:
+    """Returns the rank of a number in a list, averaging for ties.
+
+    Excel function: RANK.AVG (JERARQUIA.MEDIA in Spanish)
+
+    Description:
+        Returns the rank of a number within a list. Duplicate values
+        receive the average of their positions (fractional ranking).
+
+    Args:
+        number: Value whose rank you want to find.
+        ref: List of numeric values (the reference).
+        order: 0 = descending (largest is rank 1), nonzero = ascending
+            (smallest is rank 1).
+
+    Returns:
+        float: Average rank of the number within the list.
+
+    Raises:
+        ValueError: If number is not found in ref or ref is empty.
+
+    Usage Example:
+        >>> RANK_AVG(3, [7, 3, 3, 1])
+        2.5
+        >>> RANK_AVG(1, [7, 3, 3, 1], order=1)
+        1.0
+
+    Cost: O(n log n) â€” due to sorting.
+    """
+    numeric = [v for v in ref if isinstance(v, (int, float)) and not isinstance(v, bool)]
+
+    if not numeric:
+        raise ValueError("ref must contain at least one numeric value.")
+
+    if number not in numeric:
+        raise ValueError("number is not found in the reference list.")
+
+    ranks = _core_rank(numeric, method='average', ascending=(order != 0))
+    idx = numeric.index(number)
+
+    return float(ranks[idx])
+
+
+# ============================================================================
+# REGRESSION METRICS
+# ============================================================================
+
+def RSQ(known_y: List[float], known_x: List[float]) -> float:
+    """Returns the R-squared value of the linear regression line.
+
+    Excel function: RSQ (COEFICIENTE.R2 in Spanish)
+
+    Description:
+        Calculates the square of the Pearson correlation coefficient,
+        representing the proportion of variance in known_y explained by
+        known_x through linear regression.
+
+    Args:
+        known_y: Array of dependent data points.
+        known_x: Array of independent data points.
+
+    Returns:
+        float: R-squared value between 0 and 1.
+
+    Raises:
+        ValueError: If arrays have different lengths or fewer than 2 points.
+
+    Usage Example:
+        >>> RSQ([2, 3, 9, 1, 8], [6, 5, 11, 7, 5])
+        0.05795...
+
+    Cost: O(n) â€” single pass correlation.
+    """
+    if len(known_y) != len(known_x):
+        raise ValueError("Arrays must have equal length.")
+
+    if len(known_y) < 2:
+        raise ValueError("At least 2 data points required.")
+
+    y = [float(v) for v in known_y]
+    x = [float(v) for v in known_x]
+
+    correlation = _core_pearson(x, y)
+
+    return float(correlation ** 2)
+
+
+def TREND(known_y: List[float], known_x: Optional[List[float]] = None,
+          new_x: Optional[List[float]] = None,
+          const: bool = True) -> List[float]:
+    """Returns values along a linear trend using least-squares regression.
+
+    Excel function: TREND (TENDENCIA in Spanish)
+
+    Description:
+        Calculates predicted y-values along a linear trend line fitted
+        with the least-squares method.
+
+    Args:
+        known_y: Set of known y-values.
+        known_x: Set of known x-values (defaults to 1, 2, 3, ...).
+        new_x: New x-values for which to predict y (defaults to known_x).
+        const: If True, calculate intercept normally; if False, force
+            through origin.
+
+    Returns:
+        List[float]: Predicted y-values for each new_x point.
+
+    Raises:
+        ValueError: If known_y and known_x have different lengths.
+
+    Usage Example:
+        >>> TREND([1, 2, 3, 4], [10, 20, 30, 40], [50, 60])
+        [5.0, 6.0]
+
+    Cost: O(n) â€” linear regression.
+    """
+    if known_x is None:
+        known_x = list(range(1, len(known_y) + 1))
+
+    if len(known_y) != len(known_x):
+        raise ValueError("known_y and known_x must have equal length.")
+
+    if new_x is None:
+        new_x = known_x
+
+    x_vals = [float(v) for v in known_x]
+    y_vals = [float(v) for v in known_y]
+    new_x_vals = [float(v) for v in new_x]
+
+    return _core_trend(y_vals, x_vals, new_x_vals, const=const)
+
+
+def PROB(x_range: List[Union[float, int]],
+         prob_range: List[float],
+         lower_limit: Union[float, int],
+         upper_limit: Optional[Union[float, int]] = None) -> float:
+    """Returns the probability that values fall within a range.
+
+    Excel function: PROB (PROBABILIDAD in Spanish)
+
+    Description:
+        Returns the probability that values in x_range fall between
+        lower_limit and upper_limit, given associated probabilities.
+
+    Args:
+        x_range: Array of numeric values.
+        prob_range: Array of probabilities associated with x_range values.
+        lower_limit: Lower bound of the interval.
+        upper_limit: Upper bound (defaults to lower_limit for exact match).
+
+    Returns:
+        float: Sum of probabilities for values within the limits.
+
+    Raises:
+        ValueError: If arrays differ in length, probabilities are invalid,
+            or no matching values found.
+
+    Usage Example:
+        >>> PROB([0, 1, 2, 3], [0.1, 0.2, 0.3, 0.4], 2)
+        0.3
+        >>> PROB([0, 1, 2, 3], [0.1, 0.2, 0.3, 0.4], 1, 3)
+        0.9
+
+    Cost: O(n) â€” single pass.
+    """
+    if len(x_range) != len(prob_range):
+        raise ValueError("x_range and prob_range must have equal length.")
+
+    if any(p < 0 for p in prob_range):
+        raise ValueError("Probabilities must be non-negative.")
+
+    total_prob = sum(prob_range)
+
+    if abs(total_prob - 1.0) > 1e-6:
+        raise ValueError("Probabilities must sum to 1.")
+
+    return float(_core_probability_range(x_range, prob_range, lower_limit, upper_limit))
+
+
+# ============================================================================
+# BACKWARD-COMPATIBILITY ALIASES
+# ============================================================================
+
+
+def RANK(number: Union[float, int], ref: List[Union[float, int]],
+         order: int = 0) -> int:
+    """Returns the rank of a number in a list (backward compatibility alias for RANK.EQ).
+
+    Excel function: RANK
+
+    Args:
+        number: Value whose rank you want to find.
+        ref: List of numeric values.
+        order: 0 = descending, nonzero = ascending.
+
+    Returns:
+        int: Rank of the number within the list.
+
+    Raises:
+        ValueError: If number is not found in ref.
+
+    Usage Example:
+        >>> RANK(3, [7, 3, 5, 1])
+        3
+
+    Cost: O(n log n)
+    """
+    return RANK_EQ(number, ref, order)
+
+
+def FORECAST(x: float, known_y: List[float],
+             known_x: Optional[List[float]] = None) -> float:
+    """Returns a single predicted value along a linear trend (backward compat).
+
+    Excel function: FORECAST
+
+    Args:
+        x: The x-value for which to predict y.
+        known_y: Set of known y-values.
+        known_x: Set of known x-values (defaults to 1, 2, 3, ...).
+
+    Returns:
+        float: The predicted y-value.
+
+    Usage Example:
+        >>> FORECAST(6, [1, 2, 3, 4, 5], [10, 20, 30, 40, 50])
+        0.6
+
+    Cost: O(n)
+    """
+    return FORECAST_LINEAR(x, known_y, known_x)
+
+
+def STDEV(*values: Union[float, int, List]) -> float:
+    """Calculates standard deviation based on a sample (backward compat alias).
+
+    Excel function: STDEV
+
+    Args:
+        *values: Numeric values or lists.
+
+    Returns:
+        float: Sample standard deviation.
+
+    Usage Example:
+        >>> STDEV(1, 2, 3, 4, 5)
+        1.5811...
+
+    Cost: O(n)
+    """
+    return STDEV_S(*values)
+
+
+def VAR(*values: Union[float, int, List]) -> float:
+    """Calculates variance based on a sample (backward compat alias).
+
+    Excel function: VAR
+
+    Args:
+        *values: Numeric values or lists.
+
+    Returns:
+        float: Sample variance.
+
+    Usage Example:
+        >>> VAR(1, 2, 3, 4, 5)
+        2.5
+
+    Cost: O(n)
+    """
+    return VAR_S(*values)
+
+
+def MODE(values: List[Union[float, int]]) -> float:
+    """Returns the most common value in a data set (backward compat alias).
+
+    Excel function: MODE
+
+    Args:
+        values: List of numeric values.
+
+    Returns:
+        float: The mode.
+
+    Usage Example:
+        >>> MODE([1, 2, 2, 3])
+        2.0
+
+    Cost: O(n)
+    """
+    return MODE_SNGL(values)
+
+
+def PERCENTILE(array: List[Union[float, int]], k: float) -> float:
+    """Returns the k-th percentile (backward compat alias).
+
+    Excel function: PERCENTILE
+
+    Args:
+        array: List of numeric values.
+        k: Percentile (0..1).
+
+    Returns:
+        float: The percentile value.
+
+    Usage Example:
+        >>> PERCENTILE([1, 2, 3, 4], 0.5)
+        2.5
+
+    Cost: O(n log n)
+    """
+    return PERCENTILE_INC(array, k)
+
+
+def PERCENTRANK(array: List[Union[float, int]], x: float,
+                significance: int = 3) -> float:
+    """Returns the percentage rank (backward compat alias).
+
+    Excel function: PERCENTRANK
+
+    Args:
+        array: List of numeric values.
+        x: The value to rank.
+        significance: Number of significant digits.
+
+    Returns:
+        float: Percentage rank.
+
+    Usage Example:
+        >>> PERCENTRANK([1, 2, 3, 4], 3)
+        0.667
+
+    Cost: O(n log n)
+    """
+    return PERCENTRANK_INC(array, x, significance)
+
+
+def CONFIDENCE(alpha: float, standard_dev: float, size: int) -> float:
+    """Returns the confidence interval (backward compat alias).
+
+    Excel function: CONFIDENCE
+
+    Args:
+        alpha: Significance level.
+        standard_dev: Population standard deviation.
+        size: Sample size.
+
+    Returns:
+        float: Confidence interval half-width.
+
+    Usage Example:
+        >>> CONFIDENCE(0.05, 2.5, 50)
+        0.6929...
+
+    Cost: O(1)
+    """
+    return CONFIDENCE_NORM(alpha, standard_dev, size)
+
+
+def QUARTILE(array: List[Union[float, int]], quart: int) -> float:
+    """Returns the quartile of a data set (backward compat alias).
+
+    Excel function: QUARTILE
+
+    Args:
+        array: List of numeric values.
+        quart: Quartile value (0 = min, 1 = 25th, 2 = median, 3 = 75th, 4 = max).
+
+    Returns:
+        float: The quartile value.
+
+    Usage Example:
+        >>> QUARTILE([1, 2, 3, 4], 2)
+        2.5
+
+    Cost: O(n log n)
+    """
+    return QUARTILE_INC(array, quart)
+
+
+# ============================================================================
+# BACKWARD COMPATIBILITY ALIASES (pre-2010 Excel function names)
+# ============================================================================
+
+def BETADIST(x: float, alpha: float, beta: float,
+             A: float = 0, B: float = 1) -> float:
+    """Returns the beta cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(BETADIST(2, 8, 10, 1, 3), 6)
+        0.685470
+
+    Cost: O(1)
+    """
+    return BETA_DIST(x, alpha, beta, True, A, B)
+
+
+def BETAINV(probability: float, alpha: float, beta: float,
+            A: float = 0, B: float = 1) -> float:
+    """Returns the inverse of the beta cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(BETAINV(0.685470, 8, 10, 1, 3), 1)
+        2.0
+
+    Cost: O(1)
+    """
+    return BETA_INV(probability, alpha, beta, A, B)
+
+
+def BINOMDIST(number_s: int, trials: int, probability_s: float,
+              cumulative: bool = True) -> float:
+    """Returns the binomial distribution probability (backward compat alias).
+
+    Usage Example:
+        >>> round(BINOMDIST(6, 10, 0.5, False), 6)
+        0.205078
+
+    Cost: O(1)
+    """
+    return BINOM_DIST(number_s, trials, probability_s, cumulative)
+
+
+def CHIDIST(x: float, deg_freedom: int) -> float:
+    """Returns the right-tailed chi-squared distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(CHIDIST(18.307, 10), 4)
+        0.0500
+
+    Cost: O(1)
+    """
+    return CHISQ_DIST_RT(x, deg_freedom)
+
+
+def CHIINV(probability: float, deg_freedom: int) -> float:
+    """Returns the inverse of the right-tailed chi-squared distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(CHIINV(0.05, 10), 3)
+        18.307
+
+    Cost: O(1)
+    """
+    return CHISQ_INV_RT(probability, deg_freedom)
+
+
+def CHITEST(actual_range: List[List[float]],
+            expected_range: List[List[float]]) -> float:
+    """Returns the chi-squared test for independence (backward compat alias).
+
+    Usage Example:
+        >>> CHITEST([[58, 35], [11, 25]], [[43.35, 49.65], [25.65, 10.35]])  # doctest: +SKIP
+        0.000...
+
+    Cost: O(r * c)
+    """
+    return CHISQ_TEST(actual_range, expected_range)
+
+
+def CRITBINOM(trials: int, probability_s: float, alpha: float) -> int:
+    """Returns the smallest value for cumulative binomial distribution (backward compat alias).
+
+    Usage Example:
+        >>> CRITBINOM(6, 0.5, 0.75)
+        4
+
+    Cost: O(1)
+    """
+    return BINOM_INV(trials, probability_s, alpha)
+
+
+def EXPONDIST(x: float, lambda_: float,
+              cumulative: bool = True) -> float:
+    """Returns the exponential distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(EXPONDIST(0.2, 10, True), 6)
+        0.864665
+
+    Cost: O(1)
+    """
+    return EXPON_DIST(x, lambda_, cumulative)
+
+
+def FDIST(x: float, deg_freedom1: int, deg_freedom2: int) -> float:
+    """Returns the right-tailed F probability distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(FDIST(15.2069, 6, 4), 4)
+        0.0100
+
+    Cost: O(1)
+    """
+    return F_DIST_RT(x, deg_freedom1, deg_freedom2)
+
+
+def FINV(probability: float, deg_freedom1: int, deg_freedom2: int) -> float:
+    """Returns the inverse of the right-tailed F distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(FINV(0.01, 6, 4), 4)
+        15.2069
+
+    Cost: O(1)
+    """
+    return F_INV_RT(probability, deg_freedom1, deg_freedom2)
+
+
+def FTEST(array1: List[float], array2: List[float]) -> float:
+    """Returns the F-test result (backward compat alias).
+
+    Usage Example:
+        >>> FTEST([6, 7, 9, 15, 21], [20, 28, 31, 38, 40])  # doctest: +SKIP
+        0.648...
+
+    Cost: O(n)
+    """
+    return F_TEST(array1, array2)
+
+
+def GAMMADIST(x: float, alpha: float, beta: float,
+              cumulative: bool = True) -> float:
+    """Returns the gamma distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(GAMMADIST(10.00001131, 9, 2, False), 6)
+        0.032639
+
+    Cost: O(1)
+    """
+    return GAMMA_DIST(x, alpha, beta, cumulative)
+
+
+def GAMMAINV(probability: float, alpha: float, beta: float) -> float:
+    """Returns the inverse of the gamma cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(GAMMAINV(0.068094, 9, 2), 4)
+        10.0000
+
+    Cost: O(1)
+    """
+    return GAMMA_INV(probability, alpha, beta)
+
+
+def HYPGEOMDIST(sample_s: int, number_sample: int,
+                population_s: int, number_pop: int) -> float:
+    """Returns the hypergeometric distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(HYPGEOMDIST(1, 4, 8, 20), 6)
+        0.363261
+
+    Cost: O(1)
+    """
+    return HYPGEOM_DIST(sample_s, number_sample, population_s, number_pop, False)
+
+
+def LOGINV(probability: float, mean: float, standard_dev: float) -> float:
+    """Returns the inverse of the lognormal cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(LOGINV(0.039084, 3.5, 1.2), 4)
+        4.7002
+
+    Cost: O(1)
+    """
+    return LOGNORM_INV(probability, mean, standard_dev)
+
+
+def LOGNORMDIST(x: float, mean: float, standard_dev: float) -> float:
+    """Returns the cumulative lognormal distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(LOGNORMDIST(4, 3.5, 1.2), 6)
+        0.039084
+
+    Cost: O(1)
+    """
+    return LOGNORM_DIST(x, mean, standard_dev, True)
+
+
+def NEGBINOMDIST(number_f: int, number_s: int,
+                 probability_s: float) -> float:
+    """Returns the negative binomial distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(NEGBINOMDIST(10, 5, 0.25), 6)
+        0.055049
+
+    Cost: O(1)
+    """
+    return NEGBINOM_DIST(number_f, number_s, probability_s, False)
+
+
+def NORMDIST(x: float, mean: float, standard_dev: float,
+             cumulative: bool = True) -> float:
+    """Returns the normal cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(NORMDIST(42, 40, 1.5, True), 6)
+        0.908789
+
+    Cost: O(1)
+    """
+    return NORM_DIST(x, mean, standard_dev, cumulative)
+
+
+def NORMINV(probability: float, mean: float, standard_dev: float) -> float:
+    """Returns the inverse of the normal cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(NORMINV(0.908789, 40, 1.5), 0)
+        42.0
+
+    Cost: O(1)
+    """
+    return NORM_INV(probability, mean, standard_dev)
+
+
+def NORMSDIST(z: float) -> float:
+    """Returns the standard normal cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(NORMSDIST(1.333333), 6)
+        0.908789
+
+    Cost: O(1)
+    """
+    return NORM_S_DIST(z, True)
+
+
+def NORMSINV(probability: float) -> float:
+    """Returns the inverse of the standard normal cumulative distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(NORMSINV(0.908789), 6)
+        1.333333
+
+    Cost: O(1)
+    """
+    return NORM_S_INV(probability)
+
+
+def POISSON(x: int, mean: float, cumulative: bool = True) -> float:
+    """Returns the Poisson distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(POISSON(2, 5, True), 6)
+        0.124652
+
+    Cost: O(1)
+    """
+    return POISSON_DIST(x, mean, cumulative)
+
+
+def STDEVP(*values: Union[float, int, List]) -> float:
+    """Returns population standard deviation (backward compat alias).
+
+    Usage Example:
+        >>> round(STDEVP(1, 2, 3, 4, 5), 6)
+        1.414214
+
+    Cost: O(n)
+    """
+    return STDEV_P(*values)
+
+
+def TDIST(x: float, deg_freedom: int, tails: int = 2) -> float:
+    """Returns the Student's t-distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(TDIST(1.96, 60, 2), 4)
+        0.0546
+
+    Cost: O(1)
+    """
+    if tails == 1:
+        return T_DIST_RT(x, deg_freedom)
+
+    return T_DIST_2T(x, deg_freedom)
+
+
+def TINV(probability: float, deg_freedom: int) -> float:
+    """Returns the inverse of the two-tailed Student's t-distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(TINV(0.054645, 60), 2)
+        1.96
+
+    Cost: O(1)
+    """
+    return T_INV_2T(probability, deg_freedom)
+
+
+def TTEST(array1: List[float], array2: List[float],
+          tails: int = 2, test_type: int = 2) -> float:
+    """Returns the probability from a t-test (backward compat alias).
+
+    Usage Example:
+        >>> TTEST([3, 4, 5, 8, 9, 1, 2, 4, 5], [6, 19, 3, 2, 14, 4, 5, 17, 1], 2, 2)  # doctest: +SKIP
+        0.196...
+
+    Cost: O(n)
+    """
+    return T_TEST(array1, array2, tails, test_type)
+
+
+def VARP(*values: Union[float, int, List]) -> float:
+    """Returns population variance (backward compat alias).
+
+    Usage Example:
+        >>> round(VARP(1, 2, 3, 4, 5), 1)
+        2.0
+
+    Cost: O(n)
+    """
+    return VAR_P(*values)
+
+
+def WEIBULL(x: float, alpha: float, beta: float,
+            cumulative: bool = True) -> float:
+    """Returns the Weibull distribution (backward compat alias).
+
+    Usage Example:
+        >>> round(WEIBULL(105, 20, 100, True), 6)
+        0.929581
+
+    Cost: O(1)
+    """
+    return WEIBULL_DIST(x, alpha, beta, cumulative)
+
+
+def ZTEST(array: List[float], x: float,
+          sigma: Optional[float] = None) -> float:
+    """Returns the one-tailed probability-value of a z-test (backward compat alias).
+
+    Usage Example:
+        >>> ZTEST([3, 6, 7, 8, 6, 5, 4, 2, 1, 9], 4)  # doctest: +SKIP
+        0.090...
+
+    Cost: O(n)
+    """
+    return Z_TEST(array, x, sigma)
+
+

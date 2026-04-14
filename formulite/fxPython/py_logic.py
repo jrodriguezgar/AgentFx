@@ -427,3 +427,73 @@ def switch_case(expression: Any, *args: Any) -> Any:
     raise ValueError("No match found for the expression and no default value provided.")
 
 
+def ifs(*args) -> Any:
+    """Evaluates multiple conditions and returns the first matching result.
+
+    Description:
+        Accepts pairs of (condition, value). Returns the value corresponding
+        to the first True condition. Equivalent to Excel IFS.
+
+    Args:
+        *args: Alternating condition/value pairs. Must be an even count.
+
+    Returns:
+        Any: The value associated with the first True condition.
+
+    Raises:
+        ValueError: If an odd number of arguments is provided or no
+                     condition is True.
+
+    Example:
+        >>> ifs(False, "a", True, "b", True, "c")
+        'b'
+        >>> ifs(1 > 2, "no", 3 > 2, "yes")
+        'yes'
+
+    Complexity: O(n) where n is the number of condition/value pairs
+    """
+    if len(args) % 2 != 0:
+        raise ValueError("Arguments must be condition/value pairs (even count).")
+
+    for i in range(0, len(args), 2):
+        condition = args[i]
+        value = args[i + 1]
+
+        if condition:
+            return value
+
+    raise ValueError("No condition evaluated to True.")
+
+
+def coalesce(*values: Any) -> Any:
+    """Return the first non-None value from arguments.
+
+    Description:
+        Scans values left-to-right and returns the first that
+        is not None. Returns None if all values are None.
+        Equivalent to SQL COALESCE / VBA Nz.
+
+    Args:
+        *values: Any number of values to check.
+
+    Returns:
+        Any: First non-None value, or None.
+
+    Example:
+        >>> coalesce(None, None, 42, 'hello')
+        42
+        >>> coalesce(None, 'first')
+        'first'
+        >>> coalesce(None, None) is None
+        True
+
+    Complexity: O(n)
+    """
+    for v in values:
+
+        if v is not None:
+            return v
+
+    return None
+
+

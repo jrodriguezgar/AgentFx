@@ -6,7 +6,13 @@ Description
 """
 
 from datetime import datetime
-from typing import Optional, Any
+from typing import Any
+from formulite.fxString.string_format import (
+    format_with_pattern as _core_format_with_pattern,
+    format_as_currency as _core_format_as_currency,
+    format_as_number as _core_format_as_number,
+    format_as_percent as _core_format_as_percent,
+)
 
 __all__ = [
     "Format_",
@@ -47,40 +53,8 @@ def Format_(
     """
     if not format_str:
         return str(expression)
-    
-    if isinstance(expression, datetime):
-        format_map = {
-            "yyyy": "%Y",
-            "yy": "%y",
-            "mm": "%m",
-            "m": "%-m",
-            "dd": "%d",
-            "d": "%-d",
-            "hh": "%H",
-            "h": "%-H",
-            "nn": "%M",
-            "n": "%-M",
-            "ss": "%S",
-            "s": "%-S",
-        }
-        
-        result = format_str.lower()
-        for access_fmt, py_fmt in format_map.items():
-            result = result.replace(access_fmt, py_fmt)
-        
-        try:
-            return expression.strftime(result)
-        except:
-            return str(expression)
-    
-    elif isinstance(expression, (int, float)):
-        if "#" in format_str or "0" in format_str:
-            decimals = format_str.count("0") - format_str.find(".")
-            if decimals > 0:
-                return f"{expression:.{decimals}f}"
-        return str(expression)
-    
-    return str(expression)
+
+    return _core_format_with_pattern(expression, format_str)
 
 
 def FormatCurrency(
@@ -113,15 +87,13 @@ def FormatCurrency(
     Cost
         O(1)
     """
-    value = float(expression)
-    formatted = f"{abs(value):,.{num_decimals}f}"
-    
-    if value < 0 and use_parens_for_negative != 0:
-        return f"(${formatted})"
-    elif value < 0:
-        return f"-${formatted}"
-    else:
-        return f"${formatted}"
+    use_parens = use_parens_for_negative != 0
+    result = _core_format_as_currency(float(expression), num_decimals)
+
+    if float(expression) < 0 and use_parens:
+        return f"(${result.lstrip('-$')})"
+
+    return result
 
 
 def FormatDateTime(expression: datetime, named_format: int = 0) -> str:
@@ -189,15 +161,9 @@ def FormatNumber(
     Cost
         O(1)
     """
-    value = float(expression)
-    formatted = f"{abs(value):,.{num_decimals}f}"
-    
-    if value < 0 and use_parens_for_negative != 0:
-        return f"({formatted})"
-    elif value < 0:
-        return f"-{formatted}"
-    else:
-        return formatted
+    return _core_format_as_number(
+        float(expression), num_decimals, use_parens_for_negative != 0
+    )
 
 
 def FormatPercent(
@@ -230,12 +196,6 @@ def FormatPercent(
     Cost
         O(1)
     """
-    value = float(expression) * 100
-    formatted = f"{abs(value):,.{num_decimals}f}%"
-    
-    if value < 0 and use_parens_for_negative != 0:
-        return f"({formatted})"
-    elif value < 0:
-        return f"-{formatted}"
-    else:
-        return formatted
+    return _core_format_as_percent(
+        float(expression), num_decimals, use_parens_for_negative != 0
+    )

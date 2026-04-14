@@ -1,7 +1,8 @@
 import unicodedata
 import re
+import math
 from typing import Optional
-from datetime import datetime as dt, date
+from datetime import datetime as dt
 
 from . import string_format as fxStrFmt
 from . import string_operations as fxStrOps
@@ -26,110 +27,30 @@ _COUNTRY_NIF_PATTERNS = {
     # ... other countries
 }
 
-# Spanish DNI/NIE control character lookup
-_DNI_NIE_CONTROL_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE"
-_NIE_PREFIX_MAPPING = {'X': 0, 'Y': 1, 'Z': 2}
-
-
 # Compile regex patterns once for efficiency, as they are static.
 # \b ensures a "word boundary", so it matches whole numbers.
 _POSTAL_CODE_5_DIGIT_PATTERN = re.compile(r'\b\d{5}\b')
 _POSTAL_CODE_4_DIGIT_PATTERN = re.compile(r'\b\d{4}\b')
 
-_DOMAIN_REGEX_PATTERN = re.compile(
-    r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)"  # Domain label (e.g., 'example', 'sub-domain')
-    r"(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))+"  # Subsequent labels, each preceded by a dot
-    r"\.[A-Za-z]{2,63}$"  # Top-Level Domain (TLD) - 2 to 63 letters
+_DOMAIN_PATTERN = re.compile(
+    r"^(?!-)[A-Za-z0-9-]+(?<!-)(\.[A-Za-z0-9-]+)*(?<!-)\.[A-Za-z]{2,}$"
 )
-
-
-def contains_digit(input_string: str) -> bool:
-    """
-    Checks if the given string contains at least one digit.
-
-    This function iterates through each character of the input string and
-    returns True as soon as it finds any digit. If no digits are found
-    after checking all characters, it returns False.
-
-    Args:
-        input_string: The string to be checked for the presence of digits.
-
-    Returns:
-        True if the string contains at least one digit, False otherwise.
-
-    Raises:
-        TypeError: If the input is not a string.
-
-    Example of use:
-        >>> contains_digit("abc123def")
-        True
-        >>> contains_digit("no_digits_here")
-        False
-        >>> contains_digit("")
-        False
-        >>> contains_digit("123")
-        True
-    """
-    if input_string is None:
-        return input_string
-        
-    if not isinstance(input_string, str):
-        raise TypeError("Input must be a string.")
-
-    # Use a generator expression with 'any()' for efficient checking.
-    # 'any()' returns True as soon as the first digit is found,
-    # avoiding unnecessary iterations.
-    return any(char.isdigit() for char in input_string)
-
-
-def same_letters(string_a: str, string_b: str) -> bool:
-    """
-    Checks if two strings contain the exact same characters, irrespective of their order.
-
-    This function determines if one string is an anagram of another,
-    meaning they are composed of the same characters with the same frequencies.
-    The comparison is case-sensitive.
-
-    Args:
-        string_a (str): The first string for comparison.
-        string_b (str): The second string for comparison.
-
-    Returns:
-        bool: True if both strings contain the same characters (same count, same case),
-              False otherwise.
-
-    Raises:
-        TypeError: If 'string_a' or 'string_b' are not strings.
-
-    Example:
-        >>> same_letters("listen", "silent")
-        True
-
-        >>> same_letters("hello", "holle")
-        True
-
-        >>> same_letters("abc", "ab")
-        False
-
-        >>> same_letters("Aardvark", "aardvark")
-        False
-
-        >>> same_letters("", "")
-        True
-    """
-    if string_a is None or string_b is None:
-        return None    
-        
-    if not isinstance(string_a, str):
-        raise TypeError("Input 'string_a' must be a string.")
-    if not isinstance(string_b, str):
-        raise TypeError("Input 'string_b' must be a string.")
-
-    # Convert both strings to sorted lists of their characters.
-    # Sorting ensures that if the strings contain the same characters,
-    # they will be in the same order after sorting, allowing for direct comparison.
-    # This approach effectively checks for anagrams.
-    return sorted(string_a) == sorted(string_b)
+_EMAIL_PATTERN = re.compile(
+    r"^(?:[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+)"
+    r"@"
+    r"(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+"
+    r"[a-zA-Z]{2,})$"
+)
+_URL_PATTERN = re.compile(
+    r"^(?:[a-z]+:\/\/)"
+    r"(?:(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
+    r"[a-z]{2,}"
+    r"|"
+    r"(?:(?:[0-9]{1,3}\.){3}[0-9]{1,3})"
+    r")"
+    r"(?::\d+)?"
+    r"(?:/?|[/?]\S+)$"
+)
 
 
 def is_alphabetic(alpha_string):
@@ -184,13 +105,15 @@ def is_numeric(input_string: str) -> bool:
     
 
 def is_aZ(aZ_string):
-    if aZ_string is None: return None
-    else: return bool(re.match('^[a-zA-Z]*$',aZ_string))
+    if aZ_string is None:
+        return None
+    return bool(re.match('^[a-zA-Z]*$', aZ_string))
 
 
 def is_aZ09(aZ0_string):
-    if aZ0_string is None: return None
-    else: return bool(re.match('^[a-zA-Z0-9]*$',aZ0_string))
+    if aZ0_string is None:
+        return None
+    return bool(re.match('^[a-zA-Z0-9]*$', aZ0_string))
 
 
 def is_internet_domain_format(domain_string: str) -> bool:
@@ -236,11 +159,7 @@ def is_internet_domain_format(domain_string: str) -> bool:
     # \.[A-Za-z]{2,}: Matches the Top-Level Domain (TLD), which must be at least two letters.
     # $: End of the string.
     # This regex balances strictness with common domain name variations for format.
-    domain_pattern = re.compile(
-        r"^(?!-)[A-Za-z0-9-]+(?<!-)(\.[A-Za-z0-9-]+)*(?<!-)\.[A-Za-z]{2,}$"
-    )
-
-    return bool(domain_pattern.match(domain_string))
+    return bool(_DOMAIN_PATTERN.match(domain_string))
 
 
 def is_email_format(email_string: str) -> bool:
@@ -298,14 +217,7 @@ def is_email_format(email_string: str) -> bool:
     # [a-zA-Z]{2,}: Top-Level Domain (TLD).
     #   [a-zA-Z]{2,} matches two or more alphabetic characters for the TLD.
     # $: End of the string.
-    email_pattern = re.compile(
-        r"^(?:[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+)"  # Local part
-        r"@"  # Separator
-        r"(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+"  # Domain name part (labels)
-        r"[a-zA-Z]{2,})$"  # Top-Level Domain (TLD)
-    )
-
-    return bool(email_pattern.match(email_string))
+    return bool(_EMAIL_PATTERN.match(email_string))
 
 
 def is_url_format(url_string: str) -> bool:
@@ -361,18 +273,7 @@ def is_url_format(url_string: str) -> bool:
     # $: End of the string.
     # This regex aims for a balance between strictness and covering common URL variations,
     # ensuring a scheme is present.
-    url_pattern = re.compile(
-        r"^(?:[a-z]+:\/\/)"  # Scheme (e.g., http://, https://) - MANDATORY
-        r"(?:(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"  # Domain name labels
-        r"[a-z]{2,}"  # TLD (at least two letters)
-        r"|"  # OR
-        r"(?:(?:[0-9]{1,3}\.){3}[0-9]{1,3})" # IPv4 address
-        r")"
-        r"(?::\d+)?"  # Optional port number
-        r"(?:/?|[/?]\S+)$" # Optional path, query, fragment (allowing most URL-safe characters)
-    )
-
-    return bool(url_pattern.match(url_string))
+    return bool(_URL_PATTERN.match(url_string))
 
 
 def has_date_format(value: str) -> bool:
@@ -426,14 +327,9 @@ def has_date_format(value: str) -> bool:
 
 
 def has_numbers(input_string: str) -> bool:
-    """
-    Checks if the input string contains any numeric digits (0-9).
+    """Checks if the input string contains any numeric digits (0-9).
 
-    This function iterates over each character in the provided string.
-    If any character is found to be a digit, the function immediately
-    returns True. If the loop completes without finding any digits,
-    it means the string does not contain numbers, and the function
-    returns False.
+    Delegates to :func:`~formulite.fxString.string_validations.contains_digit`.
 
     Args:
         input_string (str): The string to check for digits.
@@ -442,21 +338,17 @@ def has_numbers(input_string: str) -> bool:
         bool: True if the string contains at least one digit, False otherwise.
 
     Raises:
-        None
+        TypeError: If the input is not a string.
 
     Example:
-        has_numbers("abc123def") returns True
-        has_numbers("python") returns False
-        has_numbers("!@#$") returns False
-        has_numbers("12345") returns True
+        >>> has_numbers("abc123def")
+        True
+        >>> has_numbers("python")
+        False
     """
-    for char in input_string:
-        # Check if the current character is a digit.
-        # The 'isdigit()' method returns True for characters that are digits.
-        if char.isdigit():
-            return True
-    # If the loop finishes, no digits were found in the string.
-    return False
+    from formulite.fxString.string_validations import contains_digit
+
+    return contains_digit(input_string)
 
 
 def has_substring(input_string: str, char_to_find: str) -> bool:
@@ -821,13 +713,10 @@ def get_postalcode(address: str) -> list[str] | None:
 
 
 def is_valid_email_format(email_string: str) -> bool:
-    """
-    Checks if a string has a valid email format.
+    """Checks if a string has a valid email format.
 
-    This function uses a regular expression to validate the basic structure
-    of an email address, covering most common cases. It does not guarantee
-    that the email address actually exists or is deliverable, only that its
-    format is syntactically correct according to typical standards.
+    Delegates to :func:`is_email_format`, which uses an RFC 5322-aligned
+    regular expression for validation.
 
     Args:
         email_string: The string to be validated as an email address.
@@ -839,33 +728,12 @@ def is_valid_email_format(email_string: str) -> bool:
         TypeError: If the input 'email_string' is not a string.
 
     Example of use:
-        >>> is_valid_email("test@example.com")
+        >>> is_valid_email_format("test@example.com")
         True
-        >>> is_valid_email("invalid-email")
+        >>> is_valid_email_format("invalid-email")
         False
     """
-    if not isinstance(email_string, str):
-        raise TypeError("Input 'email_string' must be a string.")
-
-    # The regular expression pattern for email validation.
-    # This pattern generally follows the RFC 5322 standard for email addresses.
-    # It checks for:
-    # 1. A valid username part (before the '@'):
-    #    - Can contain letters, numbers, dots, underscores, percents, plus, and hyphens.
-    #    - Starts and ends with an alphanumeric character.
-    # 2. An '@' symbol.
-    # 3. A valid domain part (after the '@'):
-    #    - Can contain letters, numbers, dots, and hyphens.
-    #    - Each segment separated by a dot must be at least one character.
-    #    - The top-level domain (TLD) must be at least two letters long.
-    # We use re.IGNORECASE to make the match case-insensitive for email addresses.
-    email_pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", re.IGNORECASE)
-
-    # Check if the email_string matches the pattern.
-    # The 're.match' function checks for a match only at the beginning of the string.
-    # Because our pattern covers the entire string (start with ^ and end with $),
-    # it effectively validates the whole string.
-    return bool(email_pattern.match(email_string))
+    return is_email_format(email_string)
 
 
 def parse_email(email_address: str) -> dict | None:
@@ -1016,22 +884,10 @@ def domain_from_email(email_address: str) -> str | None:
 
 
 def is_valid_domain_format(domain_string: str) -> bool:
-    """
-    Checks if a string conforms to a common internet domain name format.
+    """Checks if a string conforms to a common internet domain name format.
 
-    This function uses a regular expression to validate the structural format
-    of a domain name (e.g., example.com, sub.domain.org). It ensures that
-    the domain contains valid characters, follows the label-dot-label structure,
-    and has a basic Top-Level Domain (TLD) structure.
-
-    Important Considerations:
-    - This validation is based on regex and only checks the *format*.
-      It does NOT guarantee that the domain actually exists, is registered,
-      or is reachable on the internet (e.g., via DNS lookup).
-    - The regex pattern is designed for common domain names and might not
-      cover all edge cases, new gTLDs, or Internationalized Domain Names (IDNs)
-      without prior punycode conversion.
-    - It disallows hyphens at the start or end of domain labels.
+    Delegates to :func:`is_internet_domain_format` after handling ``None``
+    inputs (returns ``None`` for ``None``).
 
     Args:
         domain_string (str): The string to be validated as a domain name.
@@ -1045,42 +901,13 @@ def is_valid_domain_format(domain_string: str) -> bool:
     Example of use:
         >>> is_valid_domain_format("example.com")
         True
-        >>> is_valid_domain_format("sub.domain.co.uk")
-        True
-        >>> is_valid_domain_format("my-website.org")
-        True
-        >>> is_valid_domain_format("invalid") # Missing TLD
+        >>> is_valid_domain_format("invalid")
         False
-        >>> is_valid_domain_format("no.hyphen-.com") # Hyphen at end of label
-        False
-        >>> is_valid_domain_format("-start.com") # Hyphen at start of label
-        False
-        >>> is_valid_domain_format("a.b") # TLD too short for this regex
-        False
-        >>> is_valid_domain_format("")
-        False
-        >>> is_valid_domain_format(123)
-        Traceback (most recent call last):
-            ...
-        TypeError: Input 'domain_string' must be a string.
     """
     if domain_string is None:
         return domain_string
-        
-    # 1. Input Type Validation
-    if not isinstance(domain_string, str):
-        raise TypeError("Input 'domain_string' must be a string.")
 
-    # 2. Handle empty string early (as regex won't match it)
-    # The regex already implicitly handles empty strings by not matching them,
-    # but an explicit check can be clearer depending on desired behavior.
-    if not domain_string:
-        return False
-
-    # 3. Perform regex match
-    # Use the pre-compiled pattern for efficiency.
-    # re.match checks from the beginning of the string.
-    return _DOMAIN_REGEX_PATTERN.match(domain_string) is not None
+    return is_internet_domain_format(domain_string)
 
 
 def email_belongs_to_name(name,email):
@@ -1105,7 +932,7 @@ def email_belongs_to_name(name,email):
             #case: joseantonio.yraola@atresmedia.com into "Jose Antonio Alvarez de Yraola"
             result = True
             for word in split_email:
-                if not word in cleaned_name: 
+                if word not in cleaned_name: 
                     result = None
                     break
         if not result:
@@ -1117,27 +944,25 @@ def email_belongs_to_name(name,email):
     return result
 
 
-def _calculate_dni_nie_control_letter(numerical_part: int) -> str:
-    """Calculates the control letter for DNI/NIE based on the numerical part."""
-    return _DNI_NIE_CONTROL_LETTERS[numerical_part % 23]
-
-
 def _is_valid_spanish_dni(nif_value: str) -> bool:
     """Validates a Spanish DNI (format and checksum)."""
-    # ... (Implementation from previous review)
-    pass # Placeholder
+    from formulite.fxString.string_spanish import is_valid_dni
+
+    return is_valid_dni(nif_value)
 
 
 def _is_valid_spanish_nie(nif_value: str) -> bool:
     """Validates a Spanish NIE (format and checksum)."""
-    # ... (Implementation from previous review)
-    pass # Placeholder
+    from formulite.fxString.string_spanish import is_valid_nie
+
+    return is_valid_nie(nif_value)
 
 
 def _is_valid_spanish_cif(nif_value: str) -> bool:
-    """Validates a Spanish CIF (format and checksum - highly complex)."""
-    # ... (Placeholder from previous review, requires detailed research)
-    pass # Placeholder
+    """Validates a Spanish CIF (format and checksum)."""
+    from formulite.fxString.string_spanish import is_valid_cif
+
+    return is_valid_cif(nif_value)
 
 
 def _normalize_nif_input(raw_input: str) -> str:
@@ -1295,97 +1120,2031 @@ def detect_quotes(text: Optional[str]) -> bool:
     return first_char == last_char and first_char in VALID_QUOTES
 
 
-def count_words(input_string: str) -> int:
-    """
-    Counts the number of words in a given string.
+def word_frequency(text: str) -> dict[str, int]:
+    """Calculates the frequency of each word in a text string.
 
-    This function splits the string by whitespace characters and returns
-    the total number of resulting words. It handles multiple spaces
-    between words and leading/trailing spaces correctly, as `str.split()`
-    by default splits by any whitespace and discards empty strings.
+    Words are split by whitespace and compared case-insensitively.
 
     Args:
-        input_string (str): The string whose words are to be counted.
+        text: The input text.
 
     Returns:
-        int: The total number of words in the string.
+        A dictionary mapping each lowercase word to its count.
 
     Raises:
-        TypeError: If 'input_string' is not a string.
+        TypeError: If text is not a string.
 
     Example:
-        >>> count_words("Hello world")
-        2
+        >>> word_frequency("the cat and the dog")
+        {'the': 2, 'cat': 1, 'and': 1, 'dog': 1}
 
-        >>> count_words("  Leading and trailing spaces ")
-        4
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input 'text' must be a string.")
 
-        >>> count_words("SingleWord")
+    from collections import Counter
+
+    words = text.lower().split()
+    return dict(Counter(words))
+
+
+def char_frequency(text: str) -> dict[str, int]:
+    """Calculates the frequency of each character in a string.
+
+    Args:
+        text: The input string.
+
+    Returns:
+        A dictionary mapping each character to its count.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> char_frequency("aab")
+        {'a': 2, 'b': 1}
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input 'text' must be a string.")
+
+    from collections import Counter
+
+    return dict(Counter(text))
+
+
+def sentence_count(text: str) -> int:
+    """Counts the number of sentences in a text string.
+
+    Sentences are detected by terminal punctuation (. ! ?).
+
+    Args:
+        text: The input text.
+
+    Returns:
+        The estimated number of sentences.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> sentence_count("Hello world. How are you? Fine!")
+        3
+        >>> sentence_count("No punctuation")
         1
 
-        >>> count_words("")
-        0
-
-        >>> count_words("  ") # Only spaces
-        0
+    Complexity: O(n)
     """
-    if not isinstance(input_string, str):
-        raise TypeError("Input 'input_string' must be a string.")
+    if not isinstance(text, str):
+        raise TypeError("Input 'text' must be a string.")
 
-    # Split the string by any whitespace.
-    # By default, str.split() without arguments handles multiple spaces
-    # and leading/trailing spaces by discarding empty strings,
-    # ensuring accurate word counting.
-    words = input_string.split()
+    if not text.strip():
+        return 0
 
-    # The number of words is simply the length of the resulting list.
-    return len(words)
+    # Count terminal punctuation sequences
+    count = len(re.findall(r'[.!?]+', text))
+    # If text has content but no terminal punctuation, count as 1 sentence
+    return max(count, 1) if text.strip() else 0
 
 
-def count_characters(input_string: str, target_char: str) -> int:
-    """
-    Counts the occurrences of a specific character within a string.
-
-    This function leverages the built-in `str.count()` method to efficiently
-    determine how many times a given character appears in the input string.
-    The comparison is case-sensitive.
+def reading_time(text: str, words_per_minute: int = 200) -> float:
+    """Estimates the reading time of a text in minutes.
 
     Args:
-        input_string (str): The string to search within.
-        target_char (str): The single character to count.
+        text: The input text.
+        words_per_minute: Average reading speed (default: 200 wpm).
 
     Returns:
-        int: The number of times 'target_char' appears in 'input_string'.
+        Estimated reading time in minutes (rounded to 1 decimal).
 
     Raises:
-        TypeError: If 'input_string' is not a string or 'target_char' is not a string.
-        ValueError: If 'target_char' is an empty string or contains more than one character.
+        TypeError: If text is not a string.
 
     Example:
-        >>> count_characters("hello world", "o")
-        2
+        >>> reading_time("word " * 400)
+        2.0
+        >>> reading_time("short text")
+        0.1
 
-        >>> count_characters("programming", "g")
-        2
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input 'text' must be a string.")
 
-        >>> count_characters("Banana", "a")
+    if words_per_minute <= 0:
+        words_per_minute = 200
+
+    word_count = len(text.split())
+    return round(max(word_count / words_per_minute, 0.1) if word_count > 0 else 0.0, 1)
+
+
+# ---------------------------------------------------------------------------
+# Extended validators and text analysis
+# ---------------------------------------------------------------------------
+
+
+def is_json(text: str) -> bool:
+    """Check whether a string is valid JSON.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        True if the string can be parsed as JSON.
+
+    Example:
+        >>> is_json('{"key": "value"}')
+        True
+        >>> is_json('not json')
+        False
+
+    Complexity: O(n)
+    """
+    import json
+
+    try:
+        json.loads(text)
+        return True
+    except (json.JSONDecodeError, TypeError):
+        return False
+
+
+def is_uuid(text: str) -> bool:
+    """Check whether a string matches the UUID format (any version).
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        True if the string is a valid UUID.
+
+    Example:
+        >>> is_uuid('550e8400-e29b-41d4-a716-446655440000')
+        True
+        >>> is_uuid('not-a-uuid')
+        False
+
+    Complexity: O(1)
+    """
+    import uuid
+
+    try:
+        uuid.UUID(text)
+        return True
+    except (ValueError, AttributeError):
+        return False
+
+
+def is_ipv4(text: str) -> bool:
+    """Check whether a string is a valid IPv4 address.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        True if the string is a valid IPv4 address.
+
+    Example:
+        >>> is_ipv4('192.168.1.1')
+        True
+        >>> is_ipv4('999.999.999.999')
+        False
+
+    Complexity: O(1)
+    """
+    import ipaddress
+
+    try:
+        ipaddress.IPv4Address(text.strip())
+        return True
+    except (ipaddress.AddressValueError, ValueError):
+        return False
+
+
+def is_ipv6(text: str) -> bool:
+    """Check whether a string is a valid IPv6 address.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        True if the string is a valid IPv6 address.
+
+    Example:
+        >>> is_ipv6('::1')
+        True
+        >>> is_ipv6('192.168.1.1')
+        False
+
+    Complexity: O(1)
+    """
+    import ipaddress
+
+    try:
+        ipaddress.IPv6Address(text.strip())
+        return True
+    except (ipaddress.AddressValueError, ValueError):
+        return False
+
+
+def is_credit_card_format(text: str) -> bool:
+    """Validate a credit card number using the Luhn algorithm.
+
+    Strips spaces and dashes before validation.
+
+    Args:
+        text: Credit card number string.
+
+    Returns:
+        True if the number passes the Luhn check.
+
+    Example:
+        >>> is_credit_card_format('4532015112830366')
+        True
+        >>> is_credit_card_format('1234567890123456')
+        False
+
+    Complexity: O(n)
+    """
+
+    digits = text.replace(" ", "").replace("-", "")
+
+    if not digits.isdigit() or len(digits) < 13 or len(digits) > 19:
+        return False
+
+    total = 0
+    reverse_digits = digits[::-1]
+
+    for i, ch in enumerate(reverse_digits):
+        n = int(ch)
+
+        if i % 2 == 1:
+            n *= 2
+
+            if n > 9:
+                n -= 9
+
+        total += n
+
+    return total % 10 == 0
+
+
+def count_sentences(text: str) -> int:
+    """Count the number of sentences in a text.
+
+    A sentence is defined as text ending with ``.``, ``!``, or ``?``.
+
+    Args:
+        text: Input text.
+
+    Returns:
+        Number of sentences.
+
+    Example:
+        >>> count_sentences("Hello world. How are you? Fine!")
         3
 
-        >>> count_characters("Banana", "A") # Case-sensitive
-        0
-
-        >>> count_characters("test", "x")
-        0
+    Complexity: O(n)
     """
-    if not isinstance(input_string, str):
-        raise TypeError("Input 'input_string' must be a string.")
-    if not isinstance(target_char, str):
-        raise TypeError("Input 'target_char' must be a string.")
-    if not target_char:
-        raise ValueError("Input 'target_char' cannot be an empty string.")
-    if len(target_char) != 1:
-        raise ValueError("Input 'target_char' must be a single character.")
 
-    # Use the built-in str.count() method for efficient character counting.
-    # This method is optimized in C and is generally the fastest way to count occurrences.
-    return input_string.count(target_char)
+    if not text or not text.strip():
+        return 0
+
+    return len(re.findall(r'[.!?]+', text))
+
+
+def text_stats(text: str) -> dict:
+    """Compute summary statistics for a text string.
+
+    Args:
+        text: Input text.
+
+    Returns:
+        Dict with keys: ``words``, ``chars``, ``chars_no_spaces``,
+        ``sentences``, ``lines``, ``avg_word_length``.
+
+    Example:
+        >>> stats = text_stats("Hello world. How are you?")
+        >>> stats['words']
+        5
+        >>> stats['sentences']
+        2
+
+    Complexity: O(n)
+    """
+
+    words = text.split()
+    word_count = len(words)
+    char_count = len(text)
+    chars_no_spaces = len(text.replace(" ", ""))
+    sentence_count = count_sentences(text)
+    line_count = text.count("\n") + 1 if text else 0
+    avg_word = sum(len(w) for w in words) / word_count if word_count else 0.0
+
+    return {
+        "words": word_count,
+        "chars": char_count,
+        "chars_no_spaces": chars_no_spaces,
+        "sentences": sentence_count,
+        "lines": line_count,
+        "avg_word_length": round(avg_word, 2),
+    }
+
+
+def is_palindrome(text: str) -> bool:
+    """Checks whether a text is a palindrome (ignoring case, spaces and punctuation).
+
+    Args:
+        text: The input string to evaluate.
+
+    Returns:
+        True if the cleaned text reads the same forwards and backwards.
+
+    Example:
+        >>> is_palindrome("A man a plan a canal Panama")
+        True
+        >>> is_palindrome("hello")
+        False
+
+    Complexity: O(n)
+    """
+    cleaned = re.sub(r'[^a-zA-Z0-9]', '', text).lower()
+    return cleaned == cleaned[::-1]
+
+
+def is_anagram(a: str, b: str) -> bool:
+    """Checks whether two strings are anagrams of each other.
+
+    Comparison is case-insensitive and ignores spaces and punctuation.
+
+    Args:
+        a: First string.
+        b: Second string.
+
+    Returns:
+        True if both strings contain exactly the same letters.
+
+    Example:
+        >>> is_anagram("listen", "silent")
+        True
+        >>> is_anagram("hello", "world")
+        False
+
+    Complexity: O(n log n)
+    """
+    clean_a = sorted(re.sub(r'[^a-zA-Z0-9]', '', a).lower())
+    clean_b = sorted(re.sub(r'[^a-zA-Z0-9]', '', b).lower())
+    return clean_a == clean_b
+
+
+def is_pangram(text: str, alphabet: str = "abcdefghijklmnopqrstuvwxyz") -> bool:
+    """Checks whether a text contains every letter of the given alphabet.
+
+    Args:
+        text: The input string.
+        alphabet: The set of required letters (default: English a-z).
+
+    Returns:
+        True if all alphabet letters appear at least once in *text*.
+
+    Example:
+        >>> is_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> is_pangram("Hello world")
+        False
+
+    Complexity: O(n + a) where a is the alphabet length.
+    """
+    lower = text.lower()
+    return all(ch in lower for ch in alphabet.lower())
+
+
+def compare_strings(string1: str, string2: str, case_sensitive: bool = True) -> int:
+    """Compare two strings lexicographically.
+
+    Returns ``-1``, ``0``, or ``1`` depending on whether *string1* is less
+    than, equal to, or greater than *string2*.  Equivalent to VBA ``StrComp``.
+
+    Args:
+        string1: First string.
+        string2: Second string.
+        case_sensitive: If ``False``, comparison is case-insensitive.
+
+    Returns:
+        ``-1`` if string1 < string2, ``0`` if equal, ``1`` if string1 > string2.
+
+    Example:
+        >>> compare_strings("apple", "banana")
+        -1
+        >>> compare_strings("ABC", "abc", case_sensitive=False)
+        0
+
+    Complexity: O(min(len(string1), len(string2)))
+    """
+    a, b = (string1, string2) if case_sensitive else (string1.lower(), string2.lower())
+
+    if a < b:
+        return -1
+
+    if a > b:
+        return 1
+
+    return 0
+
+
+def text_entropy(text: str) -> float:
+    """Calculates Shannon entropy of a string in bits per character.
+
+    Measures the information density / randomness of the text.
+    Higher values indicate more randomness; lower values more
+    repetition or structure.
+
+    Args:
+        text: The input string to analyse.
+
+    Returns:
+        Shannon entropy in bits per character (0.0 for empty string).
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> round(text_entropy("aaaa"), 2)
+        0.0
+        >>> round(text_entropy("abcd"), 2)
+        2.0
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    if not text:
+        return 0.0
+
+    length = len(text)
+    freq: dict[str, int] = {}
+
+    for ch in text:
+        freq[ch] = freq.get(ch, 0) + 1
+
+    entropy = 0.0
+
+    for count in freq.values():
+        p = count / length
+        entropy -= p * math.log2(p)
+
+    return entropy
+
+
+def is_balanced_brackets(text: str) -> bool:
+    """Check whether all brackets in *text* are properly balanced and nested.
+
+    Validates ``()``, ``[]``, and ``{}``.
+
+    Args:
+        text: Input string.
+
+    Returns:
+        ``True`` if every opening bracket has a matching closing bracket
+        in the correct order.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_balanced_brackets("({[]})")
+        True
+        >>> is_balanced_brackets("([)]")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    stack: list[str] = []
+    match = {")": "(", "]": "[", "}": "{"}
+
+    for ch in text:
+
+        if ch in "([{":
+            stack.append(ch)
+        elif ch in ")]}":
+
+            if not stack or stack[-1] != match[ch]:
+                return False
+
+            stack.pop()
+
+    return len(stack) == 0
+
+
+def is_valid_hex_color(text: str) -> bool:
+    """Check whether *text* is a valid hex colour code.
+
+    Accepts ``#RGB``, ``#RGBA``, ``#RRGGBB``, or ``#RRGGBBAA``.
+
+    Args:
+        text: Input string.
+
+    Returns:
+        ``True`` if the string is a valid hex colour.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_hex_color("#FF8800")
+        True
+        >>> is_valid_hex_color("red")
+        False
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    if not text.startswith("#"):
+        return False
+
+    hex_part = text[1:]
+
+    if len(hex_part) not in (3, 4, 6, 8):
+        return False
+
+    return all(c in "0123456789abcdefABCDEF" for c in hex_part)
+
+
+def is_valid_cron(expr: str) -> bool:
+    """Validate a 5-field cron expression.
+
+    Checks that each of the five space-separated fields (*minute*,
+    *hour*, *day-of-month*, *month*, *day-of-week*) contains only
+    valid characters and ranges.
+
+    Args:
+        expr: Cron expression string.
+
+    Returns:
+        ``True`` if the expression is syntactically valid.
+
+    Raises:
+        TypeError: If *expr* is not a string.
+
+    Example:
+        >>> is_valid_cron("0 12 * * 1-5")
+        True
+        >>> is_valid_cron("60 25 * * *")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(expr, str):
+        raise TypeError("expr must be a string")
+
+    fields = expr.strip().split()
+
+    if len(fields) != 5:
+        return False
+
+    ranges = [(0, 59), (0, 23), (1, 31), (1, 12), (0, 7)]
+
+    for field, (lo, hi) in zip(fields, ranges):
+
+        for part in field.split(","):
+            step_parts = part.split("/")
+
+            if len(step_parts) > 2:
+                return False
+
+            val = step_parts[0]
+
+            if val == "*":
+                pass
+            elif "-" in val:
+                bounds = val.split("-")
+
+                if len(bounds) != 2:
+                    return False
+
+                try:
+                    a, b = int(bounds[0]), int(bounds[1])
+                except ValueError:
+                    return False
+
+                if a < lo or b > hi or a > b:
+                    return False
+            else:
+
+                try:
+                    v = int(val)
+                except ValueError:
+                    return False
+
+                if v < lo or v > hi:
+                    return False
+
+            if len(step_parts) == 2:
+
+                try:
+                    s = int(step_parts[1])
+                except ValueError:
+                    return False
+
+                if s < 1:
+                    return False
+
+    return True
+
+
+def is_valid_ipv4(text: str) -> bool:
+    """Validate an IPv4 address string.
+
+    Checks four dot-separated decimal octets, each in [0, 255].
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        ``True`` if *text* is a valid IPv4 address.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_ipv4("192.168.1.1")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    parts = text.strip().split(".")
+
+    if len(parts) != 4:
+        return False
+
+    for p in parts:
+
+        if not p.isdigit():
+            return False
+
+        val = int(p)
+
+        if val < 0 or val > 255:
+            return False
+
+        # Reject leading zeros (e.g. "01")
+        if len(p) > 1 and p[0] == "0":
+            return False
+
+    return True
+
+
+def is_valid_ipv6(text: str) -> bool:
+    """Validate an IPv6 address string.
+
+    Supports full and compressed (``::``\\ ) notation.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        ``True`` if *text* is a valid IPv6 address.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_ipv6("2001:0db8:85a3::8a2e:0370:7334")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    addr = text.strip()
+
+    if "::" in addr:
+        halves = addr.split("::")
+
+        if len(halves) != 2:
+            return False
+
+        left = halves[0].split(":") if halves[0] else []
+        right = halves[1].split(":") if halves[1] else []
+
+        if len(left) + len(right) > 7:
+            return False
+
+        groups = left + ["0"] * (8 - len(left) - len(right)) + right
+    else:
+        groups = addr.split(":")
+
+    if len(groups) != 8:
+        return False
+
+    hex_chars = set("0123456789abcdefABCDEF")
+
+    for g in groups:
+
+        if not g or len(g) > 4:
+            return False
+
+        if not all(c in hex_chars for c in g):
+            return False
+
+    return True
+
+
+def is_valid_uuid(text: str) -> bool:
+    """Validate a UUID string (versions 1-5).
+
+    Expects the canonical 8-4-4-4-12 hex format.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        ``True`` if *text* matches UUID format.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_uuid("550e8400-e29b-41d4-a716-446655440000")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    s = text.strip().lower()
+
+    if len(s) != 36:
+        return False
+
+    if s[8] != "-" or s[13] != "-" or s[18] != "-" or s[23] != "-":
+        return False
+
+    hex_chars = set("0123456789abcdef")
+
+    for i, ch in enumerate(s):
+
+        if i in (8, 13, 18, 23):
+            continue
+
+        if ch not in hex_chars:
+            return False
+
+    return True
+
+
+def is_valid_semver(text: str) -> bool:
+    """Validate a Semantic Versioning string (SemVer 2.0.0).
+
+    Format: ``MAJOR.MINOR.PATCH[-prerelease][+build]``.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        ``True`` if *text* is valid SemVer.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_semver("1.2.3-alpha.1+build.42")
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    s = text.strip()
+
+    # Split off +build metadata
+    if "+" in s:
+        s, build = s.split("+", 1)
+
+        if not build:
+            return False
+
+    # Split off -prerelease
+    if "-" in s:
+        idx = s.index("-")
+        pre = s[idx + 1:]
+        s = s[:idx]
+
+        if not pre:
+            return False
+
+    parts = s.split(".")
+
+    if len(parts) != 3:
+        return False
+
+    for p in parts:
+
+        if not p.isdigit():
+            return False
+
+        # No leading zeros on numeric identifiers (except "0")
+        if len(p) > 1 and p[0] == "0":
+            return False
+
+    return True
+
+
+def is_valid_mac_address(text: str) -> bool:
+    """Validate a MAC address string.
+
+    Accepts colon, dash, and dot notations:
+    ``AA:BB:CC:DD:EE:FF``, ``AA-BB-CC-DD-EE-FF``, ``AABB.CCDD.EEFF``.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        ``True`` if *text* is a valid MAC address.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_mac_address("00:1A:2B:3C:4D:5E")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    s = text.strip().upper()
+    hex_chars = set("0123456789ABCDEF")
+
+    # Colon or dash format
+    for sep in (":", "-"):
+
+        if sep in s:
+            parts = s.split(sep)
+
+            if len(parts) != 6:
+                return False
+
+            return all(len(p) == 2 and all(c in hex_chars for c in p) for p in parts)
+
+    # Dot format (Cisco): AABB.CCDD.EEFF
+    if "." in s:
+        parts = s.split(".")
+
+        if len(parts) != 3:
+            return False
+
+        return all(len(p) == 4 and all(c in hex_chars for c in p) for p in parts)
+
+    # No separator: 12 hex chars
+    if len(s) == 12 and all(c in hex_chars for c in s):
+        return True
+
+    return False
+
+
+def is_valid_base64(text: str) -> bool:
+    """Check whether a string is valid Base64 encoding.
+
+    Validates the character set (A-Za-z0-9+/=) and correct padding.
+
+    Args:
+        text: String to validate.
+
+    Returns:
+        ``True`` if *text* is valid Base64.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Example:
+        >>> is_valid_base64("SGVsbG8gV29ybGQ=")
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    s = text.strip()
+
+    if not s:
+        return False
+
+    # Length must be a multiple of 4
+    if len(s) % 4 != 0:
+        return False
+
+    b64_chars = set(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    )
+
+    # Check padding
+    pad = s.count("=")
+
+    if pad > 2:
+        return False
+
+    if pad > 0 and not s.endswith("=" * pad):
+        return False
+
+    body = s.rstrip("=")
+
+    return all(c in b64_chars for c in body)
+
+
+def is_valid_regex(pattern: str) -> bool:
+    """Checks whether a string is a syntactically valid regular expression.
+
+    Args:
+        pattern: The regex pattern string to validate.
+
+    Returns:
+        ``True`` if the pattern compiles without error.
+
+    Raises:
+        TypeError: If pattern is not a string.
+
+    Example:
+        >>> is_valid_regex(r"\\d{3}-\\d{4}")
+        True
+        >>> is_valid_regex("[unclosed")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(pattern, str):
+        raise TypeError("pattern must be a string")
+
+    try:
+        re.compile(pattern)
+        return True
+    except re.error:
+        return False
+
+
+def is_valid_mime_type(text: str) -> bool:
+    """Validates whether a string matches the MIME type format.
+
+    Checks for the standard ``type/subtype`` structure (e.g.
+    ``text/html``, ``application/json``).
+
+    Args:
+        text: The string to validate.
+
+    Returns:
+        ``True`` if the string is a valid MIME type format.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Example:
+        >>> is_valid_mime_type("application/json")
+        True
+        >>> is_valid_mime_type("not-a-mime")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return bool(re.match(
+        r"^(application|audio|font|image|message|model|multipart|text|video)"
+        r"/[a-zA-Z0-9][a-zA-Z0-9!#$&\-^_.+]*$",
+        text.strip(),
+    ))
+
+
+def is_valid_iban(text: str) -> bool:
+    """Validates an International Bank Account Number (IBAN).
+
+    Description:
+        Checks both the structural format (2 letter country code, 2 check
+        digits, and up to 30 alphanumeric BBAN characters) and the MOD-97
+        check-digit integrity defined by ISO 13616.
+
+    Args:
+        text: The IBAN string to validate.
+
+    Returns:
+        True if the IBAN is structurally valid and passes MOD-97 check.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_iban("GB29 NWBK 6016 1331 9268 19")
+        True
+        >>> is_valid_iban("GB29 NWBK 6016 1331 9268 18")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.replace(" ", "").replace("-", "").upper()
+
+    if not re.match(r"^[A-Z]{2}\d{2}[A-Z0-9]{4,30}$", cleaned):
+        return False
+
+    rearranged = cleaned[4:] + cleaned[:4]
+    numeric = "".join(str(int(c, 36)) for c in rearranged)
+
+    return int(numeric) % 97 == 1
+
+
+def is_valid_isbn(text: str) -> bool:
+    """Validates an ISBN-10 or ISBN-13 string.
+
+    Description:
+        Strips hyphens/spaces and validates the check digit using the
+        appropriate algorithm (modular arithmetic for ISBN-10 and weighted
+        sum modulo 10 for ISBN-13).
+
+    Args:
+        text: The ISBN string to validate.
+
+    Returns:
+        True if the ISBN is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_isbn("978-3-16-148410-0")
+        True
+        >>> is_valid_isbn("0-306-40615-2")
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.replace("-", "").replace(" ", "")
+
+    if len(cleaned) == 10:
+        if not re.match(r"^\d{9}[\dXx]$", cleaned):
+            return False
+
+        total = sum(
+            (10 if c in "Xx" else int(c)) * (10 - i)
+            for i, c in enumerate(cleaned)
+        )
+
+        return total % 11 == 0
+
+    if len(cleaned) == 13:
+        if not cleaned.isdigit():
+            return False
+
+        total = sum(
+            int(c) * (1 if i % 2 == 0 else 3)
+            for i, c in enumerate(cleaned)
+        )
+
+        return total % 10 == 0
+
+    return False
+
+
+def is_valid_luhn(text: str) -> bool:
+    """Validates a numeric string using the Luhn (mod-10) algorithm.
+
+    Description:
+        Implements the standard Luhn algorithm used for credit card
+        numbers, IMEI codes, and other identifiers.
+
+    Args:
+        text: The numeric string to validate.
+
+    Returns:
+        True if the string passes the Luhn check.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_luhn("4539148803436467")
+        True
+        >>> is_valid_luhn("1234567890")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.replace(" ", "").replace("-", "")
+
+    if not cleaned.isdigit() or len(cleaned) < 2:
+        return False
+
+    digits = [int(d) for d in cleaned]
+    digits.reverse()
+
+    total = 0
+
+    for i, d in enumerate(digits):
+
+        if i % 2 == 1:
+            d *= 2
+
+            if d > 9:
+                d -= 9
+
+        total += d
+
+    return total % 10 == 0
+
+
+def is_valid_ean(text: str) -> bool:
+    """Validates an EAN-8 or EAN-13 barcode number.
+
+    Description:
+        Checks the length (8 or 13 digits) and the weighted-sum check
+        digit used in European Article Numbers.
+
+    Args:
+        text: The EAN string to validate.
+
+    Returns:
+        True if the EAN is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_ean("4006381333931")
+        True
+        >>> is_valid_ean("96385074")
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.replace(" ", "").replace("-", "")
+
+    if len(cleaned) not in (8, 13) or not cleaned.isdigit():
+        return False
+
+    # EAN-8 starts with weight 3; EAN-13 starts with weight 1
+    weights = [1, 3] if len(cleaned) % 2 == 1 else [3, 1]
+
+    total = sum(
+        int(c) * weights[i % 2]
+        for i, c in enumerate(cleaned)
+    )
+
+    return total % 10 == 0
+
+
+def is_valid_swift_bic(text: str) -> bool:
+    """Validates a SWIFT/BIC (Business Identifier Code) string.
+
+    Description:
+        Checks that the code conforms to the ISO 9362 format:
+        4 letters (bank) + 2 letters (country) + 2 alphanumeric
+        (location) + optional 3 alphanumeric (branch or ``XXX``).
+
+    Args:
+        text: The SWIFT/BIC code to validate.
+
+    Returns:
+        True if the code matches the SWIFT/BIC format.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_swift_bic("DEUTDEFF")
+        True
+        >>> is_valid_swift_bic("DEUTDEFF500")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip().upper()
+
+    return bool(re.match(r"^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$", cleaned))
+
+
+def is_valid_isin(text: str) -> bool:
+    """Validate an ISIN (International Securities Identification Number).
+
+    Description:
+        An ISIN consists of a 2-letter country code, a 9-character
+        alphanumeric national identifier, and a single check digit.
+        Validation converts letters to numbers (A=10..Z=35), concatenates
+        the digit string, and applies the Luhn algorithm.
+
+    Args:
+        text: The ISIN string to validate.
+
+    Returns:
+        True if the ISIN is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_isin("US0378331005")
+        True
+        >>> is_valid_isin("US0378331006")
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip().upper()
+
+    if len(cleaned) != 12:
+        return False
+
+    if not re.match(r"^[A-Z]{2}[A-Z0-9]{9}[0-9]$", cleaned):
+        return False
+
+    # Convert letters to numbers: A=10, B=11, ..., Z=35
+    digit_str = ""
+
+    for c in cleaned:
+
+        if c.isdigit():
+            digit_str += c
+        else:
+            digit_str += str(ord(c) - ord("A") + 10)
+
+    # Apply Luhn algorithm on the resulting digit string
+    total = 0
+    reverse_digits = digit_str[::-1]
+
+    for i, d in enumerate(reverse_digits):
+        n = int(d)
+
+        if i % 2 == 1:
+            n *= 2
+
+            if n > 9:
+                n -= 9
+
+        total += n
+
+    return total % 10 == 0
+
+
+def is_valid_cusip(text: str) -> bool:
+    """Validate a CUSIP (Committee on Uniform Securities Identification Procedures) code.
+
+    Description:
+        A CUSIP is 9 characters: 6 alphanumeric (issuer) + 2 alphanumeric
+        (issue) + 1 check digit.  The check digit is computed via a
+        weighted Luhn-like algorithm where odd-position digits are
+        multiplied by 1 and even-position digits by 2 (after letter-to-
+        number conversion).
+
+    Args:
+        text: The CUSIP code to validate.
+
+    Returns:
+        True if the CUSIP is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_cusip("037833100")
+        True
+        >>> is_valid_cusip("037833101")
+        False
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip().upper()
+
+    if len(cleaned) != 9:
+        return False
+
+    if not re.match(r"^[A-Z0-9*@#]{9}$", cleaned):
+        return False
+
+    total = 0
+
+    for i in range(8):
+        c = cleaned[i]
+
+        if c.isdigit():
+            v = int(c)
+        elif c == "*":
+            v = 36
+        elif c == "@":
+            v = 37
+        elif c == "#":
+            v = 38
+        else:
+            v = ord(c) - ord("A") + 10
+
+        if i % 2 == 1:
+            v *= 2
+
+        total += v // 10 + v % 10
+
+    check = (10 - (total % 10)) % 10
+
+    return check == int(cleaned[8])
+
+
+def is_valid_sedol(text: str) -> bool:
+    """Validate a SEDOL (Stock Exchange Daily Official List) code.
+
+    Description:
+        A SEDOL is 7 characters: 6 alphanumeric characters (no vowels)
+        followed by a weighted check digit.  Weights are [1, 3, 1, 7, 3, 9].
+
+    Args:
+        text: The SEDOL code to validate.
+
+    Returns:
+        True if the SEDOL is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_sedol("0263494")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip().upper()
+
+    if len(cleaned) != 7:
+        return False
+
+    # SEDOL characters: digits and consonants only
+    if not re.match(r"^[0-9BCDFGHJKLMNPQRSTVWXYZ]{7}$", cleaned):
+        return False
+
+    weights = [1, 3, 1, 7, 3, 9]
+    total = 0
+
+    for i in range(6):
+        c = cleaned[i]
+
+        if c.isdigit():
+            v = int(c)
+        else:
+            v = ord(c) - ord("A") + 10
+
+        total += v * weights[i]
+
+    check = (10 - (total % 10)) % 10
+
+    return check == int(cleaned[6])
+
+
+def is_valid_vin(text: str) -> bool:
+    """Validate a VIN (Vehicle Identification Number).
+
+    Description:
+        A VIN is 17 characters (letters and digits, excluding I, O, Q).
+        Position 9 is a check digit computed by transliterating each
+        character to a value, multiplying by positional weights, summing,
+        and taking mod 11 (10 → 'X').
+
+    Args:
+        text: The VIN to validate.
+
+    Returns:
+        True if the VIN is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_vin("1M8GDM9AXKP042788")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip().upper()
+
+    if len(cleaned) != 17:
+        return False
+
+    # I, O, Q are not allowed in VINs
+    if re.search(r"[IOQ]", cleaned):
+        return False
+
+    transliteration = {
+        "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8,
+        "J": 1, "K": 2, "L": 3, "M": 4, "N": 5, "P": 7, "R": 9,
+        "S": 2, "T": 3, "U": 4, "V": 5, "W": 6, "X": 7, "Y": 8, "Z": 9,
+    }
+    weights = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2]
+
+    total = 0
+
+    for i, c in enumerate(cleaned):
+
+        if c.isdigit():
+            v = int(c)
+        else:
+            v = transliteration.get(c, 0)
+
+        total += v * weights[i]
+
+    remainder = total % 11
+    expected = "X" if remainder == 10 else str(remainder)
+
+    return cleaned[8] == expected
+
+
+def is_valid_issn(text: str) -> bool:
+    """Validate an ISSN (International Standard Serial Number).
+
+    Description:
+        An ISSN is 8 digits (with optional hyphen after digit 4).
+        The check digit (last char, may be 'X' for 10) is validated
+        using a weighted mod-11 algorithm with weights 8..2.
+
+    Args:
+        text: The ISSN to validate.
+
+    Returns:
+        True if the ISSN is valid.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_issn("0378-5955")
+        True
+        >>> is_valid_issn("0000-0019")
+        True
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip().upper().replace("-", "")
+
+    if len(cleaned) != 8:
+        return False
+
+    if not re.match(r"^[0-9]{7}[0-9X]$", cleaned):
+        return False
+
+    total = 0
+
+    for i in range(7):
+        total += int(cleaned[i]) * (8 - i)
+
+    check_val = 10 if cleaned[7] == "X" else int(cleaned[7])
+    total += check_val
+
+    return total % 11 == 0
+
+
+def is_valid_e164_phone(text: str) -> bool:
+    """Validate an E.164 international phone number.
+
+    Description:
+        E.164 format: ``+`` followed by 1 to 15 digits, no spaces or
+        dashes.  This is the ITU-T standard used in SIP, SMS, and
+        international dialling.
+
+    Args:
+        text: The phone number string to validate.
+
+    Returns:
+        True if the string matches E.164 format.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Usage Example:
+        >>> is_valid_e164_phone("+34612345678")
+        True
+        >>> is_valid_e164_phone("612345678")
+        False
+        >>> is_valid_e164_phone("+1234567890123456")
+        False
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    return bool(re.match(r"^\+[1-9]\d{1,14}$", text.strip()))
+
+
+def check_password_strength(password: str) -> int:
+    """Evaluate password strength on a 0–100 score scale.
+
+    Description:
+        The score is computed from: length contribution (up to 40 pts),
+        character diversity — uppercase, lowercase, digits, special
+        characters (up to 40 pts) — and a bonus for entropy above
+        3.0 bits/char (up to 20 pts).  The result is clamped to [0, 100].
+
+    Args:
+        password: The password string to evaluate.
+
+    Returns:
+        Strength score as an integer in [0, 100].
+
+    Raises:
+        TypeError: If *password* is not a string.
+
+    Usage Example:
+        >>> check_password_strength("abc")
+        18
+        >>> check_password_strength("C0mpl3x!Pass#2026")
+        100
+
+    Complexity: O(n) where n is the password length.
+    """
+    if not isinstance(password, str):
+        raise TypeError("password must be a string")
+
+    if not password:
+        return 0
+
+    length = len(password)
+    score = 0
+
+    # Length contribution (up to 40 pts)
+    score += min(40, length * 4)
+
+    # Character diversity (up to 10 pts each category)
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_special = any(not c.isalnum() for c in password)
+
+    score += 10 * sum([has_upper, has_lower, has_digit, has_special])
+
+    # Entropy bonus (up to 20 pts)
+    freq: dict = {}
+
+    for ch in password:
+        freq[ch] = freq.get(ch, 0) + 1
+
+    entropy = 0.0
+
+    for count in freq.values():
+        p = count / length
+        entropy -= p * math.log2(p)
+
+    if entropy > 3.0:
+        score += 20
+    elif entropy > 2.0:
+        score += 10
+
+    return min(100, max(0, score))
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 – Batch 34: String Evaluations (1 of 2)
+# ---------------------------------------------------------------------------
+
+def is_isogram(text: str) -> bool:
+    """Check if *text* is an isogram (no repeating letters, case-insensitive).
+
+    Non-alphabetic characters are ignored.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        True if isogram.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> is_isogram('subdermatoglyphic')
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    seen: set = set()
+    for ch in text.lower():
+        if ch.isalpha():
+            if ch in seen:
+                return False
+            seen.add(ch)
+    return True
+
+
+def is_heterogram(text: str) -> bool:
+    """Check if *text* has no repeated characters at all (including spaces).
+
+    Args:
+        text: Source string.
+
+    Returns:
+        True if heterogram.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> is_heterogram('abcde')
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    return len(set(text)) == len(text)
+
+
+def is_tautogram(text: str) -> bool:
+    """Check if every word in *text* starts with the same letter (case-insensitive).
+
+    Args:
+        text: Source string (whitespace-delimited words).
+
+    Returns:
+        True if tautogram.
+
+    Raises:
+        TypeError: If text is not a string.
+
+    Usage Example:
+        >>> is_tautogram('Peter Piper picked peppers')
+        True
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    words = text.split()
+    if not words:
+        return True
+    first = words[0][0].lower()
+    return all(w[0].lower() == first for w in words if w)
+
+
+def is_lipogram(text: str, letter: str) -> bool:
+    """Check if *text* avoids *letter* entirely (case-insensitive).
+
+    Args:
+        text: Source string.
+        letter: Single letter to check absence of.
+
+    Returns:
+        True if letter is absent.
+
+    Raises:
+        TypeError: If arguments are not strings.
+        ValueError: If letter is not a single alphabetic character.
+
+    Usage Example:
+        >>> is_lipogram('The quick brown fox jumps over the lazy dog', 'z')
+        False
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str) or not isinstance(letter, str):
+        raise TypeError("Both arguments must be strings.")
+    if len(letter) != 1 or not letter.isalpha():
+        raise ValueError("letter must be a single alphabetic character.")
+    return letter.lower() not in text.lower()
+
+
+def flesch_reading_ease(text: str) -> float:
+    """Estimate the Flesch Reading Ease score for English text.
+
+    Score ranges typically 0-100 (higher = easier to read).
+    Uses a simple heuristic syllable counter.
+
+    Args:
+        text: English prose text.
+
+    Returns:
+        Flesch Reading Ease score.
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If text has no words.
+
+    Usage Example:
+        >>> round(flesch_reading_ease('The cat sat on the mat.'), 1)
+        116.1
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    import re as _re
+
+    sentences = _re.split(r'[.!?]+', text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if not sentences:
+        raise ValueError("text must contain at least one sentence.")
+
+    words = text.split()
+    if not words:
+        raise ValueError("text must contain at least one word.")
+
+    num_sentences = len(sentences)
+    num_words = len(words)
+
+    def _count_syllables(word: str) -> int:
+        word = word.lower().strip(".,!?;:'\"")
+        if not word:
+            return 1
+        vowels = "aeiouy"
+        count = 0
+        prev_vowel = False
+        for ch in word:
+            if ch in vowels:
+                if not prev_vowel:
+                    count += 1
+                prev_vowel = True
+            else:
+                prev_vowel = False
+        if word.endswith("e") and count > 1:
+            count -= 1
+        return max(1, count)
+
+    total_syllables = sum(_count_syllables(w) for w in words)
+
+    return 206.835 - 1.015 * (num_words / num_sentences) - 84.6 * (total_syllables / num_words)
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 – Batch 35: String Evaluations (2 of 2)
+# ---------------------------------------------------------------------------
+
+def gunning_fog_index(text: str) -> float:
+    """Estimate the Gunning Fog readability index for English text.
+
+    Higher values indicate harder text. A score of ~7–8 is considered
+    easy reading; 12+ is considered hard.
+
+    Args:
+        text: English prose text.
+
+    Returns:
+        Gunning Fog index.
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If text has no sentences.
+
+    Usage Example:
+        >>> round(gunning_fog_index('The cat sat on the mat.'), 1)
+        2.4
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    import re as _re
+
+    sentences = _re.split(r'[.!?]+', text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if not sentences:
+        raise ValueError("text must contain at least one sentence.")
+
+    words = text.split()
+    if not words:
+        raise ValueError("text must contain at least one word.")
+
+    def _syllable_count(word: str) -> int:
+        word = word.lower().strip(".,!?;:'\"")
+        if not word:
+            return 1
+        vowels = "aeiouy"
+        count = 0
+        prev_vowel = False
+        for ch in word:
+            if ch in vowels:
+                if not prev_vowel:
+                    count += 1
+                prev_vowel = True
+            else:
+                prev_vowel = False
+        if word.endswith("e") and count > 1:
+            count -= 1
+        return max(1, count)
+
+    complex_words = sum(1 for w in words if _syllable_count(w) >= 3)
+    num_words = len(words)
+    num_sentences = len(sentences)
+
+    return 0.4 * ((num_words / num_sentences) + 100.0 * (complex_words / num_words))
+
+
+def automated_readability_index(text: str) -> float:
+    """Compute the Automated Readability Index (ARI) for English text.
+
+    Returns an approximate US grade level needed to understand the text.
+
+    Args:
+        text: English prose text.
+
+    Returns:
+        ARI score (approximate US grade level).
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If text has no sentences.
+
+    Usage Example:
+        >>> round(automated_readability_index('The cat sat on the mat.'), 1)
+        -5.1
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    import re as _re
+
+    sentences = _re.split(r'[.!?]+', text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if not sentences:
+        raise ValueError("text must contain at least one sentence.")
+
+    words = text.split()
+    if not words:
+        raise ValueError("text must contain at least one word.")
+
+    num_chars = sum(1 for ch in text if ch.isalnum())
+    num_words = len(words)
+    num_sentences = len(sentences)
+
+    return 4.71 * (num_chars / num_words) + 0.5 * (num_words / num_sentences) - 21.43
+
+
+def coleman_liau_index(text: str) -> float:
+    """Compute the Coleman–Liau readability index for English text.
+
+    Returns an approximate US grade level.
+
+    Args:
+        text: English prose text.
+
+    Returns:
+        Coleman–Liau index.
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If text has no words.
+
+    Usage Example:
+        >>> round(coleman_liau_index('The cat sat on the mat.'), 1)
+        -4.1
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    import re as _re
+
+    sentences = _re.split(r'[.!?]+', text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if not sentences:
+        raise ValueError("text must contain at least one sentence.")
+
+    words = text.split()
+    if not words:
+        raise ValueError("text must contain at least one word.")
+
+    num_letters = sum(1 for ch in text if ch.isalpha())
+    num_words = len(words)
+    num_sentences = len(sentences)
+
+    letters_per_100 = (num_letters / num_words) * 100.0  # letters per 100 words
+    s = (num_sentences / num_words) * 100.0  # sentences per 100 words
+    return 0.0588 * letters_per_100 - 0.296 * s - 15.8
+
+
+def smog_index(text: str) -> float:
+    """Compute the SMOG readability index for English text.
+
+    Designed for texts with ≥ 30 sentences but works as an estimate
+    on shorter texts.
+
+    Args:
+        text: English prose text.
+
+    Returns:
+        SMOG index.
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If text has no sentences.
+
+    Usage Example:
+        >>> round(smog_index('The cat sat on the mat.'), 1)
+        3.0
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    import re as _re
+    import math as _math
+
+    sentences = _re.split(r'[.!?]+', text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if not sentences:
+        raise ValueError("text must contain at least one sentence.")
+
+    words = text.split()
+
+    def _syllable_count(word: str) -> int:
+        word = word.lower().strip(".,!?;:'\"")
+        if not word:
+            return 1
+        vowels = "aeiouy"
+        count = 0
+        prev_vowel = False
+        for ch in word:
+            if ch in vowels:
+                if not prev_vowel:
+                    count += 1
+                prev_vowel = True
+            else:
+                prev_vowel = False
+        if word.endswith("e") and count > 1:
+            count -= 1
+        return max(1, count)
+
+    polysyllables = sum(1 for w in words if _syllable_count(w) >= 3)
+    num_sentences = len(sentences)
+
+    return 3.0 + _math.sqrt(polysyllables * (30.0 / num_sentences))
+
+
+def avg_word_length(text: str) -> float:
+    """Compute the average word length in *text*.
+
+    Args:
+        text: Source string.
+
+    Returns:
+        Average word length.
+
+    Raises:
+        TypeError: If text is not a string.
+        ValueError: If text has no words.
+
+    Usage Example:
+        >>> avg_word_length('The cat sat')
+        3.0
+
+    Complexity: O(n)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+    words = text.split()
+    if not words:
+        raise ValueError("text must contain at least one word.")
+    return sum(len(w) for w in words) / len(words)
+

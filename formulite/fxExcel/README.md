@@ -11,6 +11,7 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - **Logic Functions**: Logical operations, conditional evaluation, lambda functions
 - **Math & Trigonometry Functions**: Mathematical operations, trigonometric functions, rounding, number theory
 - **Statistical Functions**: Distributions, correlations, forecasting, regression, confidence intervals
+- **Lookup & Reference Functions**: Cell references, array dimensions, lookup, transpose, expand
 - **Text & Data Functions**: Text manipulation, concatenation, search, replacement, formatting, type conversion
 
 ## Module Structure
@@ -23,6 +24,7 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - **information_formulas.py**: Excel-compatible information and validation functions
 - **math_formulas.py**: Excel-compatible mathematical and trigonometric functions
 - **statistic_formulas.py**: Excel-compatible statistical and forecasting functions
+- **lookup_formulas.py**: Excel-compatible lookup and reference functions
 - **text_formulas.py**: Excel-compatible text and data manipulation functions
 
 ## Table of Contents
@@ -36,6 +38,7 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
   - [Logic Functions](#logic-functions)
   - [Math & Trigonometry Functions](#math--trigonometry-functions)
   - [Statistical Functions](#statistical-functions)
+  - [Lookup & Reference Functions](#lookup--reference-functions)
   - [Text & Data Functions](#text--data-functions)
 - [Function Index](#function-index)
 - [Credits](#credits)
@@ -129,7 +132,7 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [ERFC](#erfc) - Returns the complementary error function erfc(x)
 - [ERF_PRECISE](#erf_precise) - Precise version of error function
 - [ERFC_PRECISE](#erfc_precise) - Precise version of complementary error function
-- [CONVERT](#convert) - Converts a number from one measurement unit to another
+- [CONVERT](#convert) - Converts a number from one measurement unit to another (13 categories, ~120 units)
 - [DELTA](#delta) - Tests whether two values are equal
 - [GESTEP](#gestep) - Tests whether a number is greater than or equal to a threshold
 
@@ -204,8 +207,6 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [YIELDMAT](#yieldmat) - Return the annual yield of a security that pays interest at maturity
 
 ### Information Functions
-- [CELL](#cell) - Return information about the format, location, or contents of a cell
-- [INFO](#info) - Return information about the current operating environment
 - [ISBLANK](#isblank) - Return TRUE if the value is blank
 - [ISERR](#iserr) - Return TRUE if the value is any error value except #N/A
 - [ISERROR](#iserror) - Return TRUE if the value is any error value
@@ -410,8 +411,10 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [PERMUTATIONA](#permutationa) - Returns the number of permutations with repetitions
 - [PHI](#phi) - Returns the value of the density function for a standard normal distribution
 - [POISSON_DIST](#poisson_dist) - Returns the Poisson distribution
+- [QUARTILE](#quartile) - Returns the quartile of a data set (backward compatibility)
+- [QUARTILE_EXC](#quartile_exc) - Returns the quartile of a data set (exclusive of 0 and 4)
+- [QUARTILE_INC](#quartile_inc) - Returns the quartile of a data set (inclusive 0..4)
 - [SKEW](#skew) - Returns the skewness of a distribution
-- [SKEW_P](#skew_p) - Returns the skewness of a distribution based on a population
 - [SLOPE](#slope) - Returns the slope of the linear regression line
 - [SMALL](#small) - Returns the k-th smallest value in a data set
 - [STANDARDIZE](#standardize) - Returns a normalized value
@@ -435,6 +438,40 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [VARPA](#varpa) - Calculates variance based on the entire population (includes text and logical values)
 - [WEIBULL_DIST](#weibull_dist) - Returns the Weibull distribution
 - [Z_TEST](#z_test) - Returns the one-tailed probability-value of a z-test
+
+### Lookup & Reference Functions
+- [ADDRESS](#address) - Build a cell-reference string from row/column numbers
+- [CHOOSE](#choose) - Choose a value from a list based on index
+- [CHOOSECOLS](#choosecols) - Select specific columns from an array
+- [CHOOSEROWS](#chooserows) - Select specific rows from an array
+- [COLUMN](#column) - Return the column number of a reference
+- [COLUMNS](#columns) - Return the number of columns in an array
+- [DROP](#drop) - Drop rows/columns from an array
+- [EXPAND](#expand) - Expand an array to specified dimensions with padding
+- [FILTER](#filter) - Filter data by criteria
+- [HLOOKUP](#hlookup) - Look up a value in the first row and return a value in the same column
+- [HSTACK](#hstack) - Stack arrays horizontally
+- [INDEX](#index) - Return a value at a specific row/column position
+- [INDIRECT](#indirect) - Parse a cell-reference string into (row, column)
+- [LOOKUP](#lookup) - Look up a value in a vector
+- [MATCH](#match) - Search for a value and return its position
+- [OFFSET](#offset) - Return a sub-range offset from a starting cell
+- [ROW](#row) - Return the row number of a reference
+- [ROWS](#rows) - Return the number of rows in an array
+- [SORT](#sort) - Sort an array by column
+- [SORTBY](#sortby) - Sort an array by another array
+- [TAKE](#take) - Take rows/columns from an array
+- [TOCOL](#tocol) - Reshape an array into a single column
+- [TOROW](#torow) - Reshape an array into a single row
+- [TRANSPOSE](#transpose) - Transpose a 2-D array (swap rows and columns)
+- [TRIMRANGE](#trimrange) - Trim blank edges from an array
+- [UNIQUE](#unique) - Extract unique values from an array
+- [VLOOKUP](#vlookup) - Look up a value in the first column and return a value in the same row
+- [VSTACK](#vstack) - Stack arrays vertically
+- [WRAPCOLS](#wrapcols) - Wrap a 1-D array into columns
+- [WRAPROWS](#wraprows) - Wrap a 1-D array into rows
+- [XLOOKUP](#xlookup) - Search and return matching values
+- [XMATCH](#xmatch) - Search for a value and return its position
 
 ### Text & Data Functions
 - [ASC](#asc) - Converts full-width characters to half-width characters
@@ -536,7 +573,6 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [CEILING](#ceiling) - Rounds a number up to the nearest multiple of significance
 - [CEILING_MATH](#ceiling_math) - Rounds a number up to nearest multiple with mode control
 - [CEILING_PRECISE](#ceiling_precise) - Rounds a number up to nearest multiple (always away from zero)
-- [CELL](#cell) - Return information about the format, location, or contents of a cell
 - [CHAR](#char) - Returns the character specified by the code number
 - [CHISQ_DIST](#chisq_dist) - Returns the chi-squared distribution
 - [CHISQ_DIST_RT](#chisq_dist_rt) - Returns the right-tailed probability of chi-squared distribution
@@ -701,7 +737,6 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [IMSUB](#imsub) - Returns the difference between two complex numbers
 - [IMSUM](#imsum) - Returns the sum of complex numbers
 - [IMTAN](#imtan) - Tangent of complex number
-- [INFO](#info) - Return information about the current operating environment
 - [INT](#int) - Rounds a number down to the nearest integer
 - [INTERCEPT](#intercept) - Returns the Y-intercept of linear regression
 - [ISBLANK](#isblank) - Return TRUE if the value is blank
@@ -796,6 +831,9 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [PROPER](#proper) - Capitalizes the first letter in each word of a text string
 
 **Q**
+- [QUARTILE](#quartile) - Returns the quartile of a data set (backward compatibility)
+- [QUARTILE_EXC](#quartile_exc) - Returns the quartile of a data set (exclusive of 0 and 4)
+- [QUARTILE_INC](#quartile_inc) - Returns the quartile of a data set (inclusive 0..4)
 
 **R**
 - [RADIANS](#radians) - Converts degrees to radians
@@ -816,7 +854,6 @@ The `fxExcel` module provides Excel-compatible functions for FormuLite. These fu
 - [SIN](#sin) - Returns the sine of an angle in radians
 - [SINH](#sinh) - Returns the hyperbolic sine of a number
 - [SKEW](#skew) - Returns the skewness of a distribution
-- [SKEW_P](#skew_p) - Returns the skewness of a distribution based on a population
 - [SLN](#sln) - Calculate straight-line depreciation of an asset for one period
 - [SLOPE](#slope) - Returns the slope of linear regression line
 - [SMALL](#small) - Returns the k-th smallest value in a data set
@@ -1189,166 +1226,6 @@ start = datetime(2025, 1, 1)
 # 10 working days with weekend Sunday-Monday
 result = WORKDAY_INTL(start, 10, weekend=2)
 print(result)
-```
-
-**Cost:** O(1)
-
----
-
-### `excel_serial_to_year()`
-
-Extracts the year from an Excel-style serial number or a datetime object. Equivalent to Excel's YEAR function.
-
-**Parameters:**
-- `serial_number` (Union[float, datetime]): Date value as Excel serial number or datetime.
-
-**Returns:**
-- `int`: The year as an integer.
-
-**Example:**
-```python
-from datetime import datetime
-from formulite.fxExcel.date_formulas import excel_serial_to_year
-
-# With Excel serial number (44361 = June 15, 2021)
-print(excel_serial_to_year(44361.0))  # 2021
-
-# With datetime
-print(excel_serial_to_year(datetime(2023, 10, 26)))  # 2023
-```
-
-**Cost:** O(1)
-
----
-
-### `excel_serial_to_month()`
-
-Extracts the month from an Excel-style serial number or a datetime object. Equivalent to Excel's MONTH function.
-
-**Parameters:**
-- `serial_number` (Union[float, datetime]): Date value as Excel serial number or datetime.
-
-**Returns:**
-- `int`: The month (1-12) as an integer.
-
-**Example:**
-```python
-from datetime import datetime
-from formulite.fxExcel.date_formulas import excel_serial_to_month
-
-# With Excel serial number
-print(excel_serial_to_month(44361.0))  # 6
-
-# With datetime
-print(excel_serial_to_month(datetime(2023, 10, 26)))  # 10
-```
-
-**Cost:** O(1)
-
----
-
-### `excel_serial_to_weekday()`
-
-Converts a serial number or datetime to day of the week. Equivalent to Excel's WEEKDAY function.
-
-**Parameters:**
-- `serial_number` (Union[float, datetime]): Date value.
-- `return_type` (int, optional): Return type (1, 2, or 3). Defaults to 1.
-  - 1: Sunday=1, Monday=2, ..., Saturday=7
-  - 2: Monday=1, Tuesday=2, ..., Sunday=7
-  - 3: Monday=0, Tuesday=1, ..., Sunday=6
-
-**Returns:**
-- `int`: The day of the week according to the return type.
-
-**Example:**
-```python
-from datetime import datetime
-from formulite.fxExcel.date_formulas import excel_serial_to_weekday
-
-# Tuesday, June 15, 2021
-print(excel_serial_to_weekday(44361.0, return_type=1))  # 3
-
-# Thursday, October 26, 2023
-print(excel_serial_to_weekday(datetime(2023, 10, 26), return_type=2))  # 4
-
-# Sunday, October 29, 2023
-print(excel_serial_to_weekday(datetime(2023, 10, 29), return_type=3))  # 6
-```
-
-**Cost:** O(1)
-
----
-
-### `excel_serial_to_day()`
-
-Converts a serial number or datetime to day of the month. Equivalent to Excel's DAY function.
-
-**Parameters:**
-- `serial_number` (Union[int, float, datetime]): Date represented as Excel serial number or datetime.
-
-**Returns:**
-- `int`: The day of the month (1-31).
-
-**Example:**
-```python
-from datetime import datetime
-from formulite.fxExcel.date_formulas import excel_serial_to_day
-
-# With serial number
-print(excel_serial_to_day(44361))  # 15
-
-# With datetime
-print(excel_serial_to_day(datetime(2023, 10, 26)))  # 26
-```
-
-**Cost:** O(1)
-
----
-
-### `excel_serial_to_hour()`
-
-Extracts the hour component from an Excel-style serial number or datetime. Equivalent to Excel's HOUR function.
-
-**Parameters:**
-- `serial_number` (Union[float, datetime]): Date/time value.
-
-**Returns:**
-- `int`: The hour (0-23) as an integer.
-
-**Example:**
-```python
-from datetime import datetime
-from formulite.fxExcel.date_formulas import excel_serial_to_hour
-
-# Represents 2021-06-15 18:30:45
-print(excel_serial_to_hour(44361.771354166667))  # 18
-
-# With datetime
-print(excel_serial_to_hour(datetime(2023, 10, 26, 9, 15, 30)))  # 9
-```
-
-**Cost:** O(1)
-
----
-
-### `excel_serial_to_minute()`
-
-Extracts the minute component from an Excel-style serial number or datetime. Equivalent to Excel's MINUTE function.
-
-**Parameters:**
-- `serial_number` (Union[float, datetime]): Date/time value.
-
-**Returns:**
-- `int`: The minutes (0-59) as an integer.
-
-**Example:**
-```python
-from datetime import datetime
-from formulite.fxExcel.date_formulas import excel_serial_to_minute
-
-# With datetime
-print(excel_serial_to_minute(datetime(2023, 10, 26, 9, 15, 30)))  # 15
 ```
 
 **Cost:** O(1)
@@ -3169,57 +3046,6 @@ Information Functions
 
 Information functions provide cell and system information, data type validation, and error handling.
 
-### Cell & System Information
-
-#### `CELL()`
-
-Return information about the format, location, or contents of a cell.
-
-**Note:** Not available in Excel for the Web.
-
-**Parameters:**
-- `info_type` (str): Type of information ("address", "col", "row", "contents", "type").
-- `reference` (Any): Cell reference (optional).
-
-**Returns:**
-- `Any`: Requested cell information.
-
-**Example:**
-```python
-from formulite.fxExcel.information_formulas import CELL
-
-CELL("type", 42)  # 'v' (value)
-CELL("type", "text")  # 'l' (label)
-CELL("type", None)  # 'b' (blank)
-```
-
-**Cost:** O(1)
-
----
-
-#### `INFO()`
-
-Return information about the current operating environment.
-
-**Note:** Not available in Excel for the Web.
-
-**Parameters:**
-- `type_text` (str): Type of information ("system", "release", "numfile", "osversion").
-
-**Returns:**
-- `Any`: Requested system information.
-
-**Example:**
-```python
-from formulite.fxExcel.information_formulas import INFO
-
-INFO("system")  # 'win32' or 'darwin' or 'linux'
-```
-
-**Cost:** O(1)
-
----
-
 ### Type Checking Functions (IS Functions)
 
 #### `ISBLANK()`
@@ -3974,10 +3800,10 @@ Counts blank (None or empty string) cells in a range.
 
 **Example:**
 ```python
-from formulite.fxExcel.statistic_formulas import countblank
+from formulite.fxExcel.statistic_formulas import COUNTBLANK
 
 data = [1, None, "", 2, None, 3]
-print(countblank(data))  # 3
+print(COUNTBLANK(data))  # 3
 ```
 
 **Cost:** O(n)
@@ -3997,11 +3823,11 @@ Returns the population covariance.
 
 **Example:**
 ```python
-from formulite.fxExcel.statistic_formulas import covariance_p
+from formulite.fxExcel.statistic_formulas import COVARIANCE_P
 
 data1 = [3, 2, 4, 5, 6]
 data2 = [9, 7, 12, 15, 17]
-print(covariance_p(data1, data2))  # 5.2
+print(COVARIANCE_P(data1, data2))  # 5.2
 ```
 
 **Cost:** O(n)
@@ -4114,9 +3940,9 @@ Returns the Fisher transformation.
 
 **Example:**
 ```python
-from formulite.fxExcel.statistic_formulas import fisher
+from formulite.fxExcel.statistic_formulas import FISHER
 
-print(fisher(0.75))  # 0.9730
+print(FISHER(0.75))  # 0.9730
 ```
 
 **Cost:** O(1)
@@ -4137,11 +3963,11 @@ Returns a linear forecast value.
 
 **Example:**
 ```python
-from formulite.fxExcel.statistic_formulas import forecast_linear
+from formulite.fxExcel.statistic_formulas import FORECAST_LINEAR
 
 y = [6, 7, 9, 15, 21]
 x_vals = [1, 2, 3, 4, 5]
-print(forecast_linear(6, y, x_vals))  # 27.0
+print(FORECAST_LINEAR(6, y, x_vals))  # 27.0
 ```
 
 **Cost:** O(n)
@@ -4184,9 +4010,9 @@ Returns the gamma function value.
 
 **Example:**
 ```python
-from formulite.fxExcel.statistic_formulas import gamma
+from formulite.fxExcel.statistic_formulas import GAMMA
 
-print(gamma(5))  # 24.0 (equivalent to 4!)
+print(GAMMA(5))  # 24.0 (equivalent to 4!)
 ```
 
 **Cost:** O(1)
@@ -4880,3 +4706,5887 @@ print(VALUE("123.45"))  # 123.45
 **Note:** This is a simplified implementation. Full Excel VALUE function handles dates, times, and regional formats.
 
 ---
+
+## Lookup & Reference Functions
+
+### `ADDRESS()`
+
+Build a cell-reference string from row/column numbers.
+
+**Parameters:**
+- `row_num` (int): Row number (1-based).
+- `column_num` (int): Column number (1-based).
+- `abs_num` (int): Reference type — 1=absolute, 2=abs row/rel col, 3=rel row/abs col, 4=relative.
+- `a1` (bool): True for A1 style, False for R1C1.
+- `sheet_text` (str): Optional sheet name prefix.
+
+**Returns:**
+- `str`: Cell reference string.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import ADDRESS
+
+ADDRESS(1, 1)               # '$A$1'
+ADDRESS(2, 3, 4)            # 'C2'
+ADDRESS(1, 1, 1, False)     # 'R1C1'
+```
+
+**Cost:** O(1)
+
+---
+
+### `INDIRECT()`
+
+Parse a cell-reference string into (row, column) indices.
+
+**Parameters:**
+- `ref_text` (str): Cell reference (e.g. "A1", "$B$3", "R2C3").
+- `a1` (bool): True for A1 style, False for R1C1.
+
+**Returns:**
+- `Tuple[int, int]`: (row, column) both 1-based.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import INDIRECT
+
+INDIRECT("B3")      # (3, 2)
+INDIRECT("$A$1")    # (1, 1)
+```
+
+**Cost:** O(1)
+
+---
+
+### `OFFSET()`
+
+Return a sub-range from a 2-D array offset from a starting cell.
+
+**Parameters:**
+- `reference` (List[List]): 2-D list source range.
+- `rows` (int): Row offset from top-left.
+- `cols` (int): Column offset from top-left.
+- `height` (int, optional): Rows to return (default: same as reference).
+- `width` (int, optional): Columns to return (default: same as reference).
+
+**Returns:**
+- `List[List]`: Extracted sub-range.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import OFFSET
+
+OFFSET([[1,2],[3,4],[5,6]], 1, 0, 2, 2)  # [[3, 4], [5, 6]]
+```
+
+**Cost:** O(height × width)
+
+---
+
+### `ROW()`
+
+Return the row number of a reference.
+
+**Parameters:**
+- `reference` (optional): Ignored (API compat).
+- `row_index` (int): 1-based row number to return.
+
+**Returns:**
+- `int`: Row number.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import ROW
+
+ROW(row_index=5)  # 5
+```
+
+**Cost:** O(1)
+
+---
+
+### `COLUMN()`
+
+Return the column number of a reference.
+
+**Parameters:**
+- `reference` (optional): Ignored (API compat).
+- `col_index` (int): 1-based column number to return.
+
+**Returns:**
+- `int`: Column number.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import COLUMN
+
+COLUMN(col_index=3)  # 3
+```
+
+**Cost:** O(1)
+
+---
+
+### `ROWS()`
+
+Return the number of rows in an array.
+
+**Parameters:**
+- `array` (List[List]): 2-D list.
+
+**Returns:**
+- `int`: Number of rows.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import ROWS
+
+ROWS([[1,2],[3,4],[5,6]])  # 3
+```
+
+**Cost:** O(1)
+
+---
+
+### `COLUMNS()`
+
+Return the number of columns in an array.
+
+**Parameters:**
+- `array` (List[List]): 2-D list.
+
+**Returns:**
+- `int`: Number of columns.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import COLUMNS
+
+COLUMNS([[1,2,3],[4,5,6]])  # 3
+```
+
+**Cost:** O(1)
+
+---
+
+### `TRANSPOSE()`
+
+Transpose a 2-D array (swap rows and columns).
+
+**Parameters:**
+- `array` (List[List]): 2-D list to transpose.
+
+**Returns:**
+- `List[List]`: Transposed array.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import TRANSPOSE
+
+TRANSPOSE([[1,2],[3,4]])  # [[1, 3], [2, 4]]
+```
+
+**Cost:** O(rows × cols)
+
+---
+
+### `EXPAND()`
+
+Expand an array to specified dimensions, padding with a value.
+
+**Parameters:**
+- `array` (List[List]): 2-D list to expand.
+- `rows` (int, optional): Target rows (default: keep current).
+- `columns` (int, optional): Target columns (default: keep current).
+- `pad_with` (Any): Fill value for new cells (default: "").
+
+**Returns:**
+- `List[List]`: Expanded array.
+
+**Example:**
+```python
+from formulite.fxExcel.lookup_formulas import EXPAND
+
+EXPAND([[1,2],[3,4]], 3, 4, 0)  # [[1,2,0,0],[3,4,0,0],[0,0,0,0]]
+```
+
+**Cost:** O(rows × columns)
+
+---
+
+### `QUARTILE_INC()`
+
+Returns the quartile of a data set, based on percentile values from 0..1, inclusive.
+
+**Parameters:**
+- `array` (List[Union[float, int]]): Array or range of numeric data.
+- `quart` (int): Quartile to return (0 = min, 1 = Q1, 2 = median, 3 = Q3, 4 = max).
+
+**Returns:**
+- `float`: The requested quartile value.
+
+**Example:**
+```python
+from formulite.fxExcel.statistic_formulas import QUARTILE_INC
+
+QUARTILE_INC([1, 2, 3, 4], 2)  # 2.5
+```
+
+**Cost:** O(n log n)
+
+---
+
+### `QUARTILE_EXC()`
+
+Returns the quartile of a data set, based on percentile values from 0..1, exclusive.
+
+**Parameters:**
+- `array` (List[Union[float, int]]): Array or range of numeric data.
+- `quart` (int): Quartile to return (1, 2, or 3).
+
+**Returns:**
+- `float`: The requested quartile value.
+
+**Example:**
+```python
+from formulite.fxExcel.statistic_formulas import QUARTILE_EXC
+
+QUARTILE_EXC([1, 2, 3, 4, 5, 6, 7, 8], 1)  # 2.25
+```
+
+**Cost:** O(n log n)
+
+---
+
+### `ABS()`
+
+Description:
+
+**Parameters:**
+- number (float): The number for which to calculate the absolute value.
+
+**Returns:**
+- float: The absolute value of the number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ABS
+
+result = ABS(...)
+```
+
+---
+
+### `ACOS()`
+
+Description:
+
+**Parameters:**
+- number (float): The cosine value, must be between -1 and 1.
+
+**Returns:**
+- float: The arccosine in radians.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ACOS
+
+result = ACOS(...)
+```
+
+---
+
+### `ACOSH()`
+
+Description:
+
+**Parameters:**
+- number (float): A number greater than or equal to 1.
+
+**Returns:**
+- float: The inverse hyperbolic cosine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ACOSH
+
+result = ACOSH(...)
+```
+
+---
+
+### `ACOT()`
+
+Description:
+
+**Parameters:**
+- number (float): The cotangent value.
+
+**Returns:**
+- float: The arccotangent in radians.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ACOT
+
+result = ACOT(...)
+```
+
+---
+
+### `ACOTH()`
+
+Description:
+
+**Parameters:**
+- number (float): A number where |number| > 1.
+
+**Returns:**
+- float: The inverse hyperbolic cotangent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ACOTH
+
+result = ACOTH(...)
+```
+
+---
+
+### `AGGREGATE()`
+
+Description:
+
+**Parameters:**
+- data (List[Union[int, float]]): List of numbers to aggregate.
+- operation (str): Operation type: 'sum', 'avg', 'max', or 'min'.
+
+**Returns:**
+- float: The aggregated result.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import AGGREGATE
+
+result = AGGREGATE(...)
+```
+
+---
+
+### `AMORLINC()`
+
+Calculate depreciation for each accounting period using a depreciation coefficient.
+
+**Parameters:**
+- `cost`
+- `date_purchased`
+- `first_period`
+- `salvage`
+- `period`
+- `rate`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import AMORLINC
+
+result = AMORLINC(...)
+```
+
+---
+
+### `ARABIC()`
+
+Description:
+
+**Parameters:**
+- roman (str): A valid Roman numeral string.
+
+**Returns:**
+- int: The Arabic numeral equivalent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ARABIC
+
+result = ARABIC(...)
+```
+
+---
+
+### `ASC()`
+
+Converts full-width (double-byte) characters to half-width (single-byte).
+
+**Parameters:**
+- `text` (str)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import ASC
+
+result = ASC(...)
+```
+
+---
+
+### `ASIN()`
+
+Description:
+
+**Parameters:**
+- number (float): The sine value, must be between -1 and 1.
+
+**Returns:**
+- float: The arcsine in radians.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ASIN
+
+result = ASIN(...)
+```
+
+---
+
+### `ASINH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number.
+
+**Returns:**
+- float: The inverse hyperbolic sine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ASINH
+
+result = ASINH(...)
+```
+
+---
+
+### `ATAN()`
+
+Description:
+
+**Parameters:**
+- number (float): The tangent value.
+
+**Returns:**
+- float: The arctangent in radians.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ATAN
+
+result = ATAN(...)
+```
+
+---
+
+### `ATAN2()`
+
+Description:
+
+**Parameters:**
+- x (float): The x-coordinate.
+- y (float): The y-coordinate.
+
+**Returns:**
+- float: The arctangent in radians.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ATAN2
+
+result = ATAN2(...)
+```
+
+---
+
+### `ATANH()`
+
+Description:
+
+**Parameters:**
+- number (float): A number between -1 and 1 (exclusive).
+
+**Returns:**
+- float: The inverse hyperbolic tangent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ATANH
+
+result = ATANH(...)
+```
+
+---
+
+### `AVEDEV()`
+
+Returns the average of the absolute deviations of data points from their mean.
+
+**Parameters:**
+- values: Array of values
+
+**Returns:**
+- float: Average absolute deviation
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import AVEDEV
+
+result = AVEDEV(...)
+```
+
+---
+
+### `AVERAGE()`
+
+Returns the average (arithmetic mean) of the arguments.
+
+**Parameters:**
+- *values: Numbers or lists of numbers to average
+
+**Returns:**
+- float: The arithmetic mean of the values
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import AVERAGE
+
+result = AVERAGE(...)
+```
+
+---
+
+### `AVERAGEA()`
+
+Returns the average of arguments, including numbers, text, and logical values.
+
+**Parameters:**
+- *values: Values to average (numbers, text, logical values, lists)
+
+**Returns:**
+- float: The arithmetic mean of the values
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import AVERAGEA
+
+result = AVERAGEA(...)
+```
+
+---
+
+### `AVERAGEIF()`
+
+Returns the average of cells that meet a criterion.
+
+**Parameters:**
+- range_values: Range to evaluate against criteria
+- criteria: Condition to test (can be number, string with comparison, or text)
+- average_range: Optional range to average (if different from range_values)
+
+**Returns:**
+- float: Average of cells meeting the criterion
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import AVERAGEIF
+
+result = AVERAGEIF(...)
+```
+
+---
+
+### `AVERAGEIFS()`
+
+Returns the average of cells that meet multiple criteria.
+
+**Parameters:**
+- average_range: Range to average
+- *criteria_pairs: Pairs of (criteria_range, criterion) to test
+
+**Returns:**
+- float: Average of cells meeting all criteria
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import AVERAGEIFS
+
+result = AVERAGEIFS(...)
+```
+
+---
+
+### `BAHTTEXT()`
+
+Converts a number to text using Thai Baht currency format.
+
+**Parameters:**
+- `number` (Union[int)
+- `float]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import BAHTTEXT
+
+result = BAHTTEXT(...)
+```
+
+---
+
+### `BETA_INV()`
+
+Returns the inverse of the beta cumulative distribution function.
+
+**Parameters:**
+- probability: Probability associated with the beta distribution
+- alpha: First parameter of the distribution
+- beta: Second parameter of the distribution
+- A: Lower bound of interval (default 0)
+- B: Upper bound of interval (default 1)
+
+**Returns:**
+- float: Value for which the beta CDF equals probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import BETA_INV
+
+result = BETA_INV(...)
+```
+
+---
+
+### `BINOM_INV()`
+
+Returns the smallest value for which the cumulative binomial distribution is >= criterion.
+
+**Parameters:**
+- trials: Number of Bernoulli trials
+- probability_s: Probability of success on each trial
+- alpha: Criterion value
+
+**Returns:**
+- int: Smallest number of successes
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import BINOM_INV
+
+result = BINOM_INV(...)
+```
+
+---
+
+
+### `CEILING()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round.
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import CEILING
+
+result = CEILING(...)
+```
+
+---
+
+### `CEILING_MATH()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round (default 1).
+- mode (int): For negative numbers: 0 = away from zero, 1 = toward zero.
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import CEILING_MATH
+
+result = CEILING_MATH(...)
+```
+
+---
+
+### `CEILING_PRECISE()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round (default 1).
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import CEILING_PRECISE
+
+result = CEILING_PRECISE(...)
+```
+
+---
+
+### `CHISQ_DIST()`
+
+Returns the chi-squared distribution.
+
+**Parameters:**
+- x: Value at which to evaluate the distribution
+- deg_freedom: Number of degrees of freedom
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Chi-squared distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CHISQ_DIST
+
+result = CHISQ_DIST(...)
+```
+
+---
+
+### `CHISQ_DIST_RT()`
+
+Returns the right-tailed probability of the chi-squared distribution.
+
+**Parameters:**
+- x: Value at which to evaluate
+- deg_freedom: Number of degrees of freedom
+
+**Returns:**
+- float: Right-tailed probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CHISQ_DIST_RT
+
+result = CHISQ_DIST_RT(...)
+```
+
+---
+
+### `CHISQ_INV()`
+
+Returns the inverse of the left-tailed probability of the chi-squared distribution.
+
+**Parameters:**
+- probability: Probability associated with the chi-squared distribution
+- deg_freedom: Number of degrees of freedom
+
+**Returns:**
+- float: Inverse value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CHISQ_INV
+
+result = CHISQ_INV(...)
+```
+
+---
+
+### `CHISQ_INV_RT()`
+
+Returns the inverse of the right-tailed probability of the chi-squared distribution.
+
+**Parameters:**
+- probability: Probability associated with the chi-squared distribution
+- deg_freedom: Number of degrees of freedom
+
+**Returns:**
+- float: Inverse value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CHISQ_INV_RT
+
+result = CHISQ_INV_RT(...)
+```
+
+---
+
+### `CHISQ_TEST()`
+
+Returns the test for independence (chi-squared test).
+
+**Parameters:**
+- actual_range: Range of observed data
+- expected_range: Range of expected values
+
+**Returns:**
+- float: P-value from chi-squared test
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CHISQ_TEST
+
+result = CHISQ_TEST(...)
+```
+
+---
+
+### `CHOOSE()`
+
+Choose a value from a list of values based on index.
+
+**Parameters:**
+- index_num: Index number (1-based) of the value to choose.
+- *values: List of values to choose from.
+
+**Returns:**
+- Any: Value at the specified index.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import CHOOSE
+
+result = CHOOSE(...)
+```
+
+---
+
+### `CHOOSECOLS()`
+
+Return specified columns from an array.
+
+**Parameters:**
+- array: The array from which to select columns.
+- *col_nums: Column numbers to select (1-based, negative from end).
+
+**Returns:**
+- List[List[Any]]: Array with only the specified columns.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import CHOOSECOLS
+
+result = CHOOSECOLS(...)
+```
+
+---
+
+### `CHOOSEROWS()`
+
+Return specified rows from an array.
+
+**Parameters:**
+- array: The array from which to select rows.
+- *row_nums: Row numbers to select (1-based, negative from end).
+
+**Returns:**
+- List[List[Any]]: Array with only the specified rows.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import CHOOSEROWS
+
+result = CHOOSEROWS(...)
+```
+
+---
+
+### `COMBIN()`
+
+Description:
+
+**Parameters:**
+- n (int): Total number of items (must be >= 0).
+- k (int): Number of items in each combination (must be 0 <= k <= n).
+
+**Returns:**
+- int: The number of combinations.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import COMBIN
+
+result = COMBIN(...)
+```
+
+---
+
+### `COMBINA()`
+
+Description:
+
+**Parameters:**
+- n (int): Total number of items (must be >= 0).
+- k (int): Number of items in each combination (must be >= 0).
+
+**Returns:**
+- int: The number of combinations with repetition.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import COMBINA
+
+result = COMBINA(...)
+```
+
+---
+
+### `CONFIDENCE_NORM()`
+
+Returns the confidence interval for a population mean (normal distribution).
+
+**Parameters:**
+- alpha: Significance level (e.g., 0.05 for 95% confidence)
+- standard_dev: Population standard deviation
+- size: Sample size
+
+**Returns:**
+- float: Confidence interval margin
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CONFIDENCE_NORM
+
+result = CONFIDENCE_NORM(...)
+```
+
+---
+
+### `COS()`
+
+Description:
+
+**Parameters:**
+- number (float): The angle in radians.
+
+**Returns:**
+- float: The cosine of the angle.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import COS
+
+result = COS(...)
+```
+
+---
+
+### `COSH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number.
+
+**Returns:**
+- float: The hyperbolic cosine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import COSH
+
+result = COSH(...)
+```
+
+---
+
+### `COT()`
+
+Description:
+
+**Parameters:**
+- number (float): The angle in radians.
+
+**Returns:**
+- float: The cotangent of the angle.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import COT
+
+result = COT(...)
+```
+
+---
+
+### `COTH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number (except 0).
+
+**Returns:**
+- float: The hyperbolic cotangent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import COTH
+
+result = COTH(...)
+```
+
+---
+
+### `COVARIANCE_S()`
+
+Returns sample covariance.
+
+**Parameters:**
+- array1: First array of values
+- array2: Second array of values
+
+**Returns:**
+- float: Sample covariance
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import COVARIANCE_S
+
+result = COVARIANCE_S(...)
+```
+
+---
+
+### `CSC()`
+
+Description:
+
+**Parameters:**
+- number (float): The angle in radians.
+
+**Returns:**
+- float: The cosecant of the angle.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import CSC
+
+result = CSC(...)
+```
+
+---
+
+### `CSCH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number (except 0).
+
+**Returns:**
+- float: The hyperbolic cosecant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import CSCH
+
+result = CSCH(...)
+```
+
+---
+
+### `CUMIPMT()`
+
+Calculate cumulative interest paid between two periods.
+
+**Parameters:**
+- rate: Interest rate.
+- nper: Total number of payment periods.
+- pv: Present value.
+- start_period: First period in the calculation (1-based).
+- end_period: Last period in the calculation.
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+
+**Returns:**
+- float: Cumulative interest paid.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import CUMIPMT
+
+result = CUMIPMT(...)
+```
+
+---
+
+### `DATEVALUE()`
+
+Converts a date in text format to an Excel serial number.
+
+**Parameters:**
+- `date_text` (str)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import DATEVALUE
+
+result = DATEVALUE(...)
+```
+
+---
+
+### `DB()`
+
+Calculate depreciation using the fixed-declining balance method.
+
+**Parameters:**
+- cost: Initial cost of the asset.
+- salvage: Value at the end of the depreciation.
+- life: Number of periods over which the asset is depreciated.
+- period: Period for which to calculate depreciation.
+- month: Number of months in the first year (default 12).
+
+**Returns:**
+- float: Depreciation for the specified period.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import DB
+
+result = DB(...)
+```
+
+---
+
+
+### `DECIMAL()`
+
+Description:
+
+**Parameters:**
+- text (str): The text representation of the number.
+- radix (int): The base of the number (between 2 and 36).
+
+**Returns:**
+- int: The decimal equivalent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import DECIMAL
+
+result = DECIMAL(...)
+```
+
+---
+
+### `DEGREES()`
+
+Description:
+
+**Parameters:**
+- angle (float): An angle in radians.
+
+**Returns:**
+- float: The angle in degrees.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import DEGREES
+
+result = DEGREES(...)
+```
+
+---
+
+### `DEVSQ()`
+
+Returns the sum of squares of deviations.
+
+**Parameters:**
+- values: Array of values
+
+**Returns:**
+- float: Sum of squared deviations from mean
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import DEVSQ
+
+result = DEVSQ(...)
+```
+
+---
+
+### `DISC()`
+
+Calculate the discount rate for a security.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `pr`
+- `redemption`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import DISC
+
+result = DISC(...)
+```
+
+---
+
+### `DOLLAR()`
+
+Converts a number to text using currency format ($).
+
+**Parameters:**
+- `number` (Union[int)
+- `float]`
+- `decimals` (int) — Defaults to `2`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import DOLLAR
+
+result = DOLLAR(...)
+```
+
+---
+
+### `DOLLARDE()`
+
+Convert a dollar price expressed as a fraction into a decimal dollar price.
+
+**Parameters:**
+- `fractional_dollar`
+- `fraction`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import DOLLARDE
+
+result = DOLLARDE(...)
+```
+
+---
+
+### `DOLLARFR()`
+
+Convert a decimal dollar price into a fractional dollar price.
+
+**Parameters:**
+- `decimal_dollar`
+- `fraction`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import DOLLARFR
+
+result = DOLLARFR(...)
+```
+
+---
+
+
+### `DROP()`
+
+Exclude a specified number of rows or columns from start or end of array.
+
+**Parameters:**
+- array: The array to process.
+- rows: Number of rows to drop (positive from start, negative from end).
+- columns: Number of columns to drop (positive from start, negative from end).
+
+**Returns:**
+- List[List[Any]]: Array with specified rows/columns removed.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import DROP
+
+result = DROP(...)
+```
+
+---
+
+### `EFFECT()`
+
+Calculate the effective annual interest rate.
+
+**Parameters:**
+- nominal_rate: Nominal interest rate.
+- npery: Number of compounding periods per year.
+
+**Returns:**
+- float: Effective annual interest rate.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import EFFECT
+
+result = EFFECT(...)
+```
+
+---
+
+### `ERROR_TYPE()`
+
+Return a number corresponding to an error type.
+
+**Parameters:**
+- error_val: Error value to analyze.
+
+**Returns:**
+- Optional[int]: Error number, or None if not an error.
+- - 1: #NULL!
+- - 2: #DIV/0!
+- - 3: #VALUE!
+- - 4: #REF!
+- - 5: #NAME?
+- - 6: #NUM!
+- - 7: #N/A
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.information_formulas import ERROR_TYPE
+
+result = ERROR_TYPE(...)
+```
+
+---
+
+### `EVEN()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+
+**Returns:**
+- int: The nearest even integer.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import EVEN
+
+result = EVEN(...)
+```
+
+---
+
+### `EXPON_DIST()`
+
+Returns the exponential distribution.
+
+**Parameters:**
+- x: Value at which to evaluate
+- lambda_: Parameter value (rate parameter)
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Exponential distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import EXPON_DIST
+
+result = EXPON_DIST(...)
+```
+
+---
+
+### `F_DIST()`
+
+Returns the F probability distribution.
+
+**Parameters:**
+- x: Value at which to evaluate
+- deg_freedom1: Numerator degrees of freedom
+- deg_freedom2: Denominator degrees of freedom
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: F distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import F_DIST
+
+result = F_DIST(...)
+```
+
+---
+
+### `F_DIST_RT()`
+
+Returns the right-tailed F probability distribution.
+
+**Parameters:**
+- x: Value at which to evaluate
+- deg_freedom1: Numerator degrees of freedom
+- deg_freedom2: Denominator degrees of freedom
+
+**Returns:**
+- float: Right-tailed probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import F_DIST_RT
+
+result = F_DIST_RT(...)
+```
+
+---
+
+### `F_INV()`
+
+Returns the inverse of the F probability distribution.
+
+**Parameters:**
+- probability: Probability associated with the F distribution
+- deg_freedom1: Numerator degrees of freedom
+- deg_freedom2: Denominator degrees of freedom
+
+**Returns:**
+- float: Inverse value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import F_INV
+
+result = F_INV(...)
+```
+
+---
+
+### `F_INV_RT()`
+
+Returns the inverse of the right-tailed F probability distribution.
+
+**Parameters:**
+- probability: Probability associated with the F distribution
+- deg_freedom1: Numerator degrees of freedom
+- deg_freedom2: Denominator degrees of freedom
+
+**Returns:**
+- float: Inverse value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import F_INV_RT
+
+result = F_INV_RT(...)
+```
+
+---
+
+### `F_TEST()`
+
+Returns the result of an F-test.
+
+**Parameters:**
+- array1: First array of data
+- array2: Second array of data
+
+**Returns:**
+- float: Two-tailed P-value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import F_TEST
+
+result = F_TEST(...)
+```
+
+---
+
+### `FACT()`
+
+Description:
+
+**Parameters:**
+- number (int): A non-negative integer.
+
+**Returns:**
+- int: The factorial.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import FACT
+
+result = FACT(...)
+```
+
+---
+
+### `FACTDOUBLE()`
+
+Description:
+
+**Parameters:**
+- number (int): A non-negative integer.
+
+**Returns:**
+- int: The double factorial.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import FACTDOUBLE
+
+result = FACTDOUBLE(...)
+```
+
+---
+
+### `FILTER()`
+
+Filter a range of data based on criteria.
+
+**Parameters:**
+- array: The array to filter.
+- include: Boolean array indicating which rows to include.
+- if_empty: Value to return if no rows match.
+
+**Returns:**
+- Union[List[List[Any]], Any]: Filtered array or if_empty value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import FILTER
+
+result = FILTER(...)
+```
+
+---
+
+### `FIXED()`
+
+Formats a number as text with a fixed number of decimals.
+
+**Parameters:**
+- `number` (Union[int)
+- `float]`
+- `decimals` (int) — Defaults to `2`.
+- `no_commas` (bool) — Defaults to `False`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import FIXED
+
+result = FIXED(...)
+```
+
+---
+
+### `FLOOR()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round.
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import FLOOR
+
+result = FLOOR(...)
+```
+
+---
+
+### `FLOOR_MATH()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round (default 1).
+- mode (int): For negative numbers: 0 = toward zero, 1 = away from zero.
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import FLOOR_MATH
+
+result = FLOOR_MATH(...)
+```
+
+---
+
+### `FLOOR_PRECISE()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round (default 1).
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import FLOOR_PRECISE
+
+result = FLOOR_PRECISE(...)
+```
+
+---
+
+### `FORECAST_ETS()`
+
+Returns a forecasted value based on exponential smoothing (simplified).
+
+**Parameters:**
+- target_date: Data point for which to predict
+- values: Historical values
+- timeline: Historical timeline
+- seasonality: Seasonal period length (auto-detected if None)
+- data_completion: How to handle missing data (1=interpolate, 0=zero)
+- aggregation: How to aggregate duplicate times (1=average)
+
+**Returns:**
+- float: Forecasted value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import FORECAST_ETS
+
+result = FORECAST_ETS(...)
+```
+
+---
+
+### `FORECAST_ETS_CONFINT()`
+
+Returns confidence interval for forecast (simplified).
+
+**Parameters:**
+- target_date: Data point for which to predict
+- values: Historical values
+- timeline: Historical timeline
+- confidence_level: Confidence level (default 0.95 for 95%)
+- seasonality: Seasonal period length
+- data_completion: How to handle missing data
+- aggregation: How to aggregate duplicate times
+
+**Returns:**
+- tuple: (lower_bound, upper_bound)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import FORECAST_ETS_CONFINT
+
+result = FORECAST_ETS_CONFINT(...)
+```
+
+---
+
+### `FORECAST_ETS_SEASONALITY()`
+
+Returns the detected seasonality length (simplified).
+
+**Parameters:**
+- values: Historical values
+- timeline: Historical timeline
+- data_completion: How to handle missing data
+- aggregation: How to aggregate duplicate times
+
+**Returns:**
+- int: Detected seasonality period (simplified: returns 12 for monthly)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import FORECAST_ETS_SEASONALITY
+
+result = FORECAST_ETS_SEASONALITY(...)
+```
+
+---
+
+### `FORECAST_ETS_STAT()`
+
+Returns statistical value for ETS forecast (simplified).
+
+**Parameters:**
+- values: Historical values
+- timeline: Historical timeline
+- statistic_type: Type of statistic to return (1=Alpha, 2=Beta, 3=Gamma, etc.)
+- seasonality: Seasonal period length
+- data_completion: How to handle missing data
+- aggregation: How to aggregate duplicate times
+
+**Returns:**
+- float: Requested statistic
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import FORECAST_ETS_STAT
+
+result = FORECAST_ETS_STAT(...)
+```
+
+---
+
+
+### `FV()`
+
+Calculate the future value of an investment.
+
+**Parameters:**
+- rate: Interest rate per period.
+- nper: Total number of payment periods.
+- pmt: Payment made each period (cannot change over the life of the investment).
+- pv: Present value, or the lump-sum amount that a series of future payments is worth now (default 0).
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+
+**Returns:**
+- float: Future value of the investment.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import FV
+
+result = FV(...)
+```
+
+---
+
+### `FVSCHEDULE()`
+
+Calculate future value with a variable interest rate schedule.
+
+**Parameters:**
+- principal: Present value.
+- schedule: Array of interest rates to apply.
+
+**Returns:**
+- float: Future value after applying all interest rates.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import FVSCHEDULE
+
+result = FVSCHEDULE(...)
+```
+
+---
+
+### `GAUSS()`
+
+Returns 0.5 less than the standard normal cumulative distribution.
+
+**Parameters:**
+- z: Value for which to calculate
+
+**Returns:**
+- float: P(0 < Z < z) for standard normal distribution
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import GAUSS
+
+result = GAUSS(...)
+```
+
+---
+
+### `GCD()`
+
+Description:
+
+**Parameters:**
+- *numbers (int): One or more integers.
+
+**Returns:**
+- int: The greatest common divisor.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import GCD
+
+result = GCD(...)
+```
+
+---
+
+### `GROWTH()`
+
+Returns values along an exponential trend.
+
+**Parameters:**
+- known_y: Set of known y-values
+- known_x: Optional set of known x-values (defaults to 1, 2, 3, ...)
+- new_x: Optional new x-values for prediction (defaults to known_x)
+- const: If True, calculate b normally; if False, force b to equal 1
+
+**Returns:**
+- List[float]: Predicted exponential values
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import GROWTH
+
+result = GROWTH(...)
+```
+
+---
+
+### `HLOOKUP()`
+
+Search in the top row of an array and return value from specified row.
+
+**Parameters:**
+- lookup_value: Value to search for in first row.
+- table_array: Array to search.
+- row_index_num: Row number to return value from (1-based).
+- range_lookup: True for approximate match, False for exact match.
+
+**Returns:**
+- Any: Value from the specified row.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import HLOOKUP
+
+result = HLOOKUP(...)
+```
+
+---
+
+### `HOUR()`
+
+Converts an Excel serial number to an hour value.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import HOUR
+
+result = HOUR(...)
+```
+
+---
+
+### `HSTACK()`
+
+Append arrays horizontally and in sequence to return a larger array.
+
+**Parameters:**
+- *arrays: Arrays to stack horizontally.
+
+**Returns:**
+- List[List[Any]]: Horizontally stacked array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import HSTACK
+
+result = HSTACK(...)
+```
+
+---
+
+### `HYPGEOM_DIST()`
+
+Returns the hypergeometric distribution.
+
+**Parameters:**
+- sample_s: Number of successes in the sample
+- number_sample: Size of the sample
+- population_s: Number of successes in the population
+- number_pop: Population size
+- cumulative: If True, returns CDF; if False, returns PMF
+
+**Returns:**
+- float: Hypergeometric distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import HYPGEOM_DIST
+
+result = HYPGEOM_DIST(...)
+```
+
+---
+
+### `IMCOSH()`
+
+Returns the hyperbolic cosine of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Hyperbolic cosine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMCOSH
+
+result = IMCOSH(...)
+```
+
+---
+
+### `IMCOT()`
+
+Returns the cotangent of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Cotangent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMCOT
+
+result = IMCOT(...)
+```
+
+---
+
+### `IMCSC()`
+
+Returns the cosecant of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Cosecant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMCSC
+
+result = IMCSC(...)
+```
+
+---
+
+### `IMCSCH()`
+
+Returns the hyperbolic cosecant of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Hyperbolic cosecant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMCSCH
+
+result = IMCSCH(...)
+```
+
+---
+
+### `IMLN()`
+
+Returns the natural logarithm of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Natural logarithm.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMLN
+
+result = IMLN(...)
+```
+
+---
+
+### `IMLOG10()`
+
+Returns the common logarithm (base 10) of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Common logarithm of the complex number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMLOG10
+
+result = IMLOG10(...)
+```
+
+---
+
+### `IMLOG2()`
+
+Returns the base-2 logarithm of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Base-2 logarithm of the complex number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMLOG2
+
+result = IMLOG2(...)
+```
+
+---
+
+
+### `IMSECH()`
+
+Returns the hyperbolic secant of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Hyperbolic secant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMSECH
+
+result = IMSECH(...)
+```
+
+---
+
+### `IMSIN()`
+
+Returns the sine of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Sine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMSIN
+
+result = IMSIN(...)
+```
+
+---
+
+### `IMSINH()`
+
+Returns the hyperbolic sine of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Hyperbolic sine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMSINH
+
+result = IMSINH(...)
+```
+
+---
+
+### `IMTAN()`
+
+Returns the tangent of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Tangent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMTAN
+
+result = IMTAN(...)
+```
+
+---
+
+### `INDEX()`
+
+Use an index to choose a value from a reference or array.
+
+**Parameters:**
+- array: The array to index.
+- row_num: Row number (1-based, 0 for all rows).
+- column_num: Column number (1-based, 0 for all columns).
+
+**Returns:**
+- Union[Any, List[Any]]: Value at position or entire row/column.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import INDEX
+
+result = INDEX(...)
+```
+
+---
+
+### `INT()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+
+**Returns:**
+- int: The nearest integer (rounded down).
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import INT
+
+result = INT(...)
+```
+
+---
+
+### `INTERCEPT()`
+
+Returns the intercept of the linear regression line.
+
+**Parameters:**
+- known_y: Set of known y-values
+- known_x: Set of known x-values (defaults to 1, 2, 3, ...)
+
+**Returns:**
+- float: Y-intercept value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import INTERCEPT
+
+result = INTERCEPT(...)
+```
+
+---
+
+### `INTRATE()`
+
+Calculate the interest rate for a fully invested security.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `investment`
+- `redemption`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import INTRATE
+
+result = INTRATE(...)
+```
+
+---
+
+### `IPMT()`
+
+Calculate the interest payment for a given period.
+
+**Parameters:**
+- rate: Interest rate per period.
+- per: Period for which you want to find the interest (must be between 1 and nper).
+- nper: Total number of payment periods.
+- pv: Present value.
+- fv: Future value (default 0).
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+
+**Returns:**
+- float: Interest payment for the period.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import IPMT
+
+result = IPMT(...)
+```
+
+---
+
+### `IRR()`
+
+Calculate the internal rate of return for a series of cash flows.
+
+**Parameters:**
+- values: Array of cash flows. Must contain at least one positive and one negative value.
+- guess: Estimate for what the rate will be (default 0.1).
+
+**Returns:**
+- float: Internal rate of return.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import IRR
+
+result = IRR(...)
+```
+
+---
+
+### `ISO_CEILING()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+- significance (float): The multiple to which to round (default 1).
+
+**Returns:**
+- float: The rounded value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ISO_CEILING
+
+result = ISO_CEILING(...)
+```
+
+---
+
+### `ISPMT()`
+
+Calculate the interest paid during a specific period of an investment.
+
+**Parameters:**
+- `rate`
+- `per`
+- `nper`
+- `pv`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import ISPMT
+
+result = ISPMT(...)
+```
+
+---
+
+### `LCM()`
+
+Description:
+
+**Parameters:**
+- *numbers (int): One or more integers.
+
+**Returns:**
+- int: The least common multiple.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import LCM
+
+result = LCM(...)
+```
+
+---
+
+### `LN()`
+
+Description:
+
+**Parameters:**
+- number (float): A positive number.
+
+**Returns:**
+- float: The natural logarithm.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import LN
+
+result = LN(...)
+```
+
+---
+
+### `LOG10()`
+
+Description:
+
+**Parameters:**
+- number (float): A positive number.
+
+**Returns:**
+- float: The base-10 logarithm.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import LOG10
+
+result = LOG10(...)
+```
+
+---
+
+### `LOGEST()`
+
+Returns parameters of an exponential trend.
+
+**Parameters:**
+- known_y: Set of known y-values
+- known_x: Set of known x-values (defaults to 1, 2, 3, ...)
+- const: If True, calculate b normally; if False, force b = 1
+- stats_flag: If True, return additional regression statistics
+
+**Returns:**
+- tuple: Base and multiplier for exponential curve
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import LOGEST
+
+result = LOGEST(...)
+```
+
+---
+
+### `LOGNORM_DIST()`
+
+Returns the lognormal distribution.
+
+**Parameters:**
+- x: Value at which to evaluate
+- mean: Mean of the natural logarithm
+- standard_dev: Standard deviation of the natural logarithm
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Lognormal distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import LOGNORM_DIST
+
+result = LOGNORM_DIST(...)
+```
+
+---
+
+### `LOGNORM_INV()`
+
+Returns the inverse of the lognormal cumulative distribution.
+
+**Parameters:**
+- probability: Probability associated with the lognormal distribution
+- mean: Mean of the natural logarithm
+- standard_dev: Standard deviation of the natural logarithm
+
+**Returns:**
+- float: Inverse value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import LOGNORM_INV
+
+result = LOGNORM_INV(...)
+```
+
+---
+
+### `MAKEARRAY()`
+
+Return a calculated array of a specified row and column size by applying a LAMBDA.
+
+**Parameters:**
+- rows: Number of rows in the array.
+- cols: Number of columns in the array.
+- lambda_func: Lambda function that takes (row_index, col_index) and returns a value.
+- Indices are 1-based (Excel convention).
+
+**Returns:**
+- List[List[Any]]: Generated array with values from lambda_func.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.logic_formulas import MAKEARRAY
+
+result = MAKEARRAY(...)
+```
+
+---
+
+### `MAP()`
+
+Return an array formed by mapping each value in arrays to a new value by applying a LAMBDA.
+
+**Parameters:**
+- *args: One or more arrays (matrices) followed by the lambda function.
+- The last argument must be the lambda function.
+
+**Returns:**
+- List[List[Any]]: New array with lambda_func applied to each set of values.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.logic_formulas import MAP
+
+result = MAP(...)
+```
+
+---
+
+### `MATCH()`
+
+Return the relative position of an item in an array.
+
+**Parameters:**
+- lookup_value: Value to search for.
+- lookup_array: Array to search.
+- match_type: 1=largest value <=, 0=exact match, -1=smallest value >=.
+
+**Returns:**
+- int: Position (1-based) of the match.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import MATCH
+
+result = MATCH(...)
+```
+
+---
+
+### `MAX()`
+
+Returns the largest value in a set of values.
+
+**Parameters:**
+- *values: Values to evaluate (ignores text and logical values)
+
+**Returns:**
+- float: Maximum value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MAX
+
+result = MAX(...)
+```
+
+---
+
+### `MAXA()`
+
+Returns the largest value in a set of values (includes text and logical values).
+
+**Parameters:**
+- *values: Values to evaluate (TRUE=1, FALSE=0, text=0)
+
+**Returns:**
+- float: Maximum value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MAXA
+
+result = MAXA(...)
+```
+
+---
+
+### `MAXIFS()`
+
+Returns the maximum value among cells specified by a given set of conditions.
+
+**Parameters:**
+- max_range: Range of cells from which to return maximum
+- *args: Alternating criteria_range and criteria pairs
+
+**Returns:**
+- float: Maximum value meeting all criteria
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MAXIFS
+
+result = MAXIFS(...)
+```
+
+---
+
+### `MDETERM()`
+
+Description:
+
+**Parameters:**
+- matrix (List[List[float]]): A square matrix.
+
+**Returns:**
+- float: The determinant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MDETERM
+
+result = MDETERM(...)
+```
+
+---
+
+### `MEDIAN()`
+
+Returns the median (middle value) of the given numbers.
+
+**Parameters:**
+- *values: Numbers or lists of numbers
+
+**Returns:**
+- float: The median value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MEDIAN
+
+result = MEDIAN(...)
+```
+
+---
+
+### `MIN()`
+
+Returns the minimum value from a set of values.
+
+**Parameters:**
+- *values: Numbers or lists of numbers
+
+**Returns:**
+- float: The minimum value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MIN
+
+result = MIN(...)
+```
+
+---
+
+### `MINA()`
+
+Returns the minimum value, including numbers, text, and logical values.
+
+**Parameters:**
+- *values: Values to evaluate
+
+**Returns:**
+- float: The minimum value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MINA
+
+result = MINA(...)
+```
+
+---
+
+### `MINIFS()`
+
+Returns the minimum value among cells specified by a set of conditions.
+
+**Parameters:**
+- min_range: Range to find minimum from
+- *criteria_pairs: Pairs of (criteria_range, criterion)
+
+**Returns:**
+- float: Minimum value meeting all criteria
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MINIFS
+
+result = MINIFS(...)
+```
+
+---
+
+### `MINUTE()`
+
+Converts an Excel serial number to a minute value.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import MINUTE
+
+result = MINUTE(...)
+```
+
+---
+
+### `MINVERSE()`
+
+Description:
+
+**Parameters:**
+- matrix (List[List[float]]): A square, invertible matrix.
+
+**Returns:**
+- List[List[float]]: The inverse matrix.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MINVERSE
+
+result = MINVERSE(...)
+```
+
+---
+
+### `MIRR()`
+
+Calculate the modified internal rate of return.
+
+**Parameters:**
+- values: Array of cash flows.
+- finance_rate: Interest rate paid on money used in cash flows.
+- reinvest_rate: Interest rate received on cash flows as they are reinvested.
+
+**Returns:**
+- float: Modified internal rate of return.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import MIRR
+
+result = MIRR(...)
+```
+
+---
+
+### `MMULT()`
+
+Description:
+
+**Parameters:**
+- matrix1 (List[List[float]]): The first matrix.
+- matrix2 (List[List[float]]): The second matrix.
+
+**Returns:**
+- List[List[float]]: The matrix product.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MMULT
+
+result = MMULT(...)
+```
+
+---
+
+### `MODE()`
+
+Excel function: MODE
+
+**Parameters:**
+- values: List of numeric values.
+
+**Returns:**
+- float: The mode.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MODE
+
+result = MODE(...)
+```
+
+---
+
+### `MODE_MULT()`
+
+Returns a vertical array of the most frequently occurring values in a range.
+
+**Parameters:**
+- values: List of numeric values
+
+**Returns:**
+- List[float]: List of most frequent values
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MODE_MULT
+
+result = MODE_MULT(...)
+```
+
+---
+
+### `MODE_SNGL()`
+
+Returns the most common value in a data set.
+
+**Parameters:**
+- values: List of numeric values
+
+**Returns:**
+- float: The most frequent value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import MODE_SNGL
+
+result = MODE_SNGL(...)
+```
+
+---
+
+### `MONTH()`
+
+Converts an Excel serial number to a month value.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import MONTH
+
+result = MONTH(...)
+```
+
+---
+
+### `MROUND()`
+
+Description:
+
+**Parameters:**
+- number (float): The number to round.
+- multiple (float): The multiple to which to round.
+
+**Returns:**
+- float: The rounded number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MROUND
+
+result = MROUND(...)
+```
+
+---
+
+### `MULTINOMIAL()`
+
+Description:
+
+**Parameters:**
+- *numbers (int): One or more non-negative integers.
+
+**Returns:**
+- int: The multinomial coefficient.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MULTINOMIAL
+
+result = MULTINOMIAL(...)
+```
+
+---
+
+### `MUNIT()`
+
+Description:
+
+**Parameters:**
+- dimension (int): The size of the identity matrix (must be positive).
+
+**Returns:**
+- List[List[float]]: The identity matrix.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MUNIT
+
+result = MUNIT(...)
+```
+
+---
+
+### `NEGBINOM_DIST()`
+
+Returns the negative binomial distribution.
+
+**Parameters:**
+- number_f: Number of failures
+- number_s: Threshold number of successes
+- probability_s: Probability of a success
+- cumulative: If True, returns cumulative distribution function
+
+**Returns:**
+- float: Negative binomial probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import NEGBINOM_DIST
+
+result = NEGBINOM_DIST(...)
+```
+
+---
+
+### `NOMINAL()`
+
+Calculate the nominal annual interest rate.
+
+**Parameters:**
+- effect_rate: Effective interest rate.
+- npery: Number of compounding periods per year.
+
+**Returns:**
+- float: Nominal annual interest rate.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import NOMINAL
+
+result = NOMINAL(...)
+```
+
+---
+
+### `NORM_DIST()`
+
+Returns the normal cumulative distribution.
+
+**Parameters:**
+- x: Value for which to calculate the distribution
+- mean: Arithmetic mean of the distribution
+- standard_dev: Standard deviation of the distribution
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Normal distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import NORM_DIST
+
+result = NORM_DIST(...)
+```
+
+---
+
+### `NORM_INV()`
+
+Returns the inverse of the normal cumulative distribution.
+
+**Parameters:**
+- probability: Probability corresponding to the normal distribution
+- mean: Arithmetic mean of the distribution
+- standard_dev: Standard deviation of the distribution
+
+**Returns:**
+- float: Value for which the cumulative distribution equals probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import NORM_INV
+
+result = NORM_INV(...)
+```
+
+---
+
+### `NORM_S_DIST()`
+
+Returns the standard normal cumulative distribution.
+
+**Parameters:**
+- z: Value for which to calculate the distribution
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Standard normal distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import NORM_S_DIST
+
+result = NORM_S_DIST(...)
+```
+
+---
+
+### `NORM_S_INV()`
+
+Returns the inverse of the standard normal cumulative distribution.
+
+**Parameters:**
+- probability: Probability corresponding to the normal distribution
+
+**Returns:**
+- float: Z-value for which the cumulative distribution equals probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import NORM_S_INV
+
+result = NORM_S_INV(...)
+```
+
+---
+
+### `NOW()`
+
+Returns the Excel serial number of the current date and time.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import NOW
+
+result = NOW(...)
+```
+
+---
+
+### `NPER()`
+
+Calculate the number of periods for an investment.
+
+**Parameters:**
+- rate: Interest rate per period.
+- pmt: Payment made each period (cannot change).
+- pv: Present value, or the lump-sum amount.
+- fv: Future value, or a cash balance you want after the last payment (default 0).
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+
+**Returns:**
+- float: Number of periods.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import NPER
+
+result = NPER(...)
+```
+
+---
+
+### `NPV()`
+
+Calculate the net present value of an investment.
+
+**Parameters:**
+- rate: Discount rate over one period.
+- *values: Arguments representing the payments and income.
+
+**Returns:**
+- float: Net present value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import NPV
+
+result = NPV(...)
+```
+
+---
+
+### `NUMBERVALUE()`
+
+Converts text to number in a locale-independent manner.
+
+**Parameters:**
+- `text` (str)
+- `decimal_separator` (str) — Defaults to `"."`.
+- `group_separator` (str) — Defaults to `"`.
+- `"`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import NUMBERVALUE
+
+result = NUMBERVALUE(...)
+```
+
+---
+
+### `ODD()`
+
+Description:
+
+**Parameters:**
+- number (float): The value to round.
+
+**Returns:**
+- int: The nearest odd integer.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ODD
+
+result = ODD(...)
+```
+
+---
+
+### `ODDFPRICE()`
+
+Calculate the price per $100 face value of a security with an odd first period.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `issue`
+- `first_coupon`
+- `rate`
+- `yld`
+- `redemption`
+- `frequency`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import ODDFPRICE
+
+result = ODDFPRICE(...)
+```
+
+---
+
+### `ODDFYIELD()`
+
+Calculate the yield of a security with an odd first period.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `issue`
+- `first_coupon`
+- `rate`
+- `pr`
+- `redemption`
+- `frequency`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import ODDFYIELD
+
+result = ODDFYIELD(...)
+```
+
+---
+
+### `ODDLPRICE()`
+
+Calculate the price per $100 face value of a security with an odd last period.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `last_interest`
+- `rate`
+- `yld`
+- `redemption`
+- `frequency`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import ODDLPRICE
+
+result = ODDLPRICE(...)
+```
+
+---
+
+### `ODDLYIELD()`
+
+Calculate the yield of a security with an odd last period.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `last_interest`
+- `rate`
+- `pr`
+- `redemption`
+- `frequency`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import ODDLYIELD
+
+result = ODDLYIELD(...)
+```
+
+---
+
+### `PDURATION()`
+
+Calculate the number of periods required for an investment to reach a specified value.
+
+**Parameters:**
+- rate: Interest rate per period.
+- pv: Present value of the investment.
+- fv: Future value of the investment.
+
+**Returns:**
+- float: Number of periods.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import PDURATION
+
+result = PDURATION(...)
+```
+
+---
+
+### `PERCENTILE()`
+
+Excel function: PERCENTILE
+
+**Parameters:**
+- array: List of numeric values.
+- k: Percentile (0..1).
+
+**Returns:**
+- float: The percentile value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERCENTILE
+
+result = PERCENTILE(...)
+```
+
+---
+
+### `PERCENTILE_EXC()`
+
+Returns the k-th percentile of values (k in range 0..1, exclusive).
+
+**Parameters:**
+- array: Array or range of data
+- k: Percentile value in the range 0..1 (exclusive)
+
+**Returns:**
+- float: The k-th percentile
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERCENTILE_EXC
+
+result = PERCENTILE_EXC(...)
+```
+
+---
+
+### `PERCENTILE_INC()`
+
+Returns the k-th percentile of values in a range.
+
+**Parameters:**
+- array: Array or range of data
+- k: Percentile value in the range 0..1 (inclusive)
+
+**Returns:**
+- float: The k-th percentile
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERCENTILE_INC
+
+result = PERCENTILE_INC(...)
+```
+
+---
+
+### `PERCENTRANK()`
+
+Excel function: PERCENTRANK
+
+**Parameters:**
+- array: List of numeric values.
+- x: The value to rank.
+- significance: Number of significant digits.
+
+**Returns:**
+- float: Percentage rank.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERCENTRANK
+
+result = PERCENTRANK(...)
+```
+
+---
+
+### `PERCENTRANK_EXC()`
+
+Returns the rank of a value as a percentage (0..1, exclusive).
+
+**Parameters:**
+- array: Array of data
+- x: Value for which to find the rank
+- significance: Number of significant digits (default 3)
+
+**Returns:**
+- float: Percentile rank
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERCENTRANK_EXC
+
+result = PERCENTRANK_EXC(...)
+```
+
+---
+
+### `PERCENTRANK_INC()`
+
+Returns the percentage rank of a value in a data set.
+
+**Parameters:**
+- array: Array of data
+- x: Value for which to find the rank
+- significance: Number of significant digits (default 3)
+
+**Returns:**
+- float: Percentile rank
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERCENTRANK_INC
+
+result = PERCENTRANK_INC(...)
+```
+
+---
+
+### `PERMUT()`
+
+Returns the number of permutations for a given number of objects.
+
+**Parameters:**
+- number: Total number of items
+- number_chosen: Number of items in each permutation
+
+**Returns:**
+- int: Number of permutations
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERMUT
+
+result = PERMUT(...)
+```
+
+---
+
+### `PERMUTATIONA()`
+
+Returns the number of permutations with repetition.
+
+**Parameters:**
+- number: Total number of items
+- number_chosen: Number of items in each permutation
+
+**Returns:**
+- int: Number of permutations with repetition
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PERMUTATIONA
+
+result = PERMUTATIONA(...)
+```
+
+---
+
+### `PHI()`
+
+Returns the value of the density function for a standard normal distribution.
+
+**Parameters:**
+- x: The value for which you want the density of the standard normal distribution
+
+**Returns:**
+- float: Density value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import PHI
+
+result = PHI(...)
+```
+
+---
+
+### `PI()`
+
+Description:
+
+**Returns:**
+- float: The value of π.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import PI
+
+result = PI(...)
+```
+
+---
+
+### `PMT()`
+
+Calculate the payment for a loan.
+
+**Parameters:**
+- rate: Interest rate for the loan.
+- nper: Total number of payments for the loan.
+- pv: Present value (the total amount that a series of future payments is worth now).
+- fv: Future value (cash balance after the last payment, default 0).
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+
+**Returns:**
+- float: Payment amount.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import PMT
+
+result = PMT(...)
+```
+
+---
+
+### `POISSON_DIST()`
+
+Returns the Poisson distribution.
+
+**Parameters:**
+- x: Number of events
+- mean: Expected numeric value (lambda)
+- cumulative: If True, returns cumulative distribution function
+
+**Returns:**
+- float: Poisson probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import POISSON_DIST
+
+result = POISSON_DIST(...)
+```
+
+---
+
+### `POWER()`
+
+Description:
+
+**Parameters:**
+- number (float): The base number.
+- power (float): The exponent.
+
+**Returns:**
+- float: number^power.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import POWER
+
+result = POWER(...)
+```
+
+---
+
+
+### `PRODUCT()`
+
+Description:
+
+**Parameters:**
+- *numbers: One or more numbers or lists of numbers to multiply.
+
+**Returns:**
+- float: The product of all numbers.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import PRODUCT
+
+result = PRODUCT(...)
+```
+
+---
+
+### `PV()`
+
+Calculate the present value of an investment.
+
+**Parameters:**
+- rate: Interest rate per period.
+- nper: Total number of payment periods.
+- pmt: Payment made each period.
+- fv: Future value (cash balance after the last payment, default 0).
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+
+**Returns:**
+- float: Present value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import PV
+
+result = PV(...)
+```
+
+---
+
+### `QUOTIENT()`
+
+Description:
+
+**Parameters:**
+- numerator (float): The dividend.
+- denominator (float): The divisor.
+
+**Returns:**
+- int: The integer part of the division.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import QUOTIENT
+
+result = QUOTIENT(...)
+```
+
+---
+
+### `RADIANS()`
+
+Description:
+
+**Parameters:**
+- angle (float): An angle in degrees.
+
+**Returns:**
+- float: The angle in radians.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import RADIANS
+
+result = RADIANS(...)
+```
+
+---
+
+### `RAND()`
+
+Description:
+
+**Returns:**
+- float: A random number between 0 and 1.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import RAND
+
+result = RAND(...)
+```
+
+---
+
+### `RANDARRAY()`
+
+Description:
+
+**Parameters:**
+- rows (int): Number of rows (default 1).
+- columns (int): Number of columns (default 1).
+- min_val (float): Minimum value (default 0).
+- max_val (float): Maximum value (default 1).
+- whole_number (bool): Return integers if True, decimals if False (default False).
+
+**Returns:**
+- List[List[float]]: Array of random numbers.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import RANDARRAY
+
+result = RANDARRAY(...)
+```
+
+---
+
+### `RANDBETWEEN()`
+
+Description:
+
+**Parameters:**
+- bottom (int): The smallest integer to return.
+- top (int): The largest integer to return.
+
+**Returns:**
+- int: A random integer between bottom and top (inclusive).
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import RANDBETWEEN
+
+result = RANDBETWEEN(...)
+```
+
+---
+
+### `RATE()`
+
+Calculate the interest rate per period of an annuity.
+
+**Parameters:**
+- nper: Total number of payment periods.
+- pmt: Payment made each period.
+- pv: Present value.
+- fv: Future value (default 0).
+- type: When payments are due (0 = end of period, 1 = beginning of period).
+- guess: Initial guess for the rate (default 0.1).
+
+**Returns:**
+- float: Interest rate per period.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import RATE
+
+result = RATE(...)
+```
+
+---
+
+### `RECEIVED()`
+
+Calculate the amount received at maturity for a fully invested security.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `investment`
+- `discount`
+- `basis` — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import RECEIVED
+
+result = RECEIVED(...)
+```
+
+---
+
+### `REGEXEXTRACT()`
+
+Extracts strings within text that match the regex pattern.
+
+**Parameters:**
+- `text` (str)
+- `pattern` (str)
+- `match_mode` (int) — Defaults to `0`.
+- `capture_group` (int) — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import REGEXEXTRACT
+
+result = REGEXEXTRACT(...)
+```
+
+---
+
+### `REGEXREPLACE()`
+
+Replaces strings within text that match the regex pattern with replacement.
+
+**Parameters:**
+- `text` (str)
+- `pattern` (str)
+- `replacement` (str)
+- `match_mode` (int) — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import REGEXREPLACE
+
+result = REGEXREPLACE(...)
+```
+
+---
+
+### `REGEXTEST()`
+
+Tests whether any part of the text matches the regex pattern.
+
+**Parameters:**
+- `text` (str)
+- `pattern` (str)
+- `match_mode` (int) — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import REGEXTEST
+
+result = REGEXTEST(...)
+```
+
+---
+
+
+### `ROMAN()`
+
+Description:
+
+**Parameters:**
+- number (int): The number to convert (1 to 3999).
+- form (int): Simplification level (0-4, default 0 = classic).
+
+**Returns:**
+- str: The Roman numeral.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ROMAN
+
+result = ROMAN(...)
+```
+
+---
+
+### `ROUND()`
+
+Description:
+
+**Parameters:**
+- number (float): The number to round.
+- num_digits (int): Number of decimal places (can be negative).
+
+**Returns:**
+- float: The rounded number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ROUND
+
+result = ROUND(...)
+```
+
+---
+
+### `ROUNDDOWN()`
+
+Description:
+
+**Parameters:**
+- number (float): The number to round down.
+- num_digits (int): Number of decimal places (can be negative).
+
+**Returns:**
+- float: The rounded down number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ROUNDDOWN
+
+result = ROUNDDOWN(...)
+```
+
+---
+
+### `ROUNDUP()`
+
+Description:
+
+**Parameters:**
+- number (float): The number to round up.
+- num_digits (int): Number of decimal places (can be negative).
+
+**Returns:**
+- float: The rounded up number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import ROUNDUP
+
+result = ROUNDUP(...)
+```
+
+---
+
+### `RRI()`
+
+Calculate an equivalent interest rate for the growth of an investment.
+
+**Parameters:**
+- nper: Number of periods for the investment.
+- pv: Present value of the investment.
+- fv: Future value of the investment.
+
+**Returns:**
+- float: Interest rate.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import RRI
+
+result = RRI(...)
+```
+
+---
+
+### `SEC()`
+
+Description:
+
+**Parameters:**
+- number (float): The angle in radians.
+
+**Returns:**
+- float: The secant of the angle.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SEC
+
+result = SEC(...)
+```
+
+---
+
+### `SECH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number.
+
+**Returns:**
+- float: The hyperbolic secant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SECH
+
+result = SECH(...)
+```
+
+---
+
+### `SECOND()`
+
+Converts an Excel serial number to a second value.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import SECOND
+
+result = SECOND(...)
+```
+
+---
+
+### `SEQUENCE()`
+
+Description:
+
+**Parameters:**
+- rows (int): Number of rows to return.
+- columns (int): Number of columns to return (default 1).
+- start (float): First number in the sequence (default 1).
+- step (float): Amount to increment each value (default 1).
+
+**Returns:**
+- List[List[float]]: Array of sequential numbers.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SEQUENCE
+
+result = SEQUENCE(...)
+```
+
+---
+
+### `SERIESSUM()`
+
+Description:
+
+**Parameters:**
+- x (float): The input value to the power series.
+- n (int): The initial power to which x is raised.
+- m (int): The step by which to increase n for each term.
+- coefficients (List[float]): Array of coefficients.
+
+**Returns:**
+- float: The sum of the power series.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SERIESSUM
+
+result = SERIESSUM(...)
+```
+
+---
+
+
+### `SIGN()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number.
+
+**Returns:**
+- int: The sign (-1, 0, or 1).
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SIGN
+
+result = SIGN(...)
+```
+
+---
+
+### `SIN()`
+
+Description:
+
+**Parameters:**
+- number (float): The angle in radians.
+
+**Returns:**
+- float: The sine of the angle.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SIN
+
+result = SIN(...)
+```
+
+---
+
+### `SINH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number.
+
+**Returns:**
+- float: The hyperbolic sine.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SINH
+
+result = SINH(...)
+```
+
+---
+
+### `SKEW()`
+
+Returns the skewness of a distribution.
+
+**Parameters:**
+- *values: Numbers or lists for which you want to calculate skewness
+
+**Returns:**
+- float: Skewness value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import SKEW
+
+result = SKEW(...)
+```
+
+---
+
+
+### `SLOPE()`
+
+Returns the slope of the linear regression line.
+
+**Parameters:**
+- known_y: Set of known y-values
+- known_x: Set of known x-values (defaults to 1, 2, 3, ...)
+
+**Returns:**
+- float: Slope value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import SLOPE
+
+result = SLOPE(...)
+```
+
+---
+
+### `SMALL()`
+
+Returns the k-th smallest value in a data set.
+
+**Parameters:**
+- array: Array or range of numerical data
+- k: Position (from the smallest value) in the array or range
+
+**Returns:**
+- float: The k-th smallest value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import SMALL
+
+result = SMALL(...)
+```
+
+---
+
+### `SORT()`
+
+Sort the contents of a range or array.
+
+**Parameters:**
+- array: The array to sort.
+- sort_index: Row or column index to sort by (1-based).
+- sort_order: 1 for ascending, -1 for descending.
+- by_col: False to sort by row, True to sort by column.
+
+**Returns:**
+- List[List[Any]]: Sorted array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import SORT
+
+result = SORT(...)
+```
+
+---
+
+### `SORTBY()`
+
+Sort the contents of a range based on corresponding values in other ranges.
+
+**Parameters:**
+- array: The array to sort.
+- by_array1: First array to sort by.
+- sort_order1: 1 for ascending, -1 for descending.
+- *args: Additional by_array, sort_order pairs.
+
+**Returns:**
+- List[List[Any]]: Sorted array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import SORTBY
+
+result = SORTBY(...)
+```
+
+---
+
+### `SQRT()`
+
+Description:
+
+**Parameters:**
+- number (float): A non-negative number.
+
+**Returns:**
+- float: The square root.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SQRT
+
+result = SQRT(...)
+```
+
+---
+
+### `SQRTPI()`
+
+Description:
+
+**Parameters:**
+- number (float): A non-negative number.
+
+**Returns:**
+- float: The square root of (number * π).
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SQRTPI
+
+result = SQRTPI(...)
+```
+
+---
+
+### `STANDARDIZE()`
+
+Returns a normalized value from a distribution.
+
+**Parameters:**
+- x: Value to normalize
+- mean: Arithmetic mean of the distribution
+- standard_dev: Standard deviation of the distribution
+
+**Returns:**
+- float: Normalized value (z-score)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STANDARDIZE
+
+result = STANDARDIZE(...)
+```
+
+---
+
+### `STDEV()`
+
+Excel function: STDEV
+
+**Parameters:**
+- *values: Numeric values or lists.
+
+**Returns:**
+- float: Sample standard deviation.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STDEV
+
+result = STDEV(...)
+```
+
+---
+
+### `STDEV_P()`
+
+Calculates standard deviation based on the entire population.
+
+**Parameters:**
+- *values: Numbers or lists representing the population
+
+**Returns:**
+- float: Population standard deviation
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STDEV_P
+
+result = STDEV_P(...)
+```
+
+---
+
+### `STDEV_S()`
+
+Estimates standard deviation based on a sample.
+
+**Parameters:**
+- *values: Numbers or lists representing a sample of a population
+
+**Returns:**
+- float: Sample standard deviation
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STDEV_S
+
+result = STDEV_S(...)
+```
+
+---
+
+### `STDEVA()`
+
+Estimates standard deviation based on a sample, including text and logical values.
+
+**Parameters:**
+- *values: Values to include in the sample
+
+**Returns:**
+- float: Sample standard deviation
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STDEVA
+
+result = STDEVA(...)
+```
+
+---
+
+### `STDEVPA()`
+
+Calculates standard deviation based on population, including text and logical values.
+
+**Parameters:**
+- *values: Values representing the population
+
+**Returns:**
+- float: Population standard deviation
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STDEVPA
+
+result = STDEVPA(...)
+```
+
+---
+
+### `STEYX()`
+
+Returns the standard error of the predicted y-value for each x in the regression.
+
+**Parameters:**
+- known_y: Array or range of dependent data points
+- known_x: Array or range of independent data points
+
+**Returns:**
+- float: Standard error of regression
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import STEYX
+
+result = STEYX(...)
+```
+
+---
+
+### `SUBTOTAL()`
+
+Description:
+
+**Parameters:**
+- function_num (int): Number specifying which function to use (1-11).
+- *values: One or more numbers or lists to process.
+
+**Returns:**
+- float: The calculated subtotal.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUBTOTAL
+
+result = SUBTOTAL(...)
+```
+
+---
+
+### `SUM()`
+
+Description:
+
+**Parameters:**
+- *numbers: One or more numbers or lists of numbers to sum.
+
+**Returns:**
+- float: The sum of all numbers.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUM
+
+result = SUM(...)
+```
+
+---
+
+### `SUMIF()`
+
+Description:
+
+**Parameters:**
+- values (List[Union[int, float]]): List of numbers to evaluate.
+- criteria (str): Condition as string (e.g., ">10", "<=5", "=3").
+
+**Returns:**
+- float: Sum of numbers that meet the criterion.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUMIF
+
+result = SUMIF(...)
+```
+
+---
+
+### `SUMPRODUCT()`
+
+Description:
+
+**Parameters:**
+- *arrays: Two or more arrays of the same length.
+
+**Returns:**
+- float: The sum of products.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUMPRODUCT
+
+result = SUMPRODUCT(...)
+```
+
+---
+
+### `SUMSQ()`
+
+Description:
+
+**Parameters:**
+- *numbers: One or more numbers or lists of numbers.
+
+**Returns:**
+- float: The sum of squares.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUMSQ
+
+result = SUMSQ(...)
+```
+
+---
+
+### `SUMX2MY2()`
+
+Description:
+
+**Parameters:**
+- array_x (List[float]): The first array.
+- array_y (List[float]): The second array.
+
+**Returns:**
+- float: The sum of the difference of squares.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUMX2MY2
+
+result = SUMX2MY2(...)
+```
+
+---
+
+### `SUMX2PY2()`
+
+Description:
+
+**Parameters:**
+- array_x (List[float]): The first array.
+- array_y (List[float]): The second array.
+
+**Returns:**
+- float: The sum of the sum of squares.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUMX2PY2
+
+result = SUMX2PY2(...)
+```
+
+---
+
+### `SUMXMY2()`
+
+Description:
+
+**Parameters:**
+- array_x (List[float]): The first array.
+- array_y (List[float]): The second array.
+
+**Returns:**
+- float: The sum of squares of differences.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import SUMXMY2
+
+result = SUMXMY2(...)
+```
+
+---
+
+### `SWITCH()`
+
+Evaluate an expression and return a value from a list based on matching values.
+
+**Parameters:**
+- expression: The value to compare against.
+- *args: Alternating value/result pairs, with optional default at the end.
+- Format: value1, result1, value2, result2, ..., [default]
+
+**Returns:**
+- Any: The result corresponding to the first matching value, or default.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.logic_formulas import SWITCH
+
+result = SWITCH(...)
+```
+
+---
+
+### `SYD()`
+
+Calculate sum-of-years digits depreciation.
+
+**Parameters:**
+- cost: Initial cost of the asset.
+- salvage: Value at the end of depreciation.
+- life: Number of periods over which the asset is depreciated.
+- per: Period for which to calculate depreciation.
+
+**Returns:**
+- float: Depreciation for the specified period.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import SYD
+
+result = SYD(...)
+```
+
+---
+
+### `T_DIST()`
+
+Returns the Student's t-distribution.
+
+**Parameters:**
+- x: Numeric value at which to evaluate the distribution
+- deg_freedom: Degrees of freedom
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: t-distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import T_DIST
+
+result = T_DIST(...)
+```
+
+---
+
+### `T_DIST_2T()`
+
+Returns the two-tailed Student's t-distribution.
+
+**Parameters:**
+- x: Numeric value at which to evaluate the distribution (must be >= 0)
+- deg_freedom: Degrees of freedom
+
+**Returns:**
+- float: Two-tailed probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import T_DIST_2T
+
+result = T_DIST_2T(...)
+```
+
+---
+
+### `T_DIST_RT()`
+
+Returns the right-tailed Student's t-distribution.
+
+**Parameters:**
+- x: Numeric value at which to evaluate the distribution
+- deg_freedom: Degrees of freedom
+
+**Returns:**
+- float: Right-tailed probability
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import T_DIST_RT
+
+result = T_DIST_RT(...)
+```
+
+---
+
+### `T_INV()`
+
+Returns the left-tailed inverse of the Student's t-distribution.
+
+**Parameters:**
+- probability: Probability associated with the t-distribution
+- deg_freedom: Degrees of freedom
+
+**Returns:**
+- float: t-value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import T_INV
+
+result = T_INV(...)
+```
+
+---
+
+### `T_INV_2T()`
+
+Returns the two-tailed inverse of the Student's t-distribution.
+
+**Parameters:**
+- probability: Probability associated with the two-tailed t-distribution
+- deg_freedom: Degrees of freedom
+
+**Returns:**
+- float: t-value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import T_INV_2T
+
+result = T_INV_2T(...)
+```
+
+---
+
+### `T_TEST()`
+
+Returns the probability associated with a Student's t-Test.
+
+**Parameters:**
+- array1: First data set
+- array2: Second data set
+- tails: Number of distribution tails (1 or 2)
+- test_type: Type of t-test (1=paired, 2=two-sample equal variance,
+- 3=two-sample unequal variance)
+
+**Returns:**
+- float: P-value from t-test
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import T_TEST
+
+result = T_TEST(...)
+```
+
+---
+
+### `TAKE()`
+
+Return a specified number of contiguous rows or columns from start or end of array.
+
+**Parameters:**
+- array: The array to process.
+- rows: Number of rows to take (positive from start, negative from end).
+- columns: Number of columns to take (positive from start, negative from end).
+
+**Returns:**
+- List[List[Any]]: Array with specified rows/columns.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import TAKE
+
+result = TAKE(...)
+```
+
+---
+
+### `TAN()`
+
+Description:
+
+**Parameters:**
+- number (float): The angle in radians.
+
+**Returns:**
+- float: The tangent of the angle.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import TAN
+
+result = TAN(...)
+```
+
+---
+
+### `TANH()`
+
+Description:
+
+**Parameters:**
+- number (float): Any real number.
+
+**Returns:**
+- float: The hyperbolic tangent.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import TANH
+
+result = TANH(...)
+```
+
+---
+
+### `TBILLEQ()`
+
+Calculate the bond-equivalent yield for a Treasury bill.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `discount`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import TBILLEQ
+
+result = TBILLEQ(...)
+```
+
+---
+
+### `TBILLPRICE()`
+
+Calculate the price per $100 face value for a Treasury bill.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `discount`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import TBILLPRICE
+
+result = TBILLPRICE(...)
+```
+
+---
+
+### `TBILLYIELD()`
+
+Calculate the yield for a Treasury bill.
+
+**Parameters:**
+- `settlement`
+- `maturity`
+- `pr`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import TBILLYIELD
+
+result = TBILLYIELD(...)
+```
+
+---
+
+
+### `TIME()`
+
+Returns the Excel serial number for a particular time.
+
+**Parameters:**
+- `hour` (int)
+- `minute` (int)
+- `second` (int)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import TIME
+
+result = TIME(...)
+```
+
+---
+
+### `TIMEVALUE()`
+
+Description:
+
+**Parameters:**
+- time_text (str): Time in "HH:MM:SS" format.
+
+**Returns:**
+- float: Excel serial number representing the time.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import TIMEVALUE
+
+result = TIMEVALUE(...)
+```
+
+---
+
+### `TOCOL()`
+
+Return the array as a single column.
+
+**Parameters:**
+- array: The array to transform.
+- ignore: 0=keep all, 1=ignore blanks, 2=ignore errors, 3=ignore both.
+- scan_by_column: False for row-wise, True for column-wise.
+
+**Returns:**
+- List[List[Any]]: Single column array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import TOCOL
+
+result = TOCOL(...)
+```
+
+---
+
+### `TODAY()`
+
+Returns the Excel serial number of the current date.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import TODAY
+
+result = TODAY(...)
+```
+
+---
+
+### `TOROW()`
+
+Return the array as a single row.
+
+**Parameters:**
+- array: The array to transform.
+- ignore: 0=keep all, 1=ignore blanks, 2=ignore errors, 3=ignore both.
+- scan_by_column: False for row-wise, True for column-wise.
+
+**Returns:**
+- List[List[Any]]: Single row array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import TOROW
+
+result = TOROW(...)
+```
+
+---
+
+### `TRUNC()`
+
+Description:
+
+**Parameters:**
+- number (float): The number to truncate.
+- num_digits (int): Number of decimal places to preserve (default 0).
+
+**Returns:**
+- float: The truncated number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import TRUNC
+
+result = TRUNC(...)
+```
+
+---
+
+### `UNICHAR()`
+
+Returns the Unicode character referenced by the given numeric value.
+
+**Parameters:**
+- `number` (int)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import UNICHAR
+
+result = UNICHAR(...)
+```
+
+---
+
+### `UNICODE()`
+
+Returns the number (code point) corresponding to the first character of the text.
+
+**Parameters:**
+- `text` (str)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import UNICODE
+
+result = UNICODE(...)
+```
+
+---
+
+### `UNIQUE()`
+
+Return a list of unique values from a list or range.
+
+**Parameters:**
+- array: The array to process.
+- by_col: False for unique rows, True for unique columns.
+- exactly_once: False for all unique, True for values appearing once.
+
+**Returns:**
+- List[Any]: Array of unique values.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import UNIQUE
+
+result = UNIQUE(...)
+```
+
+---
+
+### `VAR()`
+
+Excel function: VAR
+
+**Parameters:**
+- *values: Numeric values or lists.
+
+**Returns:**
+- float: Sample variance.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import VAR
+
+result = VAR(...)
+```
+
+---
+
+### `VAR_P()`
+
+Calculates variance based on the entire population.
+
+**Parameters:**
+- *values: Numbers or lists representing the population
+
+**Returns:**
+- float: Population variance
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import VAR_P
+
+result = VAR_P(...)
+```
+
+---
+
+### `VAR_S()`
+
+Estimates variance based on a sample.
+
+**Parameters:**
+- *values: Numbers or lists representing a sample of a population
+
+**Returns:**
+- float: Sample variance
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import VAR_S
+
+result = VAR_S(...)
+```
+
+---
+
+### `VARA()`
+
+Estimates variance based on a sample, including text and logical values.
+
+**Parameters:**
+- *values: Values to include in the sample
+
+**Returns:**
+- float: Sample variance
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import VARA
+
+result = VARA(...)
+```
+
+---
+
+### `VARPA()`
+
+Calculates variance based on population, including text and logical values.
+
+**Parameters:**
+- *values: Values representing the population
+
+**Returns:**
+- float: Population variance
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import VARPA
+
+result = VARPA(...)
+```
+
+---
+
+### `VDB()`
+
+Calculate depreciation using the double-declining balance or other method.
+
+**Parameters:**
+- cost: Initial cost of the asset.
+- salvage: Value at the end of depreciation.
+- life: Number of periods over which the asset is depreciated.
+- start_period: Starting period for depreciation calculation.
+- end_period: Ending period for depreciation calculation.
+- factor: Rate at which the balance declines (default 2 for double-declining).
+- no_switch: If True, don't switch to straight-line depreciation.
+
+**Returns:**
+- float: Depreciation for the specified period range.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.financial_formulas import VDB
+
+result = VDB(...)
+```
+
+---
+
+### `VLOOKUP()`
+
+Search in the first column of an array and return value from specified column.
+
+**Parameters:**
+- lookup_value: Value to search for in first column.
+- table_array: Array to search.
+- col_index_num: Column number to return value from (1-based).
+- range_lookup: True for approximate match, False for exact match.
+
+**Returns:**
+- Any: Value from the specified column.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import VLOOKUP
+
+result = VLOOKUP(...)
+```
+
+---
+
+
+### `VSTACK()`
+
+Append arrays vertically and in sequence to return a larger array.
+
+**Parameters:**
+- *arrays: Arrays to stack vertically.
+
+**Returns:**
+- List[List[Any]]: Vertically stacked array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import VSTACK
+
+result = VSTACK(...)
+```
+
+---
+
+
+### `WEEKDAY()`
+
+Converts an Excel serial number to a day of the week.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+- `return_type` (int) — Defaults to `1`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import WEEKDAY
+
+result = WEEKDAY(...)
+```
+
+---
+
+### `WEEKNUM()`
+
+Description:
+
+**Parameters:**
+- serial_number (Union[float, datetime]): Date as Excel serial number or datetime.
+- return_type (int, optional): System to use (1=week starts Sunday, 21=ISO week).
+- Defaults to 1.
+
+**Returns:**
+- int: Week number of the year.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import WEEKNUM
+
+result = WEEKNUM(...)
+```
+
+---
+
+### `WEIBULL_DIST()`
+
+Returns the Weibull distribution.
+
+**Parameters:**
+- x: Value at which to evaluate the function (must be >= 0)
+- alpha: Shape parameter (must be > 0)
+- beta: Scale parameter (must be > 0)
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Weibull distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import WEIBULL_DIST
+
+result = WEIBULL_DIST(...)
+```
+
+---
+
+### `WRAPCOLS()`
+
+Wrap the provided row or column of values by columns after specified number of elements.
+
+**Parameters:**
+- vector: The vector to wrap.
+- wrap_count: Number of values per column.
+- pad_with: Value to pad incomplete columns.
+
+**Returns:**
+- List[List[Any]]: Wrapped array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import WRAPCOLS
+
+result = WRAPCOLS(...)
+```
+
+---
+
+### `WRAPROWS()`
+
+Wrap the provided row or column of values by rows after specified number of elements.
+
+**Parameters:**
+- vector: The vector to wrap.
+- wrap_count: Number of values per row.
+- pad_with: Value to pad incomplete rows.
+
+**Returns:**
+- List[List[Any]]: Wrapped array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import WRAPROWS
+
+result = WRAPROWS(...)
+```
+
+---
+
+### `XLOOKUP()`
+
+Search a range or array and return corresponding item from second range/array.
+
+**Parameters:**
+- lookup_value: Value to search for.
+- lookup_array: Array to search.
+- return_array: Array of values to return.
+- if_not_found: Value to return if no match found.
+- match_mode: 0=exact, -1=exact or next smaller, 1=exact or next larger, 2=wildcard.
+- search_mode: 1=first to last, -1=last to first, 2=binary ascending, -2=binary descending.
+
+**Returns:**
+- Any: Corresponding value from return_array.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import XLOOKUP
+
+result = XLOOKUP(...)
+```
+
+---
+
+### `XMATCH()`
+
+Return the relative position of an item in an array.
+
+**Parameters:**
+- lookup_value: Value to search for.
+- lookup_array: Array to search.
+- match_mode: 0=exact, -1=exact or next smaller, 1=exact or next larger, 2=wildcard.
+- search_mode: 1=first to last, -1=last to first, 2=binary ascending, -2=binary descending.
+
+**Returns:**
+- int: Position (1-based) of the match.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import XMATCH
+
+result = XMATCH(...)
+```
+
+---
+
+### `Z_TEST()`
+
+Returns the one-tailed P-value of a z-test.
+
+**Parameters:**
+- array: Array of data to test
+- x: Value to test
+- sigma: Optional population standard deviation (if None, uses sample std dev)
+
+**Returns:**
+- float: One-tailed P-value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import Z_TEST
+
+result = Z_TEST(...)
+```
+
+---
+
+
+### `DATE()`
+
+Returns the Excel serial number corresponding to a particular date.
+
+**Parameters:**
+- `year` (int)
+- `month` (int)
+- `day` (int)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import DATE
+
+result = DATE(...)
+```
+
+---
+
+### `DAY()`
+
+Converts an Excel serial number to a day of the month.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import DAY
+
+result = DAY(...)
+```
+
+---
+
+### `YEAR()`
+
+Converts an Excel serial number to a year value.
+
+**Parameters:**
+- `serial_number` (Union[float)
+- `datetime]`
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.date_formulas import YEAR
+
+result = YEAR(...)
+```
+
+---
+
+### `IMCOS()`
+
+Returns the cosine of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Cosine of the complex number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMCOS
+
+result = IMCOS(...)
+```
+
+---
+
+### `IMSEC()`
+
+Returns the secant of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: Secant.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMSEC
+
+result = IMSEC(...)
+```
+
+---
+
+### `IMEXP()`
+
+Returns the exponential of a complex number.
+
+**Parameters:**
+- complex_num (complex): Complex number.
+
+**Returns:**
+- complex: e^(complex_num).
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import IMEXP
+
+result = IMEXP(...)
+```
+
+---
+
+### `ERF_PRECISE()`
+
+Returns the error function erf(x) with precise calculation.
+
+**Parameters:**
+- x (Union[int, float]): Value at which to evaluate.
+
+**Returns:**
+- float: Error function value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import ERF_PRECISE
+
+result = ERF_PRECISE(...)
+```
+
+---
+
+### `ERFC_PRECISE()`
+
+Returns the complementary error function erfc(x) with precise calculation.
+
+**Parameters:**
+- x (Union[int, float]): Value at which to evaluate.
+
+**Returns:**
+- float: Complementary error function value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.engineering_formulas import ERFC_PRECISE
+
+result = ERFC_PRECISE(...)
+```
+
+---
+
+### `BASE()`
+
+Converts a number to text representation with a given base.
+
+**Parameters:**
+- number (int): The number to convert (must be non-negative).
+- radix (int): The base to convert to (between 2 and 36).
+- min_length (int): Minimum length of returned string (pads with zeros).
+
+**Returns:**
+- str: Text representation in the specified base.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import BASE
+
+result = BASE(...)
+```
+
+---
+
+### `EXP()`
+
+Returns e raised to the power of a number.
+
+**Parameters:**
+- number (float): The exponent.
+
+**Returns:**
+- float: e^number.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import EXP
+
+result = EXP(...)
+```
+
+---
+
+### `LOG()`
+
+Returns the logarithm of a number to a specified base.
+
+**Parameters:**
+- number (float): A positive number.
+- base (float): The base of the logarithm (default 10).
+
+**Returns:**
+- float: The logarithm.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import LOG
+
+result = LOG(...)
+```
+
+---
+
+### `MOD()`
+
+Returns the remainder from division.
+
+**Parameters:**
+- number (float): The number to divide.
+- divisor (float): The divisor (cannot be zero).
+
+**Returns:**
+- float: The remainder.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.math_formulas import MOD
+
+result = MOD(...)
+```
+
+---
+
+### `BINOM_DIST_RANGE()`
+
+Returns the probability of a trial result using a binomial distribution.
+
+**Parameters:**
+- trials: Number of independent trials
+- probability_s: Probability of success on each trial
+- number_s: Lower bound of successes
+- number_s2: Upper bound of successes (if None, equals number_s)
+
+**Returns:**
+- float: Probability of number_s to number_s2 successes
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import BINOM_DIST_RANGE
+
+result = BINOM_DIST_RANGE(...)
+```
+
+---
+
+### `CONFIDENCE()`
+
+Returns the confidence interval (backward compat alias).
+
+**Parameters:**
+- alpha: Significance level.
+- standard_dev: Population standard deviation.
+- size: Sample size.
+
+**Returns:**
+- float: Confidence interval half-width.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import CONFIDENCE
+
+result = CONFIDENCE(...)
+```
+
+---
+
+### `COUNTIFS()`
+
+Counts cells that meet multiple criteria.
+
+**Parameters:**
+- *args: Alternating range and criteria pairs (range1, criteria1, range2, criteria2, ...)
+
+**Returns:**
+- int: Count of cells meeting all criteria
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import COUNTIFS
+
+result = COUNTIFS(...)
+```
+
+---
+
+### `COVAR()`
+
+Returns covariance (legacy Excel 2007 function, equivalent to COVARIANCE.P).
+
+**Parameters:**
+- array1: First array of values
+- array2: Second array of values
+
+**Returns:**
+- float: Population covariance
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import COVAR
+
+result = COVAR(...)
+```
+
+---
+
+### `FISHERINV()`
+
+Returns the inverse of the Fisher transformation.
+
+**Parameters:**
+- y: Value for which to perform the inverse transformation
+
+**Returns:**
+- float: Inverse Fisher transformation value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import FISHERINV
+
+result = FISHERINV(...)
+```
+
+---
+
+### `FORECAST()`
+
+Returns a single predicted value along a linear trend (backward compat).
+
+**Parameters:**
+- x: The x-value for which to predict y.
+- known_y: Set of known y-values.
+- known_x: Set of known x-values (defaults to 1, 2, 3, ...).
+
+**Returns:**
+- float: The predicted y-value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import FORECAST
+
+result = FORECAST(...)
+```
+
+---
+
+### `GAMMALN()`
+
+Returns the natural logarithm of the gamma function.
+
+**Parameters:**
+- x: Value for which to calculate ln(gamma)
+
+**Returns:**
+- float: Natural logarithm of gamma(x)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import GAMMALN
+
+result = GAMMALN(...)
+```
+
+---
+
+### `GAMMALN_PRECISE()`
+
+Returns the natural logarithm of the gamma function (precise version).
+
+**Parameters:**
+- x: Value for which to calculate ln(gamma)
+
+**Returns:**
+- float: Natural logarithm of gamma(x)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import GAMMALN_PRECISE
+
+result = GAMMALN_PRECISE(...)
+```
+
+---
+
+### `GAMMA_DIST()`
+
+Returns the gamma distribution.
+
+**Parameters:**
+- x: Value at which to evaluate
+- alpha: Shape parameter
+- beta: Scale parameter
+- cumulative: If True, returns CDF; if False, returns PDF
+
+**Returns:**
+- float: Gamma distribution value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import GAMMA_DIST
+
+result = GAMMA_DIST(...)
+```
+
+---
+
+### `GAMMA_INV()`
+
+Returns the inverse of the gamma cumulative distribution.
+
+**Parameters:**
+- probability: Probability associated with the gamma distribution
+- alpha: Shape parameter
+- beta: Scale parameter
+
+**Returns:**
+- float: Inverse value
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import GAMMA_INV
+
+result = GAMMA_INV(...)
+```
+
+---
+
+### `QUARTILE()`
+
+Returns the quartile of a data set (backward compat alias).
+
+**Parameters:**
+- array: List of numeric values.
+- quart: Quartile value (0 = min, 1 = 25th, 2 = median, 3 = 75th, 4 = max).
+
+**Returns:**
+- float: The quartile value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import QUARTILE
+
+result = QUARTILE(...)
+```
+
+---
+
+### `TRIMMEAN()`
+
+Returns the mean of the interior of a data set.
+
+**Parameters:**
+- array: Array or range of values to trim and average
+- fraction: Fractional number of data points to exclude (0 to 1)
+
+**Returns:**
+- float: Trimmed mean
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.statistic_formulas import TRIMMEAN
+
+result = TRIMMEAN(...)
+```
+
+---
+
+### `LOOKUP()`
+
+Look up values in a vector or array.
+
+**Parameters:**
+- lookup_value: Value to search for.
+- lookup_vector: Sorted array to search.
+- result_vector: Optional array of values to return.
+
+**Returns:**
+- Any: Corresponding value.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import LOOKUP
+
+result = LOOKUP(...)
+```
+
+---
+
+### `TRIMRANGE()`
+
+Trim blank rows and columns from the edges of a range or array.
+
+**Parameters:**
+- array: The array to trim.
+
+**Returns:**
+- List[List[Any]]: Array with blank rows/columns removed from edges.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.lookup_formulas import TRIMRANGE
+
+result = TRIMRANGE(...)
+```
+
+---
+
+### `FINDB()`
+
+Finds one text value within another based on bytes (case-sensitive).
+
+**Parameters:**
+- `find_bytes` (str)
+- `within_text` (str)
+- `start_byte` (int) — Defaults to `1`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import FINDB
+
+result = FINDB(...)
+```
+
+---
+
+### `LEFTB()`
+
+Returns the leftmost characters based on number of bytes.
+
+**Parameters:**
+- `text` (str)
+- `num_bytes` (int) — Defaults to `1`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import LEFTB
+
+result = LEFTB(...)
+```
+
+---
+
+### `LENB()`
+
+Returns the number of bytes in text.
+
+**Parameters:**
+- `text` (str)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import LENB
+
+result = LENB(...)
+```
+
+---
+
+### `MIDB()`
+
+Returns characters from the middle based on bytes.
+
+**Parameters:**
+- `text` (str)
+- `start_byte` (int)
+- `num_bytes` (int)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import MIDB
+
+result = MIDB(...)
+```
+
+---
+
+### `REPLACEB()`
+
+Replaces part of a text string based on bytes.
+
+**Parameters:**
+- `old_text` (str)
+- `start_byte` (int)
+- `num_bytes` (int)
+- `new_text` (str)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import REPLACEB
+
+result = REPLACEB(...)
+```
+
+---
+
+### `RIGHTB()`
+
+Returns the rightmost characters based on number of bytes.
+
+**Parameters:**
+- `text` (str)
+- `num_bytes` (int) — Defaults to `1`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import RIGHTB
+
+result = RIGHTB(...)
+```
+
+---
+
+### `SEARCHB()`
+
+Finds one text value within another based on bytes (case-insensitive).
+
+**Parameters:**
+- `find_bytes` (str)
+- `within_text` (str)
+- `start_byte` (int) — Defaults to `1`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import SEARCHB
+
+result = SEARCHB(...)
+```
+
+---
+
+### `T()`
+
+Converts its argument to text.
+
+**Parameters:**
+- `value` (Any)
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import T
+
+result = T(...)
+```
+
+---
+
+### `TEXTAFTER()`
+
+Returns text that occurs after a given character or substring.
+
+**Parameters:**
+- `text` (str)
+- `delimiter` (str)
+- `instance_num` (int) — Defaults to `1`.
+- `match_mode` (int) — Defaults to `0`.
+- `match_end` (int) — Defaults to `0`.
+- `if_not_found` (Any) — Defaults to `None`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import TEXTAFTER
+
+result = TEXTAFTER(...)
+```
+
+---
+
+### `TEXTBEFORE()`
+
+Returns text that occurs before a given character or substring.
+
+**Parameters:**
+- `text` (str)
+- `delimiter` (str)
+- `instance_num` (int) — Defaults to `1`.
+- `match_mode` (int) — Defaults to `0`.
+- `match_end` (int) — Defaults to `0`.
+- `if_not_found` (Any) — Defaults to `None`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import TEXTBEFORE
+
+result = TEXTBEFORE(...)
+```
+
+---
+
+### `TEXTSPLIT()`
+
+Splits text into rows and columns using delimiters.
+
+**Parameters:**
+- `text` (str)
+- `col_delimiter` (str) — Defaults to `" "`.
+- `row_delimiter` (str) — Defaults to `None`.
+- `ignore_empty` (bool) — Defaults to `False`.
+- `match_mode` (int) — Defaults to `0`.
+- `pad_with` (Any) — Defaults to `None`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import TEXTSPLIT
+
+result = TEXTSPLIT(...)
+```
+
+---
+
+### `VALUETOTEXT()`
+
+Returns text from any specified value.
+
+**Parameters:**
+- `value` (Any)
+- `format_type` (int) — Defaults to `0`.
+
+**Ejemplo:**
+```python
+from formulite.fxExcel.text_formulas import VALUETOTEXT
+
+result = VALUETOTEXT(...)
+```
+
+---
+

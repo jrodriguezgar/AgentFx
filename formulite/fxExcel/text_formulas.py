@@ -18,6 +18,38 @@ All functions follow Excel's naming conventions and behavior.
 
 from typing import Optional, Union, Any, List
 
+from formulite.fxString.string_format import (
+    fixed as _core_fixed,
+    to_upper as _core_upper,
+    to_lower as _core_lower,
+    normalize_spaces as _core_trim,
+    format_with_pattern as _core_format_with_pattern,
+    format_as_currency as _core_format_as_currency,
+)
+from formulite.fxString.string_operations import (
+    left_substring as _core_left,
+    right_substring as _core_right,
+    substring as _core_mid,
+    replace_by_position as _core_replace,
+    substitute as _core_substitute,
+    clean_nonprintable as _core_clean,
+    repeat_string as _core_repeat_string,
+    text_before as _core_text_before,
+    text_after as _core_text_after,
+    text_split as _core_text_split,
+    regex_replace as _core_regex_replace,
+)
+from formulite.fxString.string_regex import (
+    regex_match as _core_regex_match,
+    regex_extract as _core_regex_extract,
+)
+from formulite.fxString.string_convertions import (
+    char_from_code as _core_char,
+    code_from_char as _core_code,
+    parse_text_to_number as _core_parse_text_to_number,
+    to_full_width as _core_to_full_width,
+)
+
 
 def CONCATENATE(*args: str) -> str:
     """
@@ -49,9 +81,29 @@ def CONCATENATE(*args: str) -> str:
     return "".join(str(arg) for arg in args)
 
 
-# CONCAT is an alias for CONCATENATE (Excel 2016+ name)
-# In Excel, CONCAT supports arrays, but in Python both are identical
-CONCAT = CONCATENATE
+def CONCAT(*args: str) -> str:
+    """Combines text from multiple ranges and/or strings.
+
+    Description:
+        Alias for CONCATENATE. In Excel, CONCAT supports array ranges,
+        but in this Python library both names refer to the same function
+        since there are no Excel ranges.
+
+    Args:
+        *args: Text strings to be joined.
+
+    Returns:
+        str: The concatenated text string.
+
+    Usage Example:
+        >>> CONCAT("Sun", "flower")
+        'Sunflower'
+        >>> CONCAT("Zip code: ", 90210)
+        'Zip code: 90210'
+
+    Cost: O(n), where n is the total length of all strings.
+    """
+    return CONCATENATE(*args)
 
 
 def TEXTJOIN(delimiter: str, ignore_empty: bool, *args: Any) -> str:
@@ -125,7 +177,7 @@ def LEFT(text: str, num_chars: int = 1) -> str:
     if num_chars < 0:
         raise ValueError("num_chars must be non-negative")
     
-    return str(text)[:num_chars]
+    return _core_left(str(text), num_chars)
 
 
 def RIGHT(text: str, num_chars: int = 1) -> str:
@@ -162,10 +214,7 @@ def RIGHT(text: str, num_chars: int = 1) -> str:
     if num_chars < 0:
         raise ValueError("num_chars must be non-negative")
     
-    if num_chars == 0:
-        return ""
-    
-    return str(text)[-num_chars:]
+    return _core_right(str(text), num_chars)
 
 
 def MID(text: str, start_num: int, num_chars: int) -> str:
@@ -205,9 +254,7 @@ def MID(text: str, start_num: int, num_chars: int) -> str:
     if num_chars < 0:
         raise ValueError("num_chars must be non-negative")
     
-    # Convert to 0-based indexing
-    start_idx = start_num - 1
-    return str(text)[start_idx:start_idx + num_chars]
+    return _core_mid(str(text), start_num, num_chars)
 
 
 def LEN(text: str) -> int:
@@ -373,27 +420,7 @@ def SUBSTITUTE(text: str, old_text: str, new_text: str, instance_num: Optional[i
 
     **Cost:** O(n), where n is the length of the text.
     """
-    text_str = str(text)
-    old_str = str(old_text)
-    new_str = str(new_text)
-    
-    if instance_num is None:
-        # Replace all occurrences
-        return text_str.replace(old_str, new_str)
-    else:
-        if not isinstance(instance_num, int):
-            raise TypeError("instance_num must be an integer")
-        if instance_num < 1:
-            raise ValueError("instance_num must be >= 1")
-        
-        # Replace only the specified occurrence
-        parts = text_str.split(old_str)
-        if instance_num > len(parts) - 1:
-            # Occurrence doesn't exist, return original
-            return text_str
-        
-        # Join with the new text at the specified occurrence
-        return old_str.join(parts[:instance_num]) + new_str + old_str.join(parts[instance_num:])
+    return _core_substitute(text, old_text, new_text, instance_num if instance_num is not None else 0)
 
 
 def REPLACE(old_text: str, start_num: int, num_chars: int, new_text: str) -> str:
@@ -434,14 +461,7 @@ def REPLACE(old_text: str, start_num: int, num_chars: int, new_text: str) -> str
     if num_chars < 0:
         raise ValueError("num_chars must be non-negative")
     
-    old_str = str(old_text)
-    new_str = str(new_text)
-    
-    # Convert to 0-based indexing
-    start_idx = start_num - 1
-    end_idx = start_idx + num_chars
-    
-    return old_str[:start_idx] + new_str + old_str[end_idx:]
+    return _core_replace(str(old_text), start_num, num_chars, str(new_text))
 
 
 def UPPER(text: str) -> str:
@@ -471,7 +491,7 @@ def UPPER(text: str) -> str:
 
     **Cost:** O(n), where n is the length of the text.
     """
-    return str(text).upper()
+    return _core_upper(str(text))
 
 
 def LOWER(text: str) -> str:
@@ -501,7 +521,7 @@ def LOWER(text: str) -> str:
 
     **Cost:** O(n), where n is the length of the text.
     """
-    return str(text).lower()
+    return _core_lower(str(text))
 
 
 def PROPER(text: str) -> str:
@@ -561,7 +581,7 @@ def TRIM(text: str) -> str:
 
     **Cost:** O(n), where n is the length of the text.
     """
-    return " ".join(str(text).split())
+    return _core_trim(str(text))
 
 
 def CLEAN(text: str) -> str:
@@ -589,9 +609,7 @@ def CLEAN(text: str) -> str:
 
     **Cost:** O(n), where n is the length of the text.
     """
-    text_str = str(text)
-    # Remove characters with ASCII values 0-31
-    return ''.join(char for char in text_str if ord(char) >= 32)
+    return _core_clean(text)
 
 
 def CHAR(number: int) -> str:
@@ -627,10 +645,7 @@ def CHAR(number: int) -> str:
     if number < 1 or number > 1114111:
         raise ValueError("number must be between 1 and 1114111")
     
-    try:
-        return chr(number)
-    except ValueError as e:
-        raise ValueError(f"Invalid Unicode code point: {e}")
+    return _core_char(number)
 
 
 def CODE(text: str) -> int:
@@ -664,7 +679,7 @@ def CODE(text: str) -> int:
     if not text_str:
         raise ValueError("Text cannot be empty")
     
-    return ord(text_str[0])
+    return _core_code(text_str[0])
 
 
 def EXACT(text1: str, text2: str) -> bool:
@@ -727,12 +742,7 @@ def REPT(text: str, number_times: int) -> str:
 
     **Cost:** O(n*m), where n is the length of text and m is number_times.
     """
-    if not isinstance(number_times, int):
-        raise TypeError("number_times must be an integer")
-    if number_times < 0:
-        raise ValueError("number_times must be non-negative")
-    
-    return str(text) * number_times
+    return _core_repeat_string(str(text), number_times)
 
 
 def TEXT(value: Union[int, float, str], format_text: str) -> str:
@@ -766,29 +776,7 @@ def TEXT(value: Union[int, float, str], format_text: str) -> str:
     **Note:** This is a simplified implementation. Full Excel TEXT function
     supports complex formatting codes.
     """
-    try:
-        num_value = float(value)
-    except (ValueError, TypeError):
-        return str(value)
-    
-    # Simplified format handling
-    if "%" in format_text:
-        # Percentage format
-        decimal_places = format_text.count("0") - 1 if "0" in format_text else 1
-        return f"{num_value * 100:.{decimal_places}f}%"
-    elif "#,##0" in format_text or "0,0" in format_text:
-        # Thousand separator format
-        decimal_places = 0
-        if "." in format_text:
-            decimal_places = format_text.split(".")[-1].count("0")
-        return f"{num_value:,.{decimal_places}f}"
-    elif "0." in format_text:
-        # Decimal format
-        decimal_places = format_text.split(".")[-1].count("0")
-        return f"{num_value:.{decimal_places}f}"
-    else:
-        # Default: convert to string
-        return str(num_value)
+    return _core_format_with_pattern(value, format_text)
 
 
 def VALUE(text: str) -> Union[int, float]:
@@ -821,28 +809,7 @@ def VALUE(text: str) -> Union[int, float]:
     **Note:** This is a simplified implementation. Full Excel VALUE function
     handles dates, times, and regional formats.
     """
-    text_str = str(text).strip()
-    
-    # Remove common formatting characters
-    cleaned = text_str.replace("$", "").replace(",", "").replace(" ", "")
-    
-    # Handle percentage
-    if "%" in cleaned:
-        cleaned = cleaned.replace("%", "")
-        try:
-            return float(cleaned) / 100
-        except ValueError:
-            raise ValueError(f"Cannot convert '{text}' to a number")
-    
-    # Try to convert to number
-    try:
-        # Try integer first
-        if "." not in cleaned:
-            return int(cleaned)
-        else:
-            return float(cleaned)
-    except ValueError:
-        raise ValueError(f"Cannot convert '{text}' to a number")
+    return _core_parse_text_to_number(text)
 
 
 def UNICHAR(number: int) -> str:
@@ -876,10 +843,7 @@ def UNICHAR(number: int) -> str:
     if not (1 <= number <= 1114111):
         raise ValueError(f"Number must be between 1 and 1114111, got {number}")
     
-    try:
-        return chr(number)
-    except ValueError:
-        raise ValueError(f"Invalid Unicode code point: {number}")
+    return _core_char(number)
 
 
 def UNICODE(text: str) -> int:
@@ -912,7 +876,7 @@ def UNICODE(text: str) -> int:
     if not text:
         raise ValueError("Text cannot be empty")
     
-    return ord(text[0])
+    return _core_code(text[0])
 
 
 def DOLLAR(number: Union[int, float], decimals: int = 2) -> str:
@@ -943,28 +907,12 @@ def DOLLAR(number: Union[int, float], decimals: int = 2) -> str:
 
     **Cost:** O(log n), where n is the magnitude of the number.
     """
-    # Round to specified decimals
-    if decimals >= 0:
-        rounded = round(number, decimals)
-    else:
-        # Negative decimals round to left of decimal point
-        rounded = round(number, decimals)
-    
-    # Handle negative numbers with parentheses
-    is_negative = rounded < 0
-    abs_value = abs(rounded)
-    
-    # Format with thousands separator
-    if decimals >= 0:
-        formatted = f"{abs_value:,.{decimals}f}"
-    else:
-        formatted = f"{int(abs_value):,}"
-    
-    # Add dollar sign and handle negative
-    if is_negative:
-        return f"(${formatted})"
-    else:
-        return f"${formatted}"
+    result = _core_format_as_currency(number, decimals)
+
+    if number < 0:
+        return f"(${result.lstrip('-$')})"
+
+    return result
 
 
 def BAHTTEXT(number: Union[int, float]) -> str:
@@ -1032,12 +980,7 @@ def FIXED(number: Union[int, float], decimals: int = 2, no_commas: bool = False)
 
     **Cost:** O(log n), where n is the magnitude of the number.
     """
-    rounded = round(number, decimals)
-    
-    if no_commas:
-        return f"{rounded:.{decimals}f}"
-    else:
-        return f"{rounded:,.{decimals}f}"
+    return _core_fixed(number, decimals, no_commas)
 
 
 def T(value: Any) -> str:
@@ -1103,31 +1046,7 @@ def NUMBERVALUE(text: str, decimal_separator: str = ".", group_separator: str = 
 
     **Cost:** O(n), where n is the length of the text.
     """
-    text_str = str(text).strip()
-    
-    # Handle percentage
-    is_percentage = text_str.endswith("%")
-    if is_percentage:
-        text_str = text_str[:-1].strip()
-    
-    # Remove group separator
-    if group_separator:
-        text_str = text_str.replace(group_separator, "")
-    
-    # Replace decimal separator with standard dot
-    if decimal_separator != ".":
-        text_str = text_str.replace(decimal_separator, ".")
-    
-    # Remove other common formatting
-    text_str = text_str.replace("$", "").replace("€", "").replace("฿", "").replace(" ", "")
-    
-    try:
-        result = float(text_str)
-        if is_percentage:
-            result /= 100
-        return result
-    except ValueError:
-        raise ValueError(f"Cannot convert '{text}' to a number")
+    return _core_parse_text_to_number(text, decimal_separator, group_separator)
 
 
 def TEXTAFTER(text: str, delimiter: str, instance_num: int = 1, 
@@ -1164,6 +1083,9 @@ def TEXTAFTER(text: str, delimiter: str, instance_num: int = 1,
 
     **Cost:** O(n), where n is the length of the text.
     """
+    if match_mode == 0 and match_end == 0 and if_not_found is None:
+        return _core_text_after(text, delimiter, instance_num)
+
     if match_end == 1 and delimiter not in text:
         return text
     
@@ -1171,24 +1093,32 @@ def TEXTAFTER(text: str, delimiter: str, instance_num: int = 1,
     search_delim = delimiter if match_mode == 0 else delimiter.lower()
     
     if instance_num > 0:
-        # Find from start
         pos = -1
+
         for _ in range(instance_num):
             pos = search_text.find(search_delim, pos + 1)
+
             if pos == -1:
+
                 if if_not_found is not None:
                     return str(if_not_found)
+
                 raise ValueError(f"Delimiter '{delimiter}' not found")
+
         return text[pos + len(delimiter):]
     else:
-        # Find from end
         pos = len(text)
+
         for _ in range(abs(instance_num)):
             pos = search_text.rfind(search_delim, 0, pos)
+
             if pos == -1:
+
                 if if_not_found is not None:
                     return str(if_not_found)
+
                 raise ValueError(f"Delimiter '{delimiter}' not found")
+
         return text[pos + len(delimiter):]
 
 
@@ -1226,6 +1156,9 @@ def TEXTBEFORE(text: str, delimiter: str, instance_num: int = 1,
 
     **Cost:** O(n), where n is the length of the text.
     """
+    if match_mode == 0 and match_end == 0 and if_not_found is None:
+        return _core_text_before(text, delimiter, instance_num)
+
     if match_end == 1 and delimiter not in text:
         return text
     
@@ -1233,24 +1166,32 @@ def TEXTBEFORE(text: str, delimiter: str, instance_num: int = 1,
     search_delim = delimiter if match_mode == 0 else delimiter.lower()
     
     if instance_num > 0:
-        # Find from start
         pos = -1
+
         for _ in range(instance_num):
             pos = search_text.find(search_delim, pos + 1)
+
             if pos == -1:
+
                 if if_not_found is not None:
                     return str(if_not_found)
+
                 raise ValueError(f"Delimiter '{delimiter}' not found")
+
         return text[:pos]
     else:
-        # Find from end
         pos = len(text)
+
         for _ in range(abs(instance_num)):
             pos = search_text.rfind(search_delim, 0, pos)
+
             if pos == -1:
+
                 if if_not_found is not None:
                     return str(if_not_found)
+
                 raise ValueError(f"Delimiter '{delimiter}' not found")
+
         return text[:pos]
 
 
@@ -1288,33 +1229,42 @@ def TEXTSPLIT(text: str, col_delimiter: str = " ", row_delimiter: str = None,
 
     **Cost:** O(n), where n is the length of the text.
     """
-    # Split by rows first if row delimiter is provided
+    if not ignore_empty and match_mode == 0 and pad_with is None:
+        result = _core_text_split(text, col_delimiter=col_delimiter, row_delimiter=row_delimiter)
+
+        if isinstance(result[0], list):
+            return result
+
+        return [result]
+
+    # Full Excel behavior with ignore_empty, match_mode, pad_with
     if row_delimiter:
         rows = text.split(row_delimiter)
     else:
         rows = [text]
     
-    # Split each row by column delimiter
     result = []
+
     for row in rows:
+
         if col_delimiter:
             cols = row.split(col_delimiter)
         else:
             cols = [row]
-        
-        # Handle ignore_empty
+
         if ignore_empty:
             cols = [c for c in cols if c]
-        
+
         result.append(cols)
-    
-    # Pad if necessary (to make rectangular array)
+
     if pad_with is not None:
         max_cols = max(len(row) for row in result) if result else 0
+
         for row in result:
+
             while len(row) < max_cols:
                 row.append(pad_with)
-    
+
     return result
 
 
@@ -1354,6 +1304,64 @@ def VALUETOTEXT(value: Any, format_type: int = 0) -> str:
     else:
         # Normal format
         return str(value)
+
+
+def ARRAYTOTEXT(
+    array: Any,
+    format_type: int = 0,
+) -> str:
+    """Returns a text representation of an array of values.
+
+    Excel function: ARRAYTOTEXT
+
+    Args:
+        array: A list, list of lists, or tuple to convert.
+        format_type: 0 = concise with comma/semicolon, 1 = strict with braces
+                     and quoted strings.
+
+    Returns:
+        str: Text representation of the array.
+
+    Usage Example:
+        >>> ARRAYTOTEXT([1, "hello", True])
+        '1, hello, True'
+        >>> ARRAYTOTEXT([1, "hello", True], 1)
+        '{1,"hello",TRUE}'
+        >>> ARRAYTOTEXT([[1, 2], [3, 4]], 1)
+        '{1,2;3,4}'
+
+    Cost: O(n)
+    """
+    if not isinstance(array, (list, tuple)):
+        return str(array)
+
+    is_2d = any(isinstance(row, (list, tuple)) for row in array)
+
+    if format_type == 1:
+
+        def _fmt(v: Any) -> str:
+            if isinstance(v, bool):
+                return "TRUE" if v else "FALSE"
+
+            if isinstance(v, str):
+                return f'"{v}"'
+
+            return str(v)
+
+        if is_2d:
+            rows = [",".join(_fmt(c) for c in row) if isinstance(row, (list, tuple))
+                    else _fmt(row) for row in array]
+            return "{" + ";".join(rows) + "}"
+
+        return "{" + ",".join(_fmt(v) for v in array) + "}"
+
+    # format_type 0 — concise
+    if is_2d:
+        rows = [", ".join(str(c) for c in row) if isinstance(row, (list, tuple))
+                else str(row) for row in array]
+        return "; ".join(rows)
+
+    return ", ".join(str(v) for v in array)
 
 
 # Byte-specific variants (for double-byte character sets like Japanese)
@@ -1629,7 +1637,6 @@ def ASC(text: str) -> str:
 
 
 # Regex functions (Microsoft 365+)
-import re
 
 
 def REGEXTEST(text: str, pattern: str, match_mode: int = 0) -> bool:
@@ -1661,8 +1668,7 @@ def REGEXTEST(text: str, pattern: str, match_mode: int = 0) -> bool:
 
     **Cost:** O(n*m), where n is text length and m is pattern complexity.
     """
-    flags = re.IGNORECASE if match_mode == 1 else 0
-    return bool(re.search(pattern, text, flags))
+    return _core_regex_match(text, pattern, case_sensitive=(match_mode == 0))
 
 
 def REGEXEXTRACT(text: str, pattern: str, match_mode: int = 0, capture_group: int = 0) -> Union[str, List[str]]:
@@ -1694,16 +1700,15 @@ def REGEXEXTRACT(text: str, pattern: str, match_mode: int = 0, capture_group: in
 
     **Cost:** O(n*m), where n is text length and m is pattern complexity.
     """
-    flags = re.IGNORECASE if match_mode == 1 else 0
-    match = re.search(pattern, text, flags)
-    
-    if not match:
+    result = _core_regex_extract(
+        text, pattern, group=capture_group,
+        case_sensitive=(match_mode == 0),
+    )
+
+    if result is None:
         raise ValueError(f"Pattern '{pattern}' not found in text")
-    
-    if capture_group == 0:
-        return match.group(0)
-    else:
-        return match.group(capture_group)
+
+    return result
 
 
 def REGEXREPLACE(text: str, pattern: str, replacement: str, match_mode: int = 0) -> str:
@@ -1735,8 +1740,10 @@ def REGEXREPLACE(text: str, pattern: str, replacement: str, match_mode: int = 0)
 
     **Cost:** O(n*m), where n is text length and m is pattern complexity.
     """
-    flags = re.IGNORECASE if match_mode == 1 else 0
-    return re.sub(pattern, replacement, text, flags=flags)
+    return _core_regex_replace(
+        text, pattern, replacement,
+        case_insensitive=(match_mode == 1),
+    )
 
 
 def DBCS(text: str) -> str:
@@ -1767,19 +1774,7 @@ def DBCS(text: str) -> str:
 
     **Note:** This is a simplified implementation focusing on common half-width characters.
     """
-    result = []
-    for char in text:
-        code = ord(char)
-        # Convert half-width ASCII (0x21-0x7E) to full-width (0xFF01-0xFF5E)
-        if 0x21 <= code <= 0x7E:
-            result.append(chr(code + 0xFEE0))
-        # Convert half-width space (0x20) to full-width (0x3000)
-        elif code == 0x20:
-            result.append('\u3000')
-        else:
-            result.append(char)
-    
-    return ''.join(result)
+    return _core_to_full_width(text)
 
 
 # Export all functions
@@ -1801,7 +1796,7 @@ __all__ = [
     'DOLLAR', 'BAHTTEXT', 'FIXED', 'T',
     
     # Conversion
-    'NUMBERVALUE', 'VALUETOTEXT',
+    'NUMBERVALUE', 'VALUETOTEXT', 'ARRAYTOTEXT',
     
     # Text extraction
     'TEXTAFTER', 'TEXTBEFORE', 'TEXTSPLIT',

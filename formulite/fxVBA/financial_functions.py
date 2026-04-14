@@ -1,12 +1,28 @@
-"""
+﻿"""
 Access Financial Functions Module.
 
 Description
-    Funciones financieras compatibles con VBA/Access para cálculo de
-    depreciación, anualidades y préstamos.
+    Funciones financieras compatibles con VBA/Access para cÃ¡lculo de
+    depreciaciÃ³n, anualidades y prÃ©stamos.
 """
 
 from typing import List
+
+from formulite.fxNumeric.finance_functions import (
+    ddb as _core_ddb,
+    future_value as _core_fv,
+    ipmt as _core_ipmt,
+    irr as _core_irr,
+    mirr as _core_mirr,
+    nper as _core_nper,
+    npv as _core_npv,
+    pmt as _core_pmt,
+    ppmt as _core_ppmt,
+    present_value as _core_pv,
+    rate as _core_rate,
+    sln as _core_sln,
+    syd as _core_syd,
+)
 
 __all__ = [
     "DDB",
@@ -34,17 +50,17 @@ def DDB(
 ) -> float:
     """
     Description
-        Depreciación de doble saldo decreciente de un activo.
+        DepreciaciÃ³n de doble saldo decreciente de un activo.
 
     Args
         cost: Costo inicial del bien.
-        salvage: Valor al término de vida útil.
-        life: Duración de vida útil.
-        period: Periodo para el cual se calcula depreciación.
-        factor: Tasa de depreciación (por defecto 2.0).
+        salvage: Valor al tÃ©rmino de vida Ãºtil.
+        life: DuraciÃ³n de vida Ãºtil.
+        period: Periodo para el cual se calcula depreciaciÃ³n.
+        factor: Tasa de depreciaciÃ³n (por defecto 2.0).
 
     Returns
-        float: Depreciación para el periodo especificado.
+        float: DepreciaciÃ³n para el periodo especificado.
 
     Usage Example
         >>> ddb(1000, 100, 5, 1)
@@ -53,32 +69,17 @@ def DDB(
     Cost
         O(1)
     """
-    if period > life:
-        return 0.0
-    
-    depreciation = 0.0
-    total_depreciation = 0.0
-    
-    for p in range(1, int(period) + 1):
-        remaining_value = cost - total_depreciation
-        period_depreciation = min(
-            remaining_value * (factor / life),
-            remaining_value - salvage
-        )
-        depreciation = period_depreciation
-        total_depreciation += period_depreciation
-    
-    return depreciation
+    return _core_ddb(cost, salvage, life, period, factor)
 
 
 def FV(rate: float, nper: float, pmt: float, pv: float = 0, type_: int = 0) -> float:
     """
     Description
-        Valor futuro de anualidad basado en pagos periódicos constantes.
+        Valor futuro de anualidad basado en pagos periÃ³dicos constantes.
 
     Args
-        rate: Tasa de interés por periodo.
-        nper: Número total de periodos de pago.
+        rate: Tasa de interÃ©s por periodo.
+        nper: NÃºmero total de periodos de pago.
         pmt: Pago por periodo.
         pv: Valor presente (por defecto 0).
         type_: Tipo de pago (0=final periodo, 1=inicio periodo).
@@ -93,14 +94,7 @@ def FV(rate: float, nper: float, pmt: float, pv: float = 0, type_: int = 0) -> f
     Cost
         O(1)
     """
-    if rate == 0:
-        return -(pv + pmt * nper)
-    
-    factor = (1 + rate) ** nper
-    if type_ == 0:
-        return -(pv * factor + pmt * (factor - 1) / rate)
-    else:
-        return -(pv * factor + pmt * (factor - 1) / rate * (1 + rate))
+    return _core_fv(rate, nper, pmt, pv, type_)
 
 
 def IPmt(rate: float, per: float, nper: float, pv: float, fv: float = 0, type_: int = 0) -> float:
@@ -109,9 +103,9 @@ def IPmt(rate: float, per: float, nper: float, pv: float, fv: float = 0, type_: 
         Pago de intereses para periodo dado de una anualidad.
 
     Args
-        rate: Tasa de interés por periodo.
-        per: Periodo para el cual se calcula interés (1 a nper).
-        nper: Número total de periodos.
+        rate: Tasa de interÃ©s por periodo.
+        per: Periodo para el cual se calcula interÃ©s (1 a nper).
+        nper: NÃºmero total de periodos.
         pv: Valor presente.
         fv: Valor futuro (por defecto 0).
         type_: Tipo de pago (0=final, 1=inicio).
@@ -126,33 +120,17 @@ def IPmt(rate: float, per: float, nper: float, pv: float, fv: float = 0, type_: 
     Cost
         O(1)
     """
-    payment = pmt(rate, nper, pv, fv, type_)
-    
-    if per == 1 and type_ == 1:
-        return 0.0
-    
-    if type_ == 1:
-        return FV_Temp(rate, per - 2, payment, pv, 0) * rate
-    else:
-        return FV_Temp(rate, per - 1, payment, pv, 0) * rate
-
-
-def FV_Temp(rate: float, nper: float, pmt_: float, pv: float, type_: int) -> float:
-    """Helper interno para calcular valor futuro temporal."""
-    if rate == 0:
-        return -(pv + pmt_ * nper)
-    factor = (1 + rate) ** nper
-    return -(pv * factor + pmt_ * (factor - 1) / rate)
+    return _core_ipmt(rate, int(per), int(nper), pv, fv, type_)
 
 
 def Pmt(rate: float, nper: float, pv: float, fv: float = 0, type_: int = 0) -> float:
     """
     Description
-        Pago para anualidad basado en pagos periódicos constantes.
+        Pago para anualidad basado en pagos periÃ³dicos constantes.
 
     Args
-        rate: Tasa de interés por periodo.
-        nper: Número total de periodos.
+        rate: Tasa de interÃ©s por periodo.
+        nper: NÃºmero total de periodos.
         pv: Valor presente.
         fv: Valor futuro (por defecto 0).
         type_: Tipo de pago (0=final, 1=inicio).
@@ -167,15 +145,7 @@ def Pmt(rate: float, nper: float, pv: float, fv: float = 0, type_: int = 0) -> f
     Cost
         O(1)
     """
-    if rate == 0:
-        return -(pv + fv) / nper
-    
-    factor = (1 + rate) ** nper
-    
-    if type_ == 0:
-        return -(rate * (pv * factor + fv)) / (factor - 1)
-    else:
-        return -(rate * (pv * factor + fv)) / ((factor - 1) * (1 + rate))
+    return _core_pmt(rate, nper, pv, fv, type_)
 
 
 def PPmt(rate: float, per: float, nper: float, pv: float, fv: float = 0, type_: int = 0) -> float:
@@ -184,9 +154,9 @@ def PPmt(rate: float, per: float, nper: float, pv: float, fv: float = 0, type_: 
         Pago principal para periodo dado de una anualidad.
 
     Args
-        rate: Tasa de interés por periodo.
+        rate: Tasa de interÃ©s por periodo.
         per: Periodo (1 a nper).
-        nper: Número total de periodos.
+        nper: NÃºmero total de periodos.
         pv: Valor presente.
         fv: Valor futuro (por defecto 0).
         type_: Tipo de pago (0=final, 1=inicio).
@@ -201,9 +171,7 @@ def PPmt(rate: float, per: float, nper: float, pv: float, fv: float = 0, type_: 
     Cost
         O(1)
     """
-    payment = pmt(rate, nper, pv, fv, type_)
-    interest = ipmt(rate, per, nper, pv, fv, type_)
-    return payment - interest
+    return _core_ppmt(rate, int(per), int(nper), pv, fv, type_)
 
 
 def PV(rate: float, nper: float, pmt_: float, fv: float = 0, type_: int = 0) -> float:
@@ -212,8 +180,8 @@ def PV(rate: float, nper: float, pmt_: float, fv: float = 0, type_: int = 0) -> 
         Valor actual de una anualidad.
 
     Args
-        rate: Tasa de interés por periodo.
-        nper: Número total de periodos.
+        rate: Tasa de interÃ©s por periodo.
+        nper: NÃºmero total de periodos.
         pmt_: Pago por periodo.
         fv: Valor futuro (por defecto 0).
         type_: Tipo de pago (0=final, 1=inicio).
@@ -228,15 +196,7 @@ def PV(rate: float, nper: float, pmt_: float, fv: float = 0, type_: int = 0) -> 
     Cost
         O(1)
     """
-    if rate == 0:
-        return -(fv + pmt_ * nper)
-    
-    factor = (1 + rate) ** nper
-    
-    if type_ == 0:
-        return -(fv + pmt_ * (factor - 1) / rate) / factor
-    else:
-        return -(fv + pmt_ * (factor - 1) / rate * (1 + rate)) / factor
+    return _core_pv(rate, nper, pmt_, fv, type_)
 
 
 def Rate(
@@ -249,18 +209,18 @@ def Rate(
 ) -> float:
     """
     Description
-        Tasa de interés por periodo de una anualidad.
+        Tasa de interÃ©s por periodo de una anualidad.
 
     Args
-        nper: Número total de periodos.
+        nper: NÃºmero total de periodos.
         pmt_: Pago por periodo.
         pv: Valor presente.
         fv: Valor futuro (por defecto 0).
         type_: Tipo de pago (0=final, 1=inicio).
-        guess: Estimación inicial (por defecto 0.1).
+        guess: EstimaciÃ³n inicial (por defecto 0.1).
 
     Returns
-        float: Tasa de interés por periodo.
+        float: Tasa de interÃ©s por periodo.
 
     Usage Example
         >>> rate(60, -1000, 50000)
@@ -269,58 +229,21 @@ def Rate(
     Cost
         O(n) iteraciones de Newton-Raphson
     """
-    rate_val = guess
-    max_iter = 100
-    precision = 1e-6
-    
-    for _ in range(max_iter):
-        f = _rate_function(rate_val, nper, pmt_, pv, fv, type_)
-        if abs(f) < precision:
-            return rate_val
-        
-        df = _rate_derivative(rate_val, nper, pmt_, pv, fv, type_)
-        if df == 0:
-            break
-        
-        rate_val = rate_val - f / df
-    
-    return rate_val
-
-
-def _rate_function(r: float, n: float, p: float, pv_: float, fv_: float, t: int) -> float:
-    """Helper para calcular función de tasa."""
-    if r == 0:
-        return pv_ + p * n + fv_
-    factor = (1 + r) ** n
-    if t == 0:
-        return pv_ * factor + p * (factor - 1) / r + fv_
-    else:
-        return pv_ * factor + p * (factor - 1) / r * (1 + r) + fv_
-
-
-def _rate_derivative(r: float, n: float, p: float, pv_: float, fv_: float, t: int) -> float:
-    """Helper para calcular derivada de función de tasa."""
-    if r == 0:
-        return 0
-    factor = (1 + r) ** n
-    if t == 0:
-        return n * pv_ * factor / (1 + r) + p * (n * factor / (1 + r) / r - (factor - 1) / (r ** 2))
-    else:
-        return n * pv_ * factor / (1 + r) + p * ((n * factor / (1 + r) / r - (factor - 1) / (r ** 2)) * (1 + r) + (factor - 1) / r)
+    return _core_rate(nper, pmt_, pv, fv, type_, guess)
 
 
 def SLN(cost: float, salvage: float, life: float) -> float:
     """
     Description
-        Depreciación lineal de un bien durante único periodo.
+        DepreciaciÃ³n lineal de un bien durante Ãºnico periodo.
 
     Args
         cost: Costo inicial del bien.
-        salvage: Valor al término de vida útil.
-        life: Duración de vida útil.
+        salvage: Valor al tÃ©rmino de vida Ãºtil.
+        life: DuraciÃ³n de vida Ãºtil.
 
     Returns
-        float: Depreciación lineal.
+        float: DepreciaciÃ³n lineal.
 
     Usage Example
         >>> sln(10000, 1000, 5)
@@ -329,22 +252,22 @@ def SLN(cost: float, salvage: float, life: float) -> float:
     Cost
         O(1)
     """
-    return (cost - salvage) / life
+    return _core_sln(cost, salvage, life)
 
 
 def SYD(cost: float, salvage: float, life: float, period: float) -> float:
     """
     Description
-        Depreciación por suma de dígitos de años para un periodo.
+        DepreciaciÃ³n por suma de dÃ­gitos de aÃ±os para un periodo.
 
     Args
         cost: Costo inicial del bien.
-        salvage: Valor al término de vida útil.
-        life: Duración de vida útil.
+        salvage: Valor al tÃ©rmino de vida Ãºtil.
+        life: DuraciÃ³n de vida Ãºtil.
         period: Periodo para el cual se calcula.
 
     Returns
-        float: Depreciación para el periodo.
+        float: DepreciaciÃ³n para el periodo.
 
     Usage Example
         >>> syd(10000, 1000, 5, 1)
@@ -353,8 +276,7 @@ def SYD(cost: float, salvage: float, life: float, period: float) -> float:
     Cost
         O(1)
     """
-    sum_of_years = life * (life + 1) / 2
-    return (cost - salvage) * (life - period + 1) / sum_of_years
+    return _core_syd(cost, salvage, int(life), int(period))
 
 
 def NPV(rate: float, values: List[float]) -> float:
@@ -374,12 +296,9 @@ def NPV(rate: float, values: List[float]) -> float:
         1188.44
 
     Cost
-        O(n) donde n es número de flujos
+        O(n) donde n es nÃºmero de flujos
     """
-    npv_value = 0.0
-    for i, value in enumerate(values):
-        npv_value += value / ((1 + rate) ** (i + 1))
-    return npv_value
+    return _core_npv(rate, values)
 
 
 def IRR(values: List[float], guess: float = 0.1) -> float:
@@ -389,52 +308,22 @@ def IRR(values: List[float], guess: float = 0.1) -> float:
 
     Args
         values: Lista de flujos de caja (debe incluir al menos un valor negativo y uno positivo).
-        guess: Estimación inicial (por defecto 0.1).
+        guess: EstimaciÃ³n inicial (por defecto 0.1).
 
     Returns
         float: Tasa interna de retorno.
 
     Raises
-        ValueError: Si no converge o valores inválidos.
+        ValueError: Si no converge o valores invÃ¡lidos.
 
     Usage Example
         >>> irr([-10000, 3000, 4200, 6800])
         0.1896
 
     Cost
-        O(n*iterations) - método iterativo Newton-Raphson
+        O(n*iterations) - mÃ©todo iterativo Newton-Raphson
     """
-    # Verificar que hay valores positivos y negativos
-    if not any(v < 0 for v in values) or not any(v > 0 for v in values):
-        raise ValueError("IRR requiere al menos un flujo negativo y uno positivo")
-    
-    # Método Newton-Raphson
-    rate = guess
-    max_iterations = 100
-    tolerance = 1e-6
-    
-    for _ in range(max_iterations):
-        # Calcular NPV y su derivada
-        npv_val = 0.0
-        npv_derivative = 0.0
-        
-        for i, value in enumerate(values):
-            period = i + 1
-            npv_val += value / ((1 + rate) ** period)
-            npv_derivative -= period * value / ((1 + rate) ** (period + 1))
-        
-        # Si NPV es suficientemente cercano a 0, hemos encontrado IRR
-        if abs(npv_val) < tolerance:
-            return rate
-        
-        # Evitar división por cero
-        if abs(npv_derivative) < tolerance:
-            raise ValueError("IRR no converge - derivada cercana a cero")
-        
-        # Actualizar rate usando Newton-Raphson
-        rate = rate - npv_val / npv_derivative
-    
-    raise ValueError("IRR no converge en número máximo de iteraciones")
+    return _core_irr(values, guess)
 
 
 def MIRR(values: List[float], finance_rate: float, reinvest_rate: float) -> float:
@@ -444,8 +333,8 @@ def MIRR(values: List[float], finance_rate: float, reinvest_rate: float) -> floa
 
     Args
         values: Lista de flujos de caja.
-        finance_rate: Tasa de interés para flujos negativos (financiamiento).
-        reinvest_rate: Tasa de interés para flujos positivos (reinversión).
+        finance_rate: Tasa de interÃ©s para flujos negativos (financiamiento).
+        reinvest_rate: Tasa de interÃ©s para flujos positivos (reinversiÃ³n).
 
     Returns
         float: Tasa interna de retorno modificada.
@@ -455,65 +344,33 @@ def MIRR(values: List[float], finance_rate: float, reinvest_rate: float) -> floa
         0.1326
 
     Cost
-        O(n) donde n es número de flujos
+        O(n) donde n es nÃºmero de flujos
     """
-    n = len(values)
-    
-    # Calcular valor presente de flujos negativos
-    pv_negative = 0.0
-    for i, value in enumerate(values):
-        if value < 0:
-            pv_negative += value / ((1 + finance_rate) ** i)
-    
-    # Calcular valor futuro de flujos positivos
-    fv_positive = 0.0
-    for i, value in enumerate(values):
-        if value > 0:
-            fv_positive += value * ((1 + reinvest_rate) ** (n - i - 1))
-    
-    # Calcular MIRR
-    if pv_negative == 0:
-        raise ValueError("MIRR requiere al menos un flujo negativo")
-    
-    mirr_val = ((-fv_positive / pv_negative) ** (1 / (n - 1))) - 1
-    return mirr_val
+    return _core_mirr(values, finance_rate, reinvest_rate)
 
 
 def NPer(rate: float, pmt: float, pv: float, fv: float = 0.0, type_: int = 0) -> float:
     """
     Description
-        Calcula número de períodos para inversión o préstamo.
+        Calcula nÃºmero de perÃ­odos para inversiÃ³n o prÃ©stamo.
 
     Args
-        rate: Tasa de interés por periodo.
+        rate: Tasa de interÃ©s por periodo.
         pmt: Pago por periodo.
         pv: Valor presente.
         fv: Valor futuro (por defecto 0).
         type_: 0 = pago al final, 1 = pago al inicio.
 
     Returns
-        float: Número de períodos.
+        float: NÃºmero de perÃ­odos.
 
     Usage Example
         >>> nper(0.01, -100, 1000, 0)
         10.4
 
     Cost
-        O(1) con cálculo logarítmico
+        O(1) con cÃ¡lculo logarÃ­tmico
     """
-    import math
-    
-    if rate == 0:
-        # Caso especial: sin interés
-        return -(pv + fv) / pmt
-    
-    # Ajustar pago según tipo
-    if type_ == 1:
-        pmt = pmt * (1 + rate)
-    
-    # Fórmula NPER
-    numerator = math.log((pmt - fv * rate) / (pmt + pv * rate))
-    denominator = math.log(1 + rate)
-    
-    return numerator / denominator
+    return _core_nper(rate, pmt, pv, fv, type_)
+
 

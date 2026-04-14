@@ -10,12 +10,11 @@ from typing import Optional, Any
 
 __all__ = [
     "AccessError",
+    "CallByName",
     "CurrentUser",
     "Eval_",
     "Hex_",
-    "HexS",
     "Oct_",
-    "OctS",
     "QBColor",
     "RGB",
     "SysCmd",
@@ -63,6 +62,54 @@ def AccessError(error_number: int) -> str:
         N/A - Solo Access
     """
     _access_only("AccessError")
+
+
+def CallByName(obj: Any, proc_name: str, call_type: int, *args: Any) -> Any:
+    """
+    Description
+        Call a method or access a property on an object by name string.
+        call_type: 1=vbGet, 2=vbLet, 4=vbMethod.
+
+    Args
+        obj: The object to operate on.
+        proc_name: Name of the method or property.
+        call_type: 1 (Get), 2 (Let/Set), or 4 (Method).
+        *args: Arguments to pass to the method.
+
+    Returns
+        Any: Return value of the method or property.
+
+    Raises
+        AttributeError: If the object does not have the named attribute.
+        ValueError: If call_type is invalid.
+
+    Usage Example
+        >>> CallByName("hello", "upper", 4)
+        'HELLO'
+        >>> CallByName([1, 2, 3], "__len__", 4)
+        3
+
+    Cost
+        O(1)
+    """
+    VB_GET = 1
+    VB_LET = 2
+    VB_METHOD = 4
+
+    if call_type == VB_GET:
+        return getattr(obj, proc_name)
+    elif call_type == VB_LET:
+
+        if not args:
+            raise ValueError("CallByName with vbLet requires a value argument")
+
+        setattr(obj, proc_name, args[0])
+        return None
+    elif call_type == VB_METHOD:
+        method = getattr(obj, proc_name)
+        return method(*args)
+    else:
+        raise ValueError(f"Invalid call_type: {call_type}. Use 1 (Get), 2 (Let), or 4 (Method)")
 
 
 def CurrentUser() -> str:
@@ -132,29 +179,6 @@ def Hex_(number: int) -> str:
         O(log n) donde n es el número
     """
     return hex(int(number))[2:].upper()
-
-
-def HexS(number: int) -> str:
-    """
-    Description
-        Retorna valor hexadecimal (versión $).
-
-    Args
-        number: Número a convertir.
-
-    Returns
-        str: Representación hexadecimal.
-
-    Usage Example
-        >>> hex_s(255)
-        'FF'
-
-    Cost
-        O(log n) donde n es el número
-    """
-    return hex(int(number))[2:].upper()
-
-
 def Oct_(number: int) -> str:
     """
     Description
@@ -176,29 +200,6 @@ def Oct_(number: int) -> str:
         O(log n) donde n es el número
     """
     return oct(int(number))[2:]
-
-
-def OctS(number: int) -> str:
-    """
-    Description
-        Retorna valor octal (versión $).
-
-    Args
-        number: Número a convertir.
-
-    Returns
-        str: Representación octal.
-
-    Usage Example
-        >>> oct_s(8)
-        '10'
-
-    Cost
-        O(log n) donde n es el número
-    """
-    return oct(int(number))[2:]
-
-
 def SysCmd(
     action: int,
     argument2: Optional[int] = None,

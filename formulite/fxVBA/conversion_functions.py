@@ -10,6 +10,10 @@ Description
 from typing import Any
 from datetime import datetime, date, time
 
+from formulite.fxString.string_convertions import (
+    string_to_datetime as _core_string_to_datetime,
+)
+
 __all__ = [
     "CBool",
     "CByte",
@@ -19,9 +23,12 @@ __all__ = [
     "CDec",
     "CInt",
     "CLng",
+    "CLngLng",
+    "CLngPtr",
     "CSng",
     "CStr",
     "CVar",
+    "CVErr",
     "DateValue",
     "TimeValue",
     "Val",
@@ -129,12 +136,11 @@ def CDate(expression: Any) -> datetime:
     Cost
         O(1)
     """
-    if isinstance(expression, datetime):
-        return expression
-    if isinstance(expression, date):
-        return datetime.combine(expression, time.min)
-    if isinstance(expression, str):
-        return datetime.fromisoformat(expression.replace('/', '-'))
+    result = _core_string_to_datetime(expression)
+
+    if result is not None:
+        return result
+
     raise ValueError(f"No se puede convertir {expression} a fecha")
 
 
@@ -179,7 +185,7 @@ def CDec(expression: Any) -> float:
     Cost
         O(1)
     """
-    return float(expression)
+    return CDbl(expression)
 
 
 def CInt(expression: Any) -> int:
@@ -230,6 +236,75 @@ def CLng(expression: Any) -> int:
     return int(float(expression))
 
 
+def CLngLng(expression: Any) -> int:
+    """
+    Description
+        Convert expression to LongLong (64-bit integer).
+
+    Args
+        expression: Expression to convert.
+
+    Returns
+        int: 64-bit integer value.
+
+    Raises
+        ValueError: If value overflows 64-bit signed integer range.
+
+    Usage Example
+        >>> CLngLng(9223372036854775807)
+        9223372036854775807
+        >>> CLngLng("123456789012345")
+        123456789012345
+
+    Cost
+        O(1)
+    """
+    value = int(float(expression))
+    min_val = -(2**63)
+    max_val = 2**63 - 1
+
+    if not min_val <= value <= max_val:
+        raise ValueError(f"Value {value} overflows LongLong range ({min_val} to {max_val})")
+
+    return value
+
+
+def CLngPtr(expression: Any) -> int:
+    """
+    Description
+        Convert expression to LongPtr (pointer-sized integer).
+
+    Args
+        expression: Expression to convert.
+
+    Returns
+        int: Pointer-sized integer value.
+
+    Usage Example
+        >>> CLngPtr(42)
+        42
+        >>> CLngPtr("12345678")
+        12345678
+
+    Cost
+        O(1)
+    """
+    import sys
+    value = int(float(expression))
+
+    if sys.maxsize > 2**32:
+        max_val = 2**63 - 1
+        min_val = -(2**63)
+    else:
+        max_val = 2**31 - 1
+        min_val = -(2**31)
+
+    if not min_val <= value <= max_val:
+        raise ValueError(f"Value {value} overflows LongPtr range ({min_val} to {max_val})")
+
+    return value
+
+
 def CSng(expression: Any) -> float:
     """
     Description
@@ -250,7 +325,7 @@ def CSng(expression: Any) -> float:
     Cost
         O(1)
     """
-    return float(expression)
+    return CDbl(expression)
 
 
 def CStr(expression: Any) -> str:
@@ -323,8 +398,12 @@ def DateValue(date_str: str) -> date:
     Cost
         O(1)
     """
-    dt = datetime.fromisoformat(date_str.replace('/', '-'))
-    return dt.date()
+    result = _core_string_to_datetime(date_str)
+
+    if result is None:
+        raise ValueError(f"No se pudo convertir '{date_str}' a fecha")
+
+    return result.date()
 
 
 def TimeValue(time_str: str) -> time:
@@ -376,9 +455,51 @@ def Val(string: str) -> float:
         O(n) donde n es longitud de la cadena
     """
     import re
-    
+
     string = string.strip()
     match = re.match(r'^[+-]?(\d+\.?\d*|\.\d+)', string)
+
     if match:
         return float(match.group())
+
     return 0.0
+
+
+def CVErr(error_number: int) -> str:
+    """
+    Description
+        Create an error value from an error number. In Python, returns
+        a string representation of the VBA error value.
+
+    Args
+        error_number: VBA error number (1-7).
+
+    Returns
+        str: String representation of the error value.
+
+    Raises
+        ValueError: If error_number is not in the valid range.
+
+    Usage Example
+        >>> CVErr(2007)
+        'Error 2007'
+        >>> CVErr(3)
+        'Error 3'
+
+    Cost
+        O(1)
+    """
+    _VBA_ERRORS = {
+        1: "#NULL!",
+        2: "#DIV/0!",
+        3: "#VALUE!",
+        4: "#REF!",
+        5: "#NAME?",
+        6: "#NUM!",
+        7: "#N/A",
+    }
+
+    if error_number in _VBA_ERRORS:
+        return _VBA_ERRORS[error_number]
+
+    return f"Error {error_number}"

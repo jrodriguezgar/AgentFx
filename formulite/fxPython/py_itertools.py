@@ -17,12 +17,12 @@ Based on: https://docs.python.org/3/library/itertools.html
 # itertools recipes
 # https://docs.python.org/3/library/itertools.html
 
-from collections import Counter, deque
+from collections import deque
 from contextlib import suppress
 from functools import reduce
 from itertools import (
     accumulate, batched, chain, combinations, count, cycle, filterfalse,
-    groupby, islice, product, repeat, starmap, tee, zip_longest
+    groupby, islice, product, repeat, starmap, zip_longest
 )
 from math import comb, isqrt, prod, sumprod
 from operator import getitem, itemgetter, mul, neg
@@ -564,25 +564,6 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
-def sum_of_squares(iterable):
-    """
-    Description: Add up the squares of the input values.
-
-    Args:
-        iterable: The iterable of numbers.
-
-    Returns:
-        float or int: Sum of squares.
-
-    Raises:
-        (none)
-
-    Usage Example:
-        sum_of_squares([10, 20, 30]) -> 1400
-    """
-    return sumprod(*tee(iterable))
-
-
 def reshape(matrix, columns):
     """
     Description: Reshape a 2-D matrix to have a given number of columns.
@@ -778,25 +759,6 @@ def factor(n):
                 return
     if n > 1:
         yield n
-
-
-def is_prime(n):
-    """
-    Description: Return True if n is prime.
-
-    Args:
-        n (int): Number to check.
-
-    Returns:
-        bool: True if prime.
-
-    Raises:
-        (none)
-
-    Usage Example:
-        is_prime(7) -> True
-    """
-    return n > 1 and next(factor(n)) == n
 
 
 def totient(n):

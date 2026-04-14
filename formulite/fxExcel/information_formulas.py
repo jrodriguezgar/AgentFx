@@ -16,7 +16,17 @@ exist in standalone Python execution.
 
 from typing import Any, Optional, Union
 import inspect
-import numpy as np
+import math
+
+from formulite.fxPython.py_logic import (
+    is_logical as _core_is_logical,
+    is_number as _core_is_number,
+    is_text as _core_is_text,
+)
+from formulite.fxNumeric.number_theory_functions import (
+    is_even as _core_is_even,
+    is_odd as _core_is_odd,
+)
 
 
 # ============================================================================
@@ -107,7 +117,7 @@ def ISEVEN(number: Union[int, float]) -> bool:
     Cost: O(1)
     """
     try:
-        return int(number) % 2 == 0
+        return _core_is_even(int(number))
     except (ValueError, TypeError):
         return False
 
@@ -130,7 +140,7 @@ def ISLOGICAL(value: Any) -> bool:
     
     Cost: O(1)
     """
-    return isinstance(value, bool)
+    return _core_is_logical(value)
 
 
 def ISNA(value: Any) -> bool:
@@ -151,7 +161,7 @@ def ISNA(value: Any) -> bool:
     
     Cost: O(1)
     """
-    return value == "#N/A" or isinstance(value, type(np.nan))
+    return value == "#N/A" or (isinstance(value, float) and math.isnan(value))
 
 
 def ISNONTEXT(value: Any) -> bool:
@@ -195,7 +205,7 @@ def ISNUMBER(value: Any) -> bool:
     
     Cost: O(1)
     """
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return _core_is_number(value)
 
 
 def ISODD(number: Union[int, float]) -> bool:
@@ -217,7 +227,7 @@ def ISODD(number: Union[int, float]) -> bool:
     Cost: O(1)
     """
     try:
-        return int(number) % 2 != 0
+        return _core_is_odd(int(number))
     except (ValueError, TypeError):
         return False
 
@@ -261,7 +271,7 @@ def ISTEXT(value: Any) -> bool:
     
     Cost: O(1)
     """
-    return isinstance(value, str)
+    return _core_is_text(value)
 
 
 # ============================================================================
@@ -352,3 +362,58 @@ def ERROR_TYPE(error_val: Any) -> Optional[int]:
     }
     
     return error_types.get(type(error_val), 3)
+
+
+def TYPE(value: Any) -> int:
+    """Returns the type of a value as a numeric code.
+
+    Follows Excel's TYPE function convention:
+        1 = Number (int or float)
+        2 = Text (str)
+        4 = Logical (bool)
+        16 = Error (Exception)
+        64 = Array (list, tuple, or numpy array)
+
+    Excel function: TYPE
+
+    Args:
+        value: The value whose type to determine.
+
+    Returns:
+        int: Type code (1, 2, 4, 16, or 64).
+
+    Usage Example:
+        >>> TYPE(42)
+        1
+        >>> TYPE(3.14)
+        1
+        >>> TYPE("hello")
+        2
+        >>> TYPE(True)
+        4
+        >>> TYPE([1, 2, 3])
+        64
+        >>> TYPE(ValueError())
+        16
+
+    Cost: O(1)
+    """
+    if isinstance(value, bool):
+        return 4
+
+    if isinstance(value, (int, float)):
+        return 1
+
+    if isinstance(value, str):
+        if value in ("#N/A", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#NULL!"):
+            return 16
+
+        return 2
+
+    if isinstance(value, Exception):
+        return 16
+
+    if isinstance(value, (list, tuple)):
+        return 64
+
+    return 1

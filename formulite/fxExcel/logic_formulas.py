@@ -5,12 +5,23 @@ This module provides Excel-compatible logical and conditional functions for Form
 Functions include:
 - Basic Logic: AND, OR, NOT, XOR, TRUE, FALSE
 - Conditionals: IF, IFS, IFERROR, IFNA
-- Lambda Functions: LAMBDA, LET, BYCOL, BYROW
+- Lambda Functions: LAMBDA, LET, BYCOL, BYROW, REDUCE, SCAN
 
 All functions follow Excel naming conventions and behavior.
 """
 
 from typing import Any, Callable, List, Optional, Union
+
+from formulite.fxPython.py_logic import (
+    and_all as _core_and,
+    if_then_else as _core_if,
+    if_error as _core_if_error,
+    ifs as _core_ifs,
+    not_value as _core_not,
+    or_any as _core_or,
+    switch_case as _core_switch,
+    xor_all as _core_xor,
+)
 
 
 # ============================================================================
@@ -35,7 +46,7 @@ def AND(*args: Any) -> bool:
     
     Cost: O(n) where n is the number of arguments
     """
-    return all(args)
+    return _core_and(*args)
 
 
 def OR(*args: Any) -> bool:
@@ -56,7 +67,7 @@ def OR(*args: Any) -> bool:
     
     Cost: O(n) where n is the number of arguments
     """
-    return any(args)
+    return _core_or(*args)
 
 
 def NOT(value: Any) -> bool:
@@ -77,7 +88,7 @@ def NOT(value: Any) -> bool:
     
     Cost: O(1)
     """
-    return not value
+    return _core_not(value)
 
 
 def XOR(*args: Any) -> bool:
@@ -98,7 +109,7 @@ def XOR(*args: Any) -> bool:
     
     Cost: O(n) where n is the number of arguments
     """
-    return sum(bool(arg) for arg in args) % 2 == 1
+    return _core_xor(*args)
 
 
 def TRUE() -> bool:
@@ -157,7 +168,7 @@ def IF(logical_test: Any, value_if_true: Any, value_if_false: Any = None) -> Any
     
     Cost: O(1)
     """
-    return value_if_true if logical_test else value_if_false
+    return _core_if(logical_test, value_if_true, value_if_false)
 
 
 def IFS(*args: Any) -> Any:
@@ -181,14 +192,7 @@ def IFS(*args: Any) -> Any:
     
     Cost: O(n) where n is the number of condition pairs
     """
-    if len(args) % 2 == 0:
-        raise ValueError("IFS requires an odd number of arguments (conditions, values, default)")
-    
-    for i in range(0, len(args) - 1, 2):
-        if args[i]:
-            return args[i + 1]
-    
-    return args[-1]
+    return _core_ifs(*args)
 
 
 def IFERROR(value: Union[Callable, Any], value_if_error: Any) -> Any:
@@ -210,10 +214,7 @@ def IFERROR(value: Union[Callable, Any], value_if_error: Any) -> Any:
     
     Cost: O(1)
     """
-    try:
-        return value() if callable(value) else value
-    except Exception:
-        return value_if_error
+    return _core_if_error(value, value_if_error)
 
 
 def IFNA(value: Union[Callable, Any], value_if_na: Any) -> Any:
@@ -375,26 +376,7 @@ def SWITCH(expression: Any, *args: Any) -> Any:
     
     Cost: O(n) where n is the number of value/result pairs
     """
-    if len(args) == 0:
-        raise ValueError("SWITCH requires at least one value/result pair")
-    
-    # Check if we have an odd number of args (includes default)
-    has_default = len(args) % 2 == 1
-    
-    # Process value/result pairs
-    num_pairs = len(args) // 2
-    for i in range(num_pairs):
-        value = args[i * 2]
-        result = args[i * 2 + 1]
-        
-        if expression == value:
-            return result
-    
-    # No match found
-    if has_default:
-        return args[-1]
-    else:
-        raise ValueError(f"No match found for '{expression}' and no default provided")
+    return _core_switch(expression, *args)
 
 
 def MAP(*args) -> List[List[Any]]:
@@ -486,4 +468,96 @@ def MAKEARRAY(rows: int, cols: int, lambda_func: Callable[[int, int], Any]) -> L
             result_row.append(lambda_func(row_idx, col_idx))
         result.append(result_row)
     
+    return result
+
+
+def REDUCE(initial_value: Any, array: List[Any], lambda_func: Callable[[Any, Any], Any]) -> Any:
+    """
+    Reduce an array to an accumulated value by applying a LAMBDA to each value.
+
+    Args:
+        initial_value: The starting value for the accumulator.
+        array: Array of values to reduce.
+        lambda_func: Function taking (accumulator, current_value) and returning new accumulator.
+
+    Returns:
+        Any: The final accumulated value.
+
+    Raises:
+        ValueError: If lambda_func is not callable.
+
+    Example:
+        >>> REDUCE(0, [1, 2, 3, 4, 5], lambda acc, x: acc + x)
+        15
+        >>> REDUCE(1, [1, 2, 3, 4], lambda acc, x: acc * x)
+        24
+
+    Cost: O(n) where n is the number of elements
+    """
+    if not callable(lambda_func):
+        raise ValueError("lambda_func must be a callable")
+
+    accumulator = initial_value
+
+    flat = []
+
+    for item in array:
+
+        if isinstance(item, list):
+
+            for sub in item:
+                flat.append(sub)
+        else:
+            flat.append(item)
+
+    for value in flat:
+        accumulator = lambda_func(accumulator, value)
+
+    return accumulator
+
+
+def SCAN(initial_value: Any, array: List[Any], lambda_func: Callable[[Any, Any], Any]) -> List[Any]:
+    """
+    Scan an array by applying a LAMBDA to each value, returning intermediate results.
+
+    Args:
+        initial_value: The starting value for the accumulator.
+        array: Array of values to scan.
+        lambda_func: Function taking (accumulator, current_value) and returning new accumulator.
+
+    Returns:
+        List[Any]: Array of each intermediate accumulated value.
+
+    Raises:
+        ValueError: If lambda_func is not callable.
+
+    Example:
+        >>> SCAN(0, [1, 2, 3, 4, 5], lambda acc, x: acc + x)
+        [1, 3, 6, 10, 15]
+        >>> SCAN(1, [2, 3, 4], lambda acc, x: acc * x)
+        [2, 6, 24]
+
+    Cost: O(n) where n is the number of elements
+    """
+    if not callable(lambda_func):
+        raise ValueError("lambda_func must be a callable")
+
+    accumulator = initial_value
+    result = []
+
+    flat = []
+
+    for item in array:
+
+        if isinstance(item, list):
+
+            for sub in item:
+                flat.append(sub)
+        else:
+            flat.append(item)
+
+    for value in flat:
+        accumulator = lambda_func(accumulator, value)
+        result.append(accumulator)
+
     return result

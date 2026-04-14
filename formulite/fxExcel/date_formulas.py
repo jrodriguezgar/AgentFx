@@ -1,4 +1,4 @@
-"""Excel-style date functions.
+﻿"""Excel-style date functions.
 
 This module provides Excel-compatible date and time functions for Python.
 All functions follow Excel's naming conventions and behaviors, including
@@ -7,6 +7,25 @@ Excel's serial number date system (days since December 30, 1899).
 
 from datetime import datetime, timedelta
 from typing import Union, Optional, List
+
+from formulite.fxDate.date_convertions import (
+    date_to_excel_serial as _core_date_to_excel_serial,
+    time_to_day_fraction as _core_time_to_day_fraction,
+)
+from formulite.fxDate.date_operations import (
+    add_months as _core_add_months,
+    days_360 as _core_days_360,
+    days_between as _core_days_between,
+    datedif as _core_datedif,
+    end_of_month_offset as _core_end_of_month_offset,
+    iso_week_number as _core_iso_week_number,
+    networkdays as _core_networkdays,
+    networkdays_intl as _core_networkdays_intl,
+    week_number as _core_week_number,
+    workday as _core_workday,
+    workday_intl as _core_workday_intl,
+    year_fraction as _core_year_fraction,
+)
 
 
 def DAYS(end_date: datetime, start_date: datetime) -> int:
@@ -36,7 +55,7 @@ def DAYS(end_date: datetime, start_date: datetime) -> int:
     
     Cost: O(1)
     """
-    return (end_date - start_date).days
+    return _core_days_between(start_date, end_date)
 
 
 def DAYS360(start_date: datetime, end_date: datetime, method: bool = False) -> int:
@@ -68,15 +87,7 @@ def DAYS360(start_date: datetime, end_date: datetime, method: bool = False) -> i
     
     Cost: O(1)
     """
-    if method:  # European method
-        day1 = min(start_date.day, 30)
-        day2 = min(end_date.day, 30)
-    else:  # US method
-        day1 = start_date.day if start_date.day < 31 else 30
-        day2 = end_date.day if end_date.day < 31 else 30
-        if end_date.day == 31 and start_date.day >= 30:
-            day2 = 30
-    return (end_date.year - start_date.year) * 360 + (end_date.month - start_date.month) * 30 + (day2 - day1)
+    return _core_days_360(start_date, end_date, method='eu' if method else 'us')
 
 
 def NETWORKDAYS(start_date: datetime, end_date: datetime, holidays: Optional[List[datetime]] = None) -> int:
@@ -109,14 +120,7 @@ def NETWORKDAYS(start_date: datetime, end_date: datetime, holidays: Optional[Lis
     
     Cost: O(n) where n is the number of days between dates
     """
-    holidays = holidays or []
-    days = 0
-    current = start_date
-    while current <= end_date:
-        if current.weekday() < 5 and current not in holidays:
-            days += 1
-        current += timedelta(days=1)
-    return days
+    return _core_networkdays(start_date, end_date, holidays)
 
 
 def NETWORKDAYS_INTL(start_date: datetime, end_date: datetime, weekend: Union[int, str] = 1, holidays: Optional[List[datetime]] = None) -> int:
@@ -149,19 +153,7 @@ def NETWORKDAYS_INTL(start_date: datetime, end_date: datetime, weekend: Union[in
     
     Cost: O(n) where n is the number of days between dates
     """
-    holidays = holidays or []
-    if isinstance(weekend, int):
-        weekend_days = {1: {5, 6}, 2: {6, 0}, 3: {0, 1}, 4: {1, 2}, 5: {2, 3}, 6: {3, 4}, 7: {4, 5}}.get(weekend, {5, 6})
-    else:
-        weekend_days = {int(i) - 1 for i in weekend if i == '1'}
-    
-    days = 0
-    current = start_date
-    while current <= end_date:
-        if current.weekday() not in weekend_days and current not in holidays:
-            days += 1
-        current += timedelta(days=1)
-    return days
+    return _core_networkdays_intl(start_date, end_date, weekend, holidays)
 
 
 def EDATE(start_date: Union[datetime, float], months: int) -> float:
@@ -193,11 +185,8 @@ def EDATE(start_date: Union[datetime, float], months: int) -> float:
     if isinstance(start_date, (int, float)):
         start_date = datetime(1899, 12, 30) + timedelta(days=start_date)
     
-    year = start_date.year + (start_date.month + months - 1) // 12
-    month = (start_date.month + months - 1) % 12 + 1
-    day = min(start_date.day, (datetime(year, month + 1, 1) - timedelta(days=1)).day if month < 12 else 31)
-    
-    return int_date_to_excel_serial(year, month, day)
+    result = _core_add_months(start_date, months)
+    return _int_date_to_excel_serial(result.year, result.month, result.day)
 
 
 def EOMONTH(start_date: Union[datetime, float], months: int) -> float:
@@ -229,11 +218,9 @@ def EOMONTH(start_date: Union[datetime, float], months: int) -> float:
     if isinstance(start_date, (int, float)):
         start_date = datetime(1899, 12, 30) + timedelta(days=start_date)
     
-    year = start_date.year + (start_date.month + months - 1) // 12
-    month = (start_date.month + months - 1) % 12 + 1
-    day = (datetime(year, month + 1, 1) - timedelta(days=1)).day if month < 12 else 31
+    result = _core_end_of_month_offset(start_date, months)
     
-    return int_date_to_excel_serial(year, month, day)
+    return _int_date_to_excel_serial(result.year, result.month, result.day)
 
 
 def YEARFRAC(start_date: datetime, end_date: datetime, basis: int = 0) -> float:
@@ -264,14 +251,7 @@ def YEARFRAC(start_date: datetime, end_date: datetime, basis: int = 0) -> float:
     
     Cost: O(1)
     """
-    days = DAYS(end_date, start_date)
-    if basis == 0:  # US 30/360
-        days = DAYS360(start_date, end_date)
-        year_days = 360
-    else:  # Actual/Actual
-        year_days = 365.25 if start_date.year != end_date.year else (366 if start_date.year % 4 == 0 else 365)
-    
-    return days / year_days
+    return _core_year_fraction(start_date, end_date, basis)
 
 
 def ISOWEEKNUM(date: datetime) -> int:
@@ -297,20 +277,26 @@ def ISOWEEKNUM(date: datetime) -> int:
     
     Cost: O(1)
     """
-    return date.isocalendar()[1]
+    return _core_iso_week_number(date)
 
 
 def DATEDIF(start_date: datetime, end_date: datetime, unit: str) -> int:
-    """Calculates the difference between dates in days, months, or years.
+    """Calculates the difference between dates in various units.
     
     Description:
         Equivalent to Excel's DATEDIF function. Calculates the difference between
-        two dates in complete years, months, or days.
+        two dates in complete years, months, days, or partial combinations.
     
     Args:
         start_date (datetime): The start date.
         end_date (datetime): The end date.
-        unit (str): Unit to return ('Y' for years, 'M' for months, 'D' for days).
+        unit (str): Unit to return:
+            - ``'Y'``  â€” complete years between the dates.
+            - ``'M'``  â€” complete months between the dates.
+            - ``'D'``  â€” total days between the dates.
+            - ``'MD'`` â€” days difference ignoring months and years.
+            - ``'YM'`` â€” months difference ignoring years.
+            - ``'YD'`` â€” days difference ignoring years.
     
     Returns:
         int: The difference in the specified unit.
@@ -319,22 +305,19 @@ def DATEDIF(start_date: datetime, end_date: datetime, unit: str) -> int:
         >>> from datetime import datetime
         >>> from formulite.fxExcel.date_formulas import DATEDIF
         >>> start = datetime(2020, 1, 15)
-        >>> end = datetime(2025, 1, 14)
-        >>> DATEDIF(start, end, "Y")  # Years
-        4
-        >>> DATEDIF(start, end, "M")  # Months
-        59
-        >>> DATEDIF(start, end, "D")  # Days
-        1825
+        >>> end = datetime(2025, 3, 20)
+        >>> DATEDIF(start, end, "Y")
+        5
+        >>> DATEDIF(start, end, "MD")
+        5
+        >>> DATEDIF(start, end, "YM")
+        2
+        >>> DATEDIF(start, end, "YD")
+        64
     
     Cost: O(1)
     """
-    if unit == "Y":
-        return end_date.year - start_date.year - (1 if (end_date.month, end_date.day) < (start_date.month, start_date.day) else 0)
-    elif unit == "M":
-        return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month - (1 if end_date.day < start_date.day else 0)
-    else:  # D
-        return (end_date - start_date).days
+    return _core_datedif(start_date, end_date, unit)
 
 
 def TIMEVALUE(time_text: str) -> float:
@@ -359,8 +342,7 @@ def TIMEVALUE(time_text: str) -> float:
     
     Cost: O(1)
     """
-    t = datetime.strptime(time_text, "%H:%M:%S")
-    return time_to_excel_serial(t.hour, t.minute, t.second)
+    return _core_time_to_day_fraction(time_text)
 
 
 def WEEKNUM(serial_number: Union[float, datetime], return_type: int = 1) -> int:
@@ -392,9 +374,8 @@ def WEEKNUM(serial_number: Union[float, datetime], return_type: int = 1) -> int:
         dt = datetime(1899, 12, 30) + timedelta(days=serial_number)
     else:
         dt = serial_number
-    if return_type == 21:
-        return ISOWEEKNUM(dt)
-    return dt.isocalendar()[1]
+
+    return _core_week_number(dt, system=21 if return_type == 21 else 1)
 
 
 def WORKDAY(start_date: Union[float, datetime], days: int, holidays: Optional[List[datetime]] = None) -> float:
@@ -424,21 +405,7 @@ def WORKDAY(start_date: Union[float, datetime], days: int, holidays: Optional[Li
     
     Cost: O(n) where n is the number of days
     """
-    holidays = holidays or []
-    if isinstance(start_date, float):
-        start_date = datetime(1899, 12, 30) + timedelta(days=start_date)
-    
-    count = 0
-    current = start_date
-    step = 1 if days >= 0 else -1
-    days = abs(days)
-    
-    while count < days:
-        current += timedelta(days=step)
-        if current.weekday() < 5 and current not in holidays:
-            count += 1
-    
-    return int_date_to_excel_serial(current.year, current.month, current.day)
+    return _core_workday(start_date, days, holidays)
 
 
 def WORKDAY_INTL(start_date: Union[float, datetime], days: int, weekend: Union[int, str] = 1, holidays: Optional[List[datetime]] = None) -> float:
@@ -469,29 +436,10 @@ def WORKDAY_INTL(start_date: Union[float, datetime], days: int, weekend: Union[i
     
     Cost: O(n) where n is the number of days
     """
-    holidays = holidays or []
-    if isinstance(start_date, float):
-        start_date = datetime(1899, 12, 30) + timedelta(days=start_date)
-    
-    if isinstance(weekend, int):
-        weekend_days = {1: {5, 6}, 2: {6, 0}, 3: {0, 1}, 4: {1, 2}, 5: {2, 3}, 6: {3, 4}, 7: {4, 5}}.get(weekend, {5, 6})
-    else:
-        weekend_days = {int(i) - 1 for i in weekend if i == '1'}
-    
-    count = 0
-    current = start_date
-    step = 1 if days >= 0 else -1
-    days = abs(days)
-    
-    while count < days:
-        current += timedelta(days=step)
-        if current.weekday() not in weekend_days and current not in holidays:
-            count += 1
-    
-    return int_date_to_excel_serial(current.year, current.month, current.day)
+    return _core_workday_intl(start_date, days, weekend, holidays)
 
 
-def excel_serial_to_year(serial_number: Union[float, datetime]) -> int:
+def _excel_serial_to_year(serial_number: Union[float, datetime]) -> int:
     """Extracts the year from an Excel-style serial number or a datetime object.
     equivalent to Excel's YEAR function.
 
@@ -511,9 +459,9 @@ def excel_serial_to_year(serial_number: Union[float, datetime]) -> int:
         TypeError: If 'serial_number' is not a float or a datetime object.
 
     Example:
-        >>> excel_serial_to_year(44361.0) # Represents June 15, 2021
+        >>> _excel_serial_to_year(44361.0) # Represents June 15, 2021
         2021
-        >>> excel_serial_to_year(datetime(2023, 10, 26))
+        >>> _excel_serial_to_year(datetime(2023, 10, 26))
         2023
     
     Cost: O(1)
@@ -532,7 +480,7 @@ def excel_serial_to_year(serial_number: Union[float, datetime]) -> int:
     return date_object.year
 
 
-def excel_serial_to__month(serial_number: Union[float, datetime]) -> int:
+def _excel_serial_to_month(serial_number: Union[float, datetime]) -> int:
     """Extracts the month from an Excel-style serial number or a datetime object.
     Equivalent to Excel's MONTH function.
 
@@ -553,9 +501,9 @@ def excel_serial_to__month(serial_number: Union[float, datetime]) -> int:
 
     Example:
         >>> # Assuming serial_number 44361.0 corresponds to June 15, 2021
-        >>> excel_serial_to__month(44361.0)
+        >>> _excel_serial_to_month(44361.0)
         6
-        >>> excel_serial_to__month(datetime(2023, 10, 26))
+        >>> _excel_serial_to_month(datetime(2023, 10, 26))
         10
     
     Cost: O(1)
@@ -574,7 +522,7 @@ def excel_serial_to__month(serial_number: Union[float, datetime]) -> int:
     return date_object.month
 
 
-def excel_serial_to_weekday(serial_number: Union[float, datetime], return_type: int = 1) -> int:
+def _excel_serial_to_weekday(serial_number: Union[float, datetime], return_type: int = 1) -> int:
     """Converts a serial number or datetime object to the day of the week.
     Equivalent to Excel's WEEKDAY function.
 
@@ -603,11 +551,11 @@ def excel_serial_to_weekday(serial_number: Union[float, datetime], return_type: 
 
     Example:
         >>> # Assuming serial_number 44361.0 corresponds to Tuesday, June 15, 2021
-        >>> excel_serial_to_weekday(44361.0, return_type=1)
+        >>> _excel_serial_to_weekday(44361.0, return_type=1)
         3
-        >>> excel_serial_to_weekday(datetime(2023, 10, 26), return_type=2) # 2023-10-26 was a Thursday
+        >>> _excel_serial_to_weekday(datetime(2023, 10, 26), return_type=2) # 2023-10-26 was a Thursday
         4
-        >>> excel_serial_to_weekday(datetime(2023, 10, 29), return_type=3) # 2023-10-29 was a Sunday
+        >>> _excel_serial_to_weekday(datetime(2023, 10, 29), return_type=3) # 2023-10-29 was a Sunday
         6
     
     Cost: O(1)
@@ -644,7 +592,7 @@ def excel_serial_to_weekday(serial_number: Union[float, datetime], return_type: 
         raise ValueError("Invalid 'return_type'. Must be 1, 2, or 3.")
     
 
-def excel_serial_to_day(serial_number: Union[int, float, datetime]) -> int:
+def _excel_serial_to_day(serial_number: Union[int, float, datetime]) -> int:
     """Converts a serial number or datetime object into the day of the month.
     Equivalent to Excel's DAY function.
 
@@ -665,9 +613,9 @@ def excel_serial_to_day(serial_number: Union[int, float, datetime]) -> int:
         TypeError: If the input 'serial_number' is not an int, float, or datetime object.
 
     Example:
-        >>> excel_serial_to_day(44361) # Equivalent to '2021-06-15'
+        >>> _excel_serial_to_day(44361) # Equivalent to '2021-06-15'
         15
-        >>> excel_serial_to_day(datetime(2023, 10, 26))
+        >>> _excel_serial_to_day(datetime(2023, 10, 26))
         26
     
     Cost: O(1)
@@ -686,7 +634,7 @@ def excel_serial_to_day(serial_number: Union[int, float, datetime]) -> int:
     return date_object.day
 
 
-def excel_serial_to_hour(serial_number: Union[float, datetime]) -> int:
+def _excel_serial_to_hour(serial_number: Union[float, datetime]) -> int:
     """Extracts the hour component from an Excel-style serial number or a datetime object.
     Equivalent to Excel's HOUR function.
 
@@ -707,9 +655,9 @@ def excel_serial_to_hour(serial_number: Union[float, datetime]) -> int:
 
     Example:
         >>> # Assuming serial_number 44361.771354166667 represents 2021-06-15 18:30:45
-        >>> excel_serial_to_hour(44361.771354166667)
+        >>> _excel_serial_to_hour(44361.771354166667)
         18
-        >>> excel_serial_to_hour(datetime(2023, 10, 26, 9, 15, 30))
+        >>> _excel_serial_to_hour(datetime(2023, 10, 26, 9, 15, 30))
         9
     
     Cost: O(1)
@@ -728,7 +676,7 @@ def excel_serial_to_hour(serial_number: Union[float, datetime]) -> int:
     return date_time_object.hour
 
 
-def excel_serial_to_minute(serial_number: Union[float, datetime]) -> int:
+def _excel_serial_to_minute(serial_number: Union[float, datetime]) -> int:
     """Extracts the minute component from an Excel-style serial number or a datetime object.
     Equivalent to Excel's MINUTE function.
 
@@ -749,9 +697,9 @@ def excel_serial_to_minute(serial_number: Union[float, datetime]) -> int:
 
     Example:
         >>> # Assuming serial_number 44361.771354166667 represents 2021-06-15 18:30:45
-        >>> excel_serial_to_minute(44361.771354166667)
+        >>> _excel_serial_to_minute(44361.771354166667)
         30
-        >>> excel_serial_to_minute(datetime(2023, 10, 26, 15, 45, 10))
+        >>> _excel_serial_to_minute(datetime(2023, 10, 26, 15, 45, 10))
         45
     
     Cost: O(1)
@@ -770,7 +718,7 @@ def excel_serial_to_minute(serial_number: Union[float, datetime]) -> int:
     return date_time_object.minute
 
 
-def excel_serial_to_second(serial_number: Union[float, datetime]) -> int:
+def _excel_serial_to_second(serial_number: Union[float, datetime]) -> int:
     """Extracts the second component from an Excel-style serial number or a datetime object.
     Equivalent to Excel's SECOND function.
 
@@ -790,9 +738,9 @@ def excel_serial_to_second(serial_number: Union[float, datetime]) -> int:
         TypeError: If 'serial_number' is not a float or a datetime object.
 
     Example:
-        >>> excel_serial_to_second(44361.771354166667) # Represents 2021-06-15 18:30:45
+        >>> _excel_serial_to_second(44361.771354166667) # Represents 2021-06-15 18:30:45
         45
-        >>> excel_serial_to_second(datetime(2023, 10, 26, 15, 30, 10))
+        >>> _excel_serial_to_second(datetime(2023, 10, 26, 15, 30, 10))
         10
     
     Cost: O(1)
@@ -811,7 +759,7 @@ def excel_serial_to_second(serial_number: Union[float, datetime]) -> int:
     return date_time_object.second
 
 
-def int_date_to_excel_serial(year: int, month: int, day: int) -> float:
+def _int_date_to_excel_serial(year: int, month: int, day: int) -> float:
     """Converts a given date into its Excel serial number equivalent.
     Equivalent to Excel's DATE function.
 
@@ -834,9 +782,9 @@ def int_date_to_excel_serial(year: int, month: int, day: int) -> float:
         ValueError: If the provided year, month, or day form an invalid date.
 
     Example:
-        >>> int_date_to_excel_serial(2023, 10, 26)
+        >>> _int_date_to_excel_serial(2023, 10, 26)
         45227.0
-        >>> int_date_to_excel_serial(1900, 1, 1) # Excel's day 1
+        >>> _int_date_to_excel_serial(1900, 1, 1) # Excel's day 1
         1.0
     
     Cost: O(1)
@@ -859,7 +807,7 @@ def int_date_to_excel_serial(year: int, month: int, day: int) -> float:
     return serial_number
 
 
-def date_to_excel_serial(date_input: Union[str, datetime]) -> float:
+def _date_to_excel_serial(date_input: Union[str, datetime]) -> float:
     """Converts a date, provided as a text string or a datetime object,
     into its Excel serial number equivalent.
     Equivalent to Excel's DATEVALUE function.
@@ -884,41 +832,20 @@ def date_to_excel_serial(date_input: Union[str, datetime]) -> float:
         TypeError: If 'date_input' is neither a string nor a datetime object.
 
     Example:
-        >>> date_to_excel_serial("15/06/2021")
+        >>> _date_to_excel_serial("15/06/2021")
         44361.0
         >>> from datetime import datetime
-        >>> date_to_excel_serial(datetime(2023, 10, 26))
+        >>> _date_to_excel_serial(datetime(2023, 10, 26))
         45227.0
-        >>> date_to_excel_serial("01/01/1900") # Excel's day 1
+        >>> _date_to_excel_serial("01/01/1900") # Excel's day 1
         1.0
     
     Cost: O(1)
     """
-    # Define Excel's epoch date.
-    # Excel's date system effectively starts from December 30, 1899.
-    excel_epoch = datetime(1899, 12, 30)
-
-    # Determine the type of the input and convert it to a datetime object.
-    if isinstance(date_input, str):
-        # If it's a string, parse it from the "DD/MM/YYYY" format.
-        # This will raise a ValueError if the format is incorrect or the date is invalid.
-        parsed_date = datetime.strptime(date_input, "%d/%m/%Y")
-    elif isinstance(date_input, datetime):
-        # If it's already a datetime object, use it directly.
-        parsed_date = date_input
-    else:
-        # Raise an error for any other unsupported input types.
-        raise TypeError("Input 'date_input' must be a string in 'DD/MM/YYYY' format or a datetime object.")
-
-    # Calculate the difference in days from the Excel epoch.
-    # The .days attribute gives the whole number of days.
-    time_difference = parsed_date - excel_epoch
-    serial_number = float(time_difference.days)
-
-    return serial_number
+    return _core_date_to_excel_serial(date_input)
 
 
-def time_to_excel_serial(hour: int, minute: int, second: int) -> float:
+def _time_to_excel_serial(hour: int, minute: int, second: int) -> float:
     """Converts a given time into its Excel serial number equivalent.
     Equivalent to Excel's TIME function.
 
@@ -940,11 +867,11 @@ def time_to_excel_serial(hour: int, minute: int, second: int) -> float:
                     their valid ranges.
 
     Example:
-        >>> time_to_excel_serial(12, 0, 0) # 12:00 PM
+        >>> _time_to_excel_serial(12, 0, 0) # 12:00 PM
         0.5
-        >>> time_to_excel_serial(6, 0, 0)  # 6:00 AM
+        >>> _time_to_excel_serial(6, 0, 0)  # 6:00 AM
         0.25
-        >>> time_to_excel_serial(18, 30, 45) # 6:30:45 PM
+        >>> _time_to_excel_serial(18, 30, 45) # 6:30:45 PM
         0.7713541666666667
     
     Cost: O(1)
@@ -969,7 +896,7 @@ def time_to_excel_serial(hour: int, minute: int, second: int) -> float:
     return serial_time
 
 
-def now_to_excel_serial() -> float:
+def _now_to_excel_serial() -> float:
     """Returns the current date and time as an Excel serial number.
     
     Description:
@@ -982,9 +909,9 @@ def now_to_excel_serial() -> float:
         float: The current date and time as an Excel serial number.
 
     Usage Example:
-        >>> from formulite.fxDate.date_excel import now_to_excel_serial
+        >>> from formulite.fxDate.date_excel import _now_to_excel_serial
         >>> # Output varies based on when called
-        >>> now_to_excel_serial()
+        >>> _now_to_excel_serial()
         45811.88552199074
     
     Cost: O(1)
@@ -1027,7 +954,7 @@ def DATE(year: int, month: int, day: int) -> float:
     
     **Cost:** O(1)
     """
-    return int_date_to_excel_serial(year, month, day)
+    return _int_date_to_excel_serial(year, month, day)
 
 
 def DATEVALUE(date_text: str) -> float:
@@ -1056,7 +983,7 @@ def DATEVALUE(date_text: str) -> float:
     
     **Cost:** O(1)
     """
-    return date_to_excel_serial(date_text)
+    return _date_to_excel_serial(date_text)
 
 
 def DAY(serial_number: Union[float, datetime]) -> int:
@@ -1085,7 +1012,7 @@ def DAY(serial_number: Union[float, datetime]) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to_day(serial_number)
+    return _excel_serial_to_day(serial_number)
 
 
 def HOUR(serial_number: Union[float, datetime]) -> int:
@@ -1113,7 +1040,7 @@ def HOUR(serial_number: Union[float, datetime]) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to_hour(serial_number)
+    return _excel_serial_to_hour(serial_number)
 
 
 def MINUTE(serial_number: Union[float, datetime]) -> int:
@@ -1142,7 +1069,7 @@ def MINUTE(serial_number: Union[float, datetime]) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to_minute(serial_number)
+    return _excel_serial_to_minute(serial_number)
 
 
 def MONTH(serial_number: Union[float, datetime]) -> int:
@@ -1171,7 +1098,7 @@ def MONTH(serial_number: Union[float, datetime]) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to__month(serial_number)
+    return _excel_serial_to_month(serial_number)
 
 
 def SECOND(serial_number: Union[float, datetime]) -> int:
@@ -1200,7 +1127,7 @@ def SECOND(serial_number: Union[float, datetime]) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to_second(serial_number)
+    return _excel_serial_to_second(serial_number)
 
 
 def TIME(hour: int, minute: int, second: int) -> float:
@@ -1233,7 +1160,7 @@ def TIME(hour: int, minute: int, second: int) -> float:
     
     **Cost:** O(1)
     """
-    return time_to_excel_serial(hour, minute, second)
+    return _time_to_excel_serial(hour, minute, second)
 
 
 def TODAY() -> float:
@@ -1258,7 +1185,7 @@ def TODAY() -> float:
     **Cost:** O(1)
     """
     today = datetime.now().date()
-    return int_date_to_excel_serial(today.year, today.month, today.day)
+    return _int_date_to_excel_serial(today.year, today.month, today.day)
 
 
 def NOW() -> float:
@@ -1283,7 +1210,7 @@ def NOW() -> float:
     
     **Cost:** O(1)
     """
-    return now_to_excel_serial()
+    return _now_to_excel_serial()
 
 
 def WEEKDAY(serial_number: Union[float, datetime], return_type: int = 1) -> int:
@@ -1320,13 +1247,13 @@ def WEEKDAY(serial_number: Union[float, datetime], return_type: int = 1) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to_weekday(serial_number, return_type)
+    return _excel_serial_to_weekday(serial_number, return_type)
 
 
 def YEAR(serial_number: Union[float, datetime]) -> int:
     """
     Converts an Excel serial number to a year value.
-    Excel/Spanish name: YEAR (AÑO in Spanish)
+    Excel/Spanish name: YEAR (AÃ‘O in Spanish)
     
     **Description:**
     Extracts the year component from an Excel serial number or datetime object.
@@ -1349,4 +1276,5 @@ def YEAR(serial_number: Union[float, datetime]) -> int:
     
     **Cost:** O(1)
     """
-    return excel_serial_to_year(serial_number)
+    return _excel_serial_to_year(serial_number)
+

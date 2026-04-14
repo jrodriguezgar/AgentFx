@@ -6,9 +6,11 @@ dates, Windows FILETIME, and Active Directory formats. All functions handle time
 and timezone-naive datetime objects appropriately.
 """
 
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, time, timezone, timedelta
 from typing import Union, Optional, Tuple, List
+import calendar
 import zoneinfo
+import re
 
     
 def datetime_to_date(datetime_obj: datetime) -> date:
@@ -392,83 +394,6 @@ def list_available_timezones() -> List[str]:
     # zoneinfo.available_timezones() returns a set of all available timezone keys.
     # We convert it to a list and sort it for consistent, readable output.
     return sorted(list(zoneinfo.available_timezones()))
-
-
-def convert_timezone(date_input: datetime, target_tz_name: str) -> datetime:
-    """Converts a timezone-aware datetime object from its current timezone to a target timezone.
-
-    This function is crucial for ensuring that date and time information is displayed
-    and processed correctly across different geographical regions and their respective
-    timezones. The input datetime MUST be timezone-aware.
-
-    Args:
-        date_input (datetime): The timezone-aware datetime object to convert.
-                                It must have `tzinfo` set (e.g., `datetime.now(timezone.utc)`).
-        target_tz_name (str): The name of the target timezone (e.g., 'America/New_York',
-                              'Europe/Madrid', 'Asia/Tokyo', 'UTC'). These are
-                              typically IANA timezone database names.
-
-    Returns:
-        datetime: A new datetime object representing the same moment in time,
-                  but localized to the `target_tz_name`.
-
-    Raises:
-        TypeError: If `date_input` is not a datetime object.
-        ValueError: If `date_input` is a naive datetime object (missing timezone info).
-        zoneinfo.ZoneInfoNotFoundError: If `target_tz_name` is not a recognized timezone
-                                        in the system's timezone database.
-
-    Example:
-        >>> from datetime import datetime
-        >>> import zoneinfo
-
-        >>> # 1. Define a UTC datetime
-        >>> utc_now = datetime(2025, 6, 11, 1, 1, 45, tzinfo=timezone.utc)
-        >>> print(f"Original UTC: {utc_now}")
-        Original UTC: 2025-06-11 01:01:45+00:00
-
-        >>> # 2. Convert to Madrid Time (CEST = UTC+2)
-        >>> madrid_time = convert_timezone(utc_now, 'Europe/Madrid')
-        >>> print(f"In Madrid: {madrid_time}")
-        In Madrid: 2025-06-11 03:01:45+02:00
-
-        >>> # 3. Convert to New York Time (EDT = UTC-4 in summer)
-        >>> ny_time = convert_timezone(utc_now, 'America/New_York')
-        >>> print(f"In New York: {ny_time}")
-        In New York: 2025-06-10 21:01:45-04:00
-
-        >>> # Example of trying to convert a naive datetime (will raise ValueError)
-        >>> naive_dt = datetime(2025, 6, 11, 10, 0, 0)
-        >>> try:
-        >>>     convert_timezone(naive_dt, 'Europe/London')
-        >>> except ValueError as e:
-        >>>     print(f"Error: {e}")
-        # Expected output: Error: Input datetime object must be timezone-aware.
-    
-    Cost: O(1)
-    """
-    if not isinstance(date_input, datetime):
-        raise TypeError("Input 'date_input' must be a datetime object.")
-
-    # Crucial check: Ensure the input datetime is timezone-aware.
-    if date_input.tzinfo is None:
-        raise ValueError("Input datetime object must be timezone-aware (have tzinfo set) for conversion.")
-
-    # 1. Get the target timezone object
-    try:
-        target_tz = zoneinfo.ZoneInfo(target_tz_name)
-    except zoneinfo.ZoneInfoNotFoundError:
-        # Re-raise with a more informative message if the timezone name is not found.
-        raise zoneinfo.ZoneInfoNotFoundError(
-            f"Timezone '{target_tz_name}' not found. "
-            "Please use a valid IANA timezone name (e.g., 'America/New_York', 'Europe/London')."
-        )
-
-    # 2. Convert the datetime object to the target timezone
-    # The .astimezone() method performs the conversion correctly.
-    # If the input is already in UTC, this will convert it to the target_tz.
-    # If the input is in another timezone, it will first convert it to UTC implicitly, then to target_tz.
-    return date_input.astimezone(target_tz)
 
 
 def utc_to_datetime(
@@ -1199,44 +1124,6 @@ def ad_format_to_datetime(p_ad_date_str: str) -> datetime:
                          f"Asegúrate de que los componentes numéricos sean válidos.")
 
 
-def datetime_to_unix_timestamp(dt: datetime) -> float:
-    """
-    Converts a datetime object to its corresponding UNIX timestamp (float).
-    The timestamp represents seconds elapsed since the Epoch (January 1, 1970, 00:00:00 UTC).
-
-    Args:
-        dt (datetime): The datetime object to convert.
-
-    Returns:
-        float: The UNIX timestamp as a floating-point number.
-
-    Raises:
-        TypeError: If 'dt' is not a datetime object.
-
-    Example:
-        >>> from datetime import datetime, timezone
-        >>> # Using a specific date and time (ensuring it's UTC or aware)
-        >>> dt_utc = datetime(2025, 6, 11, 10, 27, 5, 0, tzinfo=timezone.utc)
-        >>> datetime_to_unix_timestamp(dt_utc)
-        1718092025.0
-
-        >>> # Using current date and time (UTC recommended for timestamps)
-        >>> import time
-        >>> current_dt_utc = datetime.now(timezone.utc)
-        >>> current_timestamp = datetime_to_unix_timestamp(current_dt_utc)
-        >>> # Compare with time.time() to verify (time.time() returns float seconds since epoch)
-        >>> # abs(current_timestamp - time.time()) < 1.0 # Should be True
-
-    **Cost:** O(1), direct timestamp calculation.
-    """
-    if not isinstance(dt, datetime):
-        raise TypeError("'dt' must be a datetime object.")
-    
-    # The .timestamp() method correctly handles timezones if the datetime is "aware".
-    # If it's "naive" (without tzinfo), it assumes system local time.
-    return dt.timestamp()
-
-
 def unix_timestamp_to_datetime(timestamp: Union[int, float], tz_info: Optional[str] = None) -> datetime:
     """
     Converts a UNIX timestamp (seconds since the Epoch) to a datetime object.
@@ -1280,8 +1167,8 @@ def unix_timestamp_to_datetime(timestamp: Union[int, float], tz_info: Optional[s
             target_tz = zoneinfo.ZoneInfo(tz_info)
         except ImportError:
             # Fallback for Python < 3.9 or if zoneinfo is not available
-            print("Warning: 'zoneinfo' module not found. Timezone awareness might be limited.")
-            from datetime import timedelta, tzinfo
+            import warnings
+            warnings.warn("'zoneinfo' module not found. Timezone awareness might be limited.", stacklevel=2)
             if tz_info.upper() == 'UTC':
                 target_tz = timezone.utc
             else:
@@ -1297,3 +1184,896 @@ def unix_timestamp_to_datetime(timestamp: Union[int, float], tz_info: Optional[s
     else:
         # If no tz_info, return a naive datetime from local timestamp
         return datetime.fromtimestamp(timestamp)
+
+
+def integer_to_datetime(yyyymmdd: int) -> datetime:
+    """Converts a YYYYMMDD integer back to a datetime object.
+
+    Description:
+        Inverse of ``datetime_to_integer``. Parses an integer in YYYYMMDD
+        format and returns the corresponding datetime at midnight.
+
+    Args:
+        yyyymmdd: Date encoded as integer (e.g. 20260103 → 2026-01-03).
+
+    Returns:
+        datetime: The parsed date at 00:00:00.
+
+    Raises:
+        TypeError: If *yyyymmdd* is not an integer.
+        ValueError: If the integer does not represent a valid date.
+
+    Example:
+        >>> integer_to_datetime(20260103)
+        datetime.datetime(2026, 1, 3, 0, 0)
+        >>> integer_to_datetime(20240229)
+        datetime.datetime(2024, 2, 29, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(yyyymmdd, int):
+        raise TypeError("Input 'yyyymmdd' must be an integer.")
+
+    year = yyyymmdd // 10000
+    month = (yyyymmdd % 10000) // 100
+    day = yyyymmdd % 100
+
+    try:
+        return datetime(year, month, day)
+    except ValueError as exc:
+        raise ValueError(
+            f"Integer {yyyymmdd} does not represent a valid date "
+            f"(year={year}, month={month}, day={day})."
+        ) from exc
+
+
+def convert_timezone(
+    dt: datetime,
+    from_tz: str,
+    to_tz: str,
+) -> datetime:
+    """Converts a datetime between two IANA timezones.
+
+    If the input datetime is naive it is assumed to belong to ``from_tz``.
+
+    Args:
+        dt: The datetime to convert.
+        from_tz: Source timezone name (e.g. ``"UTC"``, ``"US/Eastern"``).
+        to_tz: Target timezone name (e.g. ``"Europe/Madrid"``).
+
+    Returns:
+        A timezone-aware datetime in the target timezone.
+
+    Raises:
+        TypeError: If dt is not a datetime object.
+
+    Example:
+        >>> from datetime import datetime
+        >>> convert_timezone(datetime(2026, 4, 4, 12, 0), "UTC", "Europe/Madrid")
+        datetime.datetime(2026, 4, 4, 14, 0, tzinfo=zoneinfo.ZoneInfo(key='Europe/Madrid'))
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt, datetime):
+        raise TypeError("Input must be a datetime object.")
+
+    source = zoneinfo.ZoneInfo(from_tz)
+    target = zoneinfo.ZoneInfo(to_tz)
+
+    # Attach source tz if naive
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=source)
+
+    return dt.astimezone(target)
+
+
+_DATE_FORMATS = [
+    "%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d",
+    "%d-%m-%Y", "%m-%d-%Y", "%d.%m.%Y", "%Y.%m.%d",
+    "%B %d, %Y", "%b %d, %Y", "%d %B %Y", "%d %b %Y",
+    "%Y%m%d",
+]
+
+
+def parse_date_flexible(
+    text: str,
+    dayfirst: bool = True,
+) -> Optional[Union[date, datetime]]:
+    """Parses a date string by trying multiple common formats.
+
+    Args:
+        text: The date string to parse.
+        dayfirst: When ambiguous, treat the first number as the day.
+
+    Returns:
+        A ``date`` or ``datetime`` object, or ``None`` if no format matches.
+
+    Example:
+        >>> parse_date_flexible("15/01/2026")
+        datetime.datetime(2026, 1, 15, 0, 0)
+        >>> parse_date_flexible("2026-04-04")
+        datetime.datetime(2026, 4, 4, 0, 0)
+
+    Complexity: O(f) where f is the number of formats tried.
+    """
+    if not isinstance(text, str) or not text.strip():
+        return None
+
+    text = text.strip()
+    formats = list(_DATE_FORMATS)
+
+    if not dayfirst:
+        # prioritise month-first patterns
+        formats = [f for f in formats if "%m" in f.split("%d")[0]] + \
+                  [f for f in formats if "%m" not in f.split("%d")[0]]
+
+    for fmt in formats:
+
+        try:
+            return datetime.strptime(text, fmt)
+        except ValueError:
+            continue
+
+    return None
+
+
+_MONTHS_EN = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+]
+_MONTHS_ES = [
+    "ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sep", "oct", "nov", "dic",
+]
+
+
+def date_to_human_short(
+    dt_value: Union[date, datetime],
+    language: str = "en",
+) -> str:
+    """Formats a date as a short human-readable string.
+
+    Args:
+        dt_value: The date or datetime to format.
+        language: ``"en"`` for ``"Apr 4, 2026"``, ``"es"`` for ``"4 abr. 2026"``.
+
+    Returns:
+        A short formatted date string.
+
+    Example:
+        >>> from datetime import date
+        >>> date_to_human_short(date(2026, 4, 4), "en")
+        'Apr 4, 2026'
+        >>> date_to_human_short(date(2026, 4, 4), "es")
+        '4 abr. 2026'
+
+    Complexity: O(1)
+    """
+    if isinstance(dt_value, datetime):
+        d = dt_value.date()
+    elif isinstance(dt_value, date):
+        d = dt_value
+    else:
+        raise TypeError("dt_value must be a date or datetime.")
+
+    if language == "es":
+        month_name = _MONTHS_ES[d.month - 1]
+        return f"{d.day} {month_name}. {d.year}"
+
+    month_name = _MONTHS_EN[d.month - 1]
+    return f"{month_name} {d.day}, {d.year}"
+
+
+# ---------------------------------------------------------------------------
+# Excel serial, cron, and RFC 2822 conversions
+# ---------------------------------------------------------------------------
+
+# Excel epoch: Jan 1 1900 = serial 1 (with the intentional Lotus 1-2-3 bug
+# that treats 1900 as a leap year, adding an extra day for serials >= 60).
+_EXCEL_EPOCH = date(1899, 12, 30)
+
+
+def datetime_to_cron(dt_input: Union[datetime, date]) -> str:
+    """Convert a datetime to a cron schedule expression.
+
+    Produces a cron string matching the exact minute, hour, day, month.
+    The day-of-week field is ``*`` (any).
+
+    Args:
+        dt_input: Datetime (or date, which defaults to midnight).
+
+    Returns:
+        Cron expression string ``"minute hour day month *"``.
+
+    Example:
+        >>> from datetime import datetime
+        >>> datetime_to_cron(datetime(2025, 6, 15, 14, 30))
+        '30 14 15 6 *'
+
+    Complexity: O(1)
+    """
+
+    if isinstance(dt_input, date) and not isinstance(dt_input, datetime):
+        dt_input = datetime(dt_input.year, dt_input.month, dt_input.day)
+
+    return f"{dt_input.minute} {dt_input.hour} {dt_input.day} {dt_input.month} *"
+
+
+def datetime_to_rfc2822(dt_input: Union[datetime, date]) -> str:
+    """Format a datetime as an RFC 2822 string (email header format).
+
+    Args:
+        dt_input: Datetime or date to format.
+
+    Returns:
+        RFC 2822 formatted string (e.g. ``"Sun, 15 Jun 2025 14:30:00 +0000"``).
+
+    Example:
+        >>> from datetime import datetime
+        >>> datetime_to_rfc2822(datetime(2025, 6, 15, 14, 30, 0))
+        'Sun, 15 Jun 2025 14:30:00 +0000'
+
+    Complexity: O(1)
+    """
+    from email.utils import format_datetime as _fmt
+
+    if isinstance(dt_input, date) and not isinstance(dt_input, datetime):
+        dt_input = datetime(dt_input.year, dt_input.month, dt_input.day,
+                            tzinfo=timezone.utc)
+
+    if dt_input.tzinfo is None:
+        dt_input = dt_input.replace(tzinfo=timezone.utc)
+
+    return _fmt(dt_input)
+
+
+def rfc2822_to_datetime(text: str) -> datetime:
+    """Parse an RFC 2822 date string to a datetime object.
+
+    Args:
+        text: RFC 2822 formatted date string.
+
+    Returns:
+        Timezone-aware datetime.
+
+    Raises:
+        ValueError: If the string cannot be parsed.
+
+    Example:
+        >>> rfc2822_to_datetime('Sun, 15 Jun 2025 14:30:00 +0000')
+        datetime.datetime(2025, 6, 15, 14, 30, tzinfo=datetime.timezone.utc)
+
+    Complexity: O(1)
+    """
+    from email.utils import parsedate_to_datetime as _parse
+
+    try:
+        return _parse(text)
+    except Exception as exc:
+        raise ValueError(f"Cannot parse RFC 2822 date: '{text}'.") from exc
+
+
+def time_to_day_fraction(time_text: str) -> float:
+    """Convert a time string to a day fraction (0.0 – 1.0).
+
+    Parses a time in ``"HH:MM:SS"`` or ``"HH:MM"`` format and returns the
+    proportion of a 24-hour day it represents.  Equivalent to the Excel
+    ``TIMEVALUE`` function.
+
+    Args:
+        time_text: Time string in ``"HH:MM:SS"`` or ``"HH:MM"`` format.
+
+    Returns:
+        Float between 0.0 (inclusive) and 1.0 (exclusive).
+
+    Raises:
+        ValueError: If *time_text* cannot be parsed.
+
+    Example:
+        >>> time_to_day_fraction("12:00:00")
+        0.5
+        >>> time_to_day_fraction("06:00")
+        0.25
+
+    Complexity: O(1)
+    """
+    parts = time_text.strip().split(":")
+
+    if len(parts) == 2:
+        h, m, s = int(parts[0]), int(parts[1]), 0
+    elif len(parts) == 3:
+        h, m, s = int(parts[0]), int(parts[1]), int(parts[2])
+    else:
+        raise ValueError(f"Cannot parse time string: '{time_text}'.")
+
+    total_seconds = h * 3600 + m * 60 + s
+    return total_seconds / 86400.0
+
+
+def unix_epoch_day(d: Union[date, datetime]) -> int:
+    """Returns the ordinal day number since the Unix epoch (1970-01-01 = day 0).
+
+    Args:
+        d: A date or datetime object.
+
+    Returns:
+        Integer day count since 1970-01-01.
+
+    Raises:
+        TypeError: If d is not a date or datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> unix_epoch_day(date(1970, 1, 1))
+        0
+        >>> unix_epoch_day(date(2026, 4, 8))
+        20552
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    dt_date = d.date() if isinstance(d, datetime) else d
+    return (dt_date - date(1970, 1, 1)).days
+
+
+def date_to_excel_timestamp(dt_val: datetime) -> float:
+    """Converts a datetime to an Excel serial number including fractional day.
+
+    Excel serial day 1 = 1900-01-01. The fractional part represents
+    the time of day (e.g. 0.5 = noon).
+
+    Args:
+        dt_val: A datetime object.
+
+    Returns:
+        Excel serial number with fractional day component.
+
+    Raises:
+        TypeError: If dt_val is not a datetime.
+        ValueError: If date is before 1900-01-01.
+
+    Example:
+        >>> from datetime import datetime
+        >>> date_to_excel_timestamp(datetime(2026, 4, 8, 12, 0, 0))
+        46113.5
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt_val, datetime):
+        raise TypeError("dt_val must be a datetime")
+
+    base = date(1899, 12, 30)  # Excel epoch (accounting for Lotus 1-2-3 bug)
+    dt_date = dt_val.date()
+
+    if dt_date < date(1900, 1, 1):
+        raise ValueError("Date must be on or after 1900-01-01")
+
+    day_serial = (dt_date - base).days
+    time_fraction = (
+        dt_val.hour * 3600 + dt_val.minute * 60 + dt_val.second
+    ) / 86400.0
+    return day_serial + time_fraction
+
+
+def time_zone_offset(
+    tz_name: str,
+    dt_val: Union[datetime, None] = None,
+) -> str:
+    """Returns the UTC offset string for a timezone at a given datetime.
+
+    Args:
+        tz_name: IANA timezone name (e.g. ``"Europe/Madrid"``).
+        dt_val: Reference datetime (defaults to now in UTC).
+
+    Returns:
+        UTC offset string like ``"+02:00"`` or ``"-05:00"``.
+
+    Raises:
+        TypeError: If tz_name is not a string.
+        ValueError: If tz_name is not a valid timezone.
+
+    Example:
+        >>> time_zone_offset("Europe/Madrid", datetime(2026, 7, 1))
+        '+02:00'
+
+    Complexity: O(1)
+    """
+    if not isinstance(tz_name, str):
+        raise TypeError("tz_name must be a string")
+
+    try:
+        tz = zoneinfo.ZoneInfo(tz_name)
+    except (KeyError, zoneinfo.ZoneInfoNotFoundError) as exc:
+        raise ValueError(f"Invalid timezone: {tz_name}") from exc
+
+    ref = dt_val or datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
+
+    if ref.tzinfo is None:
+        ref = ref.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+
+    localized = ref.astimezone(tz)
+    offset = localized.utcoffset()
+
+    if offset is None:
+        return "+00:00"
+
+    total_seconds = int(offset.total_seconds())
+    sign = "+" if total_seconds >= 0 else "-"
+    total_seconds = abs(total_seconds)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes = remainder // 60
+    return f"{sign}{hours:02d}:{minutes:02d}"
+
+
+def modified_julian_date(d: Union[date, datetime]) -> float:
+    """Convert a date to Modified Julian Date (MJD).
+
+    MJD = JD − 2400000.5, widely used in satellite tracking and
+    radio astronomy.
+
+    Args:
+        d: Date or datetime to convert.
+
+    Returns:
+        Modified Julian Date as a float.
+
+    Raises:
+        TypeError: If *d* is not a date or datetime.
+
+    Example:
+        >>> modified_julian_date(date(2000, 1, 1))
+        51544.0
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    target = d if isinstance(d, date) and not isinstance(d, datetime) else (d.date() if isinstance(d, datetime) else d)
+
+    # Julian day algorithm (Meeus)
+    y = target.year
+    m = target.month
+    day = target.day
+
+    if m <= 2:
+        y -= 1
+        m += 12
+
+    a = y // 100
+    b = 2 - a + a // 4
+
+    jd = int(365.25 * (y + 4716)) + int(30.6001 * (m + 1)) + day + b - 1524.5
+
+    return jd - 2400000.5
+
+
+def rata_die(d: Union[date, datetime]) -> int:
+    """Convert a date to Rata Die (absolute day number).
+
+    Day 1 in Rata Die = January 1, AD 1 (proleptic Gregorian).
+
+    Args:
+        d: Date or datetime to convert.
+
+    Returns:
+        Rata Die integer.
+
+    Raises:
+        TypeError: If *d* is not a date or datetime.
+
+    Example:
+        >>> rata_die(date(2000, 1, 1))
+        730120
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    target = d.date() if isinstance(d, datetime) else d
+    # date.toordinal() returns proleptic Gregorian ordinal where Jan 1 AD 1 = 1
+    return target.toordinal()
+
+
+def unix_epoch_days(d: Union[date, datetime]) -> int:
+    """Days elapsed since the Unix epoch (1970-01-01).
+
+    Args:
+        d: Date or datetime to convert.
+
+    Returns:
+        Number of days (negative for dates before 1970-01-01).
+
+    Raises:
+        TypeError: If *d* is not a date or datetime.
+
+    Example:
+        >>> unix_epoch_days(date(2000, 1, 1))
+        10957
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    target = d.date() if isinstance(d, datetime) else d
+    epoch = date(1970, 1, 1)
+
+    return (target - epoch).days
+
+
+def time_to_decimal_hours(t: time) -> float:
+    """Converts a ``time`` object to decimal hours.
+
+    Args:
+        t: A ``datetime.time`` instance.
+
+    Returns:
+        Hours as a float (e.g. ``1.5`` for ``01:30``).
+
+    Raises:
+        TypeError: If t is not a ``time`` instance.
+
+    Example:
+        >>> from datetime import time
+        >>> time_to_decimal_hours(time(1, 30))
+        1.5
+
+    Complexity: O(1)
+    """
+    if not isinstance(t, time):
+        raise TypeError("t must be a datetime.time instance")
+
+    return t.hour + t.minute / 60.0 + t.second / 3600.0 + t.microsecond / 3_600_000_000.0
+
+
+def decimal_hours_to_time(hours: float) -> time:
+    """Converts decimal hours to a ``time`` object.
+
+    Args:
+        hours: Decimal hours (e.g. ``1.5``).
+
+    Returns:
+        A ``datetime.time`` instance.
+
+    Raises:
+        TypeError: If hours is not numeric.
+        ValueError: If hours is outside [0, 24).
+
+    Example:
+        >>> decimal_hours_to_time(1.5)
+        datetime.time(1, 30)
+
+    Complexity: O(1)
+    """
+    if not isinstance(hours, (int, float)):
+        raise TypeError("hours must be numeric")
+
+    if hours < 0 or hours >= 24:
+        raise ValueError("hours must be in [0, 24)")
+
+    total_seconds = int(round(hours * 3600))
+    h = total_seconds // 3600
+    m = (total_seconds % 3600) // 60
+    s = total_seconds % 60
+
+    return time(h, m, s)
+
+
+def seconds_to_hms(seconds: int) -> str:
+    """Converts total seconds to an ``H:MM:SS`` string.
+
+    Args:
+        seconds: Non-negative integer of seconds.
+
+    Returns:
+        Formatted string like ``'1:01:01'``.
+
+    Raises:
+        TypeError: If seconds is not an integer.
+        ValueError: If seconds is negative.
+
+    Example:
+        >>> seconds_to_hms(3661)
+        '1:01:01'
+
+    Complexity: O(1)
+    """
+    if not isinstance(seconds, int):
+        raise TypeError("seconds must be an integer")
+
+    if seconds < 0:
+        raise ValueError("seconds must be non-negative")
+
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+
+    return f"{h}:{m:02d}:{s:02d}"
+
+
+def hms_to_seconds(hms: str) -> int:
+    """Parses an ``H:MM:SS`` or ``M:SS`` string to total seconds.
+
+    Args:
+        hms: Duration string (e.g. ``'1:01:01'`` or ``'5:30'``).
+
+    Returns:
+        Total seconds as an integer.
+
+    Raises:
+        TypeError: If hms is not a string.
+        ValueError: If the format cannot be parsed.
+
+    Example:
+        >>> hms_to_seconds("1:01:01")
+        3661
+        >>> hms_to_seconds("5:30")
+        330
+
+    Complexity: O(1)
+    """
+    if not isinstance(hms, str):
+        raise TypeError("hms must be a string")
+
+    parts = hms.strip().split(":")
+
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + int(parts[1])
+
+    raise ValueError(f"Cannot parse '{hms}' — expected H:MM:SS or M:SS")
+
+
+def datetime_to_iso8601(dt: Union[date, datetime]) -> str:
+    """Converts a date or datetime to an ISO 8601 string.
+
+    Description:
+        Returns the ``YYYY-MM-DD`` form for ``date`` objects and
+        ``YYYY-MM-DDTHH:MM:SS`` (with optional timezone) for
+        ``datetime`` objects.
+
+    Args:
+        dt: A ``date`` or ``datetime`` instance.
+
+    Returns:
+        ISO 8601 formatted string.
+
+    Raises:
+        TypeError: If *dt* is not a ``date`` or ``datetime``.
+
+    Usage Example:
+        >>> from datetime import date
+        >>> datetime_to_iso8601(date(2024, 3, 15))
+        '2024-03-15'
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt, (date, datetime)):
+        raise TypeError("dt must be a date or datetime instance")
+
+    return dt.isoformat()
+
+
+def iso8601_to_datetime(text: str) -> Union[date, datetime]:
+    """Parses an ISO 8601 string to a date or datetime object.
+
+    Description:
+        Supports ``YYYY-MM-DD`` (returns ``date``) and
+        ``YYYY-MM-DDTHH:MM:SS[±HH:MM]`` (returns ``datetime``).
+
+    Args:
+        text: The ISO 8601 string.
+
+    Returns:
+        A ``date`` or ``datetime`` object.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* cannot be parsed.
+
+    Usage Example:
+        >>> iso8601_to_datetime("2024-03-15")
+        datetime.date(2024, 3, 15)
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    cleaned = text.strip()
+
+    if "T" in cleaned or " " in cleaned:
+        return datetime.fromisoformat(cleaned)
+
+    return date.fromisoformat(cleaned)
+
+
+def excel_serial_to_date(serial: Union[int, float]) -> date:
+    """Converts an Excel serial date number to a Python date.
+
+    Description:
+        Excel uses a serial number system where 1 = 1900-01-01.
+        This function accounts for the Lotus 1-2-3 leap year bug
+        where serial 60 = 1900-02-29 (a non-existent date) — values
+        above 60 are shifted by one day.
+
+    Args:
+        serial: Excel serial date number (≥ 1).
+
+    Returns:
+        Corresponding ``date`` object.
+
+    Raises:
+        TypeError: If *serial* is not numeric.
+        ValueError: If *serial* < 1 or equals 60 (the bug date).
+
+    Usage Example:
+        >>> excel_serial_to_date(44927)
+        datetime.date(2023, 1, 1)
+
+    Complexity: O(1)
+    """
+    if not isinstance(serial, (int, float)):
+        raise TypeError("serial must be numeric")
+
+    serial_int = int(serial)
+
+    if serial_int < 1:
+        raise ValueError("serial must be >= 1")
+
+    if serial_int == 60:
+        raise ValueError("Serial 60 corresponds to the non-existent 1900-02-29 (Lotus bug)")
+
+    # Excel epoch: serial 1 = 1900-01-01
+    epoch = date(1899, 12, 31)
+
+    if serial_int > 60:
+        # Adjust for the Lotus 1-2-3 bug
+        serial_int -= 1
+
+    return epoch + timedelta(days=serial_int)
+
+
+def date_to_excel_serial(d: Union[date, datetime]) -> int:
+    """Converts a Python date to an Excel serial date number.
+
+    Description:
+        Returns the serial number compatible with Excel's 1900 date
+        system.  Accounts for the Lotus 1-2-3 leap year bug so that
+        round-tripping through ``excel_serial_to_date`` is consistent.
+
+    Args:
+        d: A ``date`` or ``datetime`` instance.
+
+    Returns:
+        Excel serial date number (integer).
+
+    Raises:
+        TypeError: If *d* is not a ``date`` or ``datetime``.
+        ValueError: If *d* is before 1900-01-01.
+
+    Usage Example:
+        >>> from datetime import date
+        >>> date_to_excel_serial(date(2023, 1, 1))
+        44927
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime instance")
+
+    epoch = date(1899, 12, 31)
+
+    if d < date(1900, 1, 1):
+        raise ValueError("Date must be on or after 1900-01-01")
+
+    delta = (d - epoch).days
+
+    # Adjust for the Lotus 1-2-3 bug (serials > 59 are +1)
+    if delta >= 60:
+        delta += 1
+
+    return delta
+
+
+def date_to_iso_week_date(d: Union[date, datetime]) -> str:
+    """Convert a date to an ISO 8601 week date string.
+
+    Description:
+        Returns the date in ``YYYY-Www-D`` format, where ``YYYY`` is the
+        ISO week-numbering year, ``ww`` is the week number (01–53), and
+        ``D`` is the day of the week (1=Monday, 7=Sunday).
+
+    Args:
+        d: A ``date`` or ``datetime`` instance.
+
+    Returns:
+        ISO week date string (e.g. ``'2023-W01-1'``).
+
+    Raises:
+        TypeError: If *d* is not a ``date`` or ``datetime``.
+
+    Usage Example:
+        >>> from datetime import date
+        >>> date_to_iso_week_date(date(2023, 1, 2))
+        '2023-W01-1'
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime instance")
+
+    iso_year, iso_week, iso_day = d.isocalendar()
+
+    return f"{iso_year}-W{iso_week:02d}-{iso_day}"
+
+
+def iso_week_date_to_date(text: str) -> date:
+    """Parse an ISO 8601 week date string to a date object.
+
+    Description:
+        Accepts strings in ``YYYY-Www-D`` format and returns the
+        corresponding ``date``.
+
+    Args:
+        text: The ISO week date string (e.g. ``'2023-W01-1'``).
+
+    Returns:
+        A ``date`` object.
+
+    Raises:
+        TypeError: If *text* is not a string.
+        ValueError: If *text* does not match the expected format or
+            contains invalid week/day numbers.
+
+    Usage Example:
+        >>> iso_week_date_to_date("2023-W01-1")
+        datetime.date(2023, 1, 2)
+
+    Complexity: O(1)
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+
+    m = re.match(r"^(\d{4})-W(\d{2})-(\d)$", text.strip())
+
+    if not m:
+        raise ValueError(f"Invalid ISO week date format: '{text}'")
+
+    iso_year = int(m.group(1))
+    iso_week = int(m.group(2))
+    iso_day = int(m.group(3))
+
+    if iso_week < 1 or iso_week > 53:
+        raise ValueError(f"ISO week must be between 1 and 53, got {iso_week}")
+
+    if iso_day < 1 or iso_day > 7:
+        raise ValueError(f"ISO day must be between 1 and 7, got {iso_day}")
+
+    # Jan 4th is always in ISO week 1
+    jan4 = date(iso_year, 1, 4)
+    # Monday of ISO week 1
+    week1_monday = jan4 - timedelta(days=jan4.weekday())
+    result = week1_monday + timedelta(weeks=iso_week - 1, days=iso_day - 1)
+
+    # Verify the result maps back to the requested ISO year/week
+    ry, rw, rd = result.isocalendar()
+
+    if ry != iso_year or rw != iso_week:
+        raise ValueError(
+            f"Week {iso_week} does not exist in ISO year {iso_year}"
+        )
+
+    return result

@@ -29,35 +29,19 @@ Example:
     datetime.datetime(2025, 2, 14, 0, 0)
 """
 
-from datetime import date, time, datetime, timedelta
+from datetime import date, time, datetime, timedelta, timezone
 from typing import Union,Literal,List, Tuple, Optional, Set, Dict, Any
 import calendar
 import locale
 import random
 import zoneinfo # Requires Python 3.9+ for ZoneInfo
+import math
 
-
-#my modules
-import os
-import sys
-def add_to_syspath(directory):
-    def search(start):
-        root = os.path.abspath(os.sep)
-        while True:
-            path = os.path.join(start, directory)
-            if os.path.isdir(path):
-                sys.path.insert(0, path) if path not in sys.path else None
-                print(f"Se encontró y agregó a sys.path: {path}")
-                return True
-            if start.lower() == root.lower(): return False
-            start = os.path.dirname(start)
-    if search(os.path.abspath(os.getcwd())): return
-    try:
-        if search(os.path.dirname(os.path.abspath(__file__))): return
-    except NameError: print("No se pudo obtener el directorio del módulo.")
-    raise FileNotFoundError(f"No se encontró {directory}")
-add_to_syspath("fxString")
-from string_convertions import string_to_date, string_to_datetime
+try:
+    from formulite.fxString.string_convertions import string_to_date, string_to_datetime
+except ImportError:
+    from .date_convertions import datetime_to_date as string_to_date  # type: ignore[assignment]
+    string_to_datetime = None  # type: ignore[assignment]
 
 
 def is_date_type(value: Any) -> bool:
@@ -649,7 +633,7 @@ def months_between_dates(start_date: datetime, end_date: datetime) -> int:
     # se invierten a `start_date=2023-05-10`, `end_date=2023-05-15`.
     # `total_months` sería 0. `end_date.day < start_date.day` sería False. Correcto.
 
-    return
+    return -total_months if reverse_order else total_months
 
 
 def days_in_month(year: int, month: int) -> int:
@@ -1229,43 +1213,47 @@ def date_part(part: str, my_date: datetime | str | date, first_day_of_week: int 
 
 
 def parts_to_date(year: int, month: int, day: int) -> date:
-    """
-    Crea un objeto 'date' a partir de sus componentes numéricos de año, mes y día.
+    """Create a date from year, month and day with overflow support.
+
+    Overflowing values are normalised automatically: month 14
+    becomes February of the next year, day 0 becomes the last day
+    of the previous month, day 32 rolls into the next month, etc.
 
     Args:
-        year (int): El año (por ejemplo, 2025).
-        month (int): El mes (1-12).
-        day (int): El día del mes (1-31).
+        year: Year component.
+        month: Month component (may overflow beyond 1-12).
+        day: Day component (may overflow; 0 = last day of previous month).
 
     Returns:
-        date: Un nuevo objeto 'datetime.date' que representa la fecha especificada.
+        date: The resulting date after normalisation.
 
     Raises:
-        TypeError: Si alguno de los argumentos (year, month, day) no es un entero.
-        ValueError: Si los valores de año, mes o día están fuera de un rango válido.
+        TypeError: If any argument is not an integer.
 
-    Ejemplos de uso:
+    Example:
         >>> parts_to_date(2025, 10, 30)
         datetime.date(2025, 10, 30)
-        >>> parts_to_date(2024, 2, 29) # Año bisiesto
+        >>> parts_to_date(2024, 14, 1)
+        datetime.date(2025, 2, 1)
+        >>> parts_to_date(2024, 3, 0)
         datetime.date(2024, 2, 29)
-        >>> parts_to_date(2023, 2, 29) # Año no bisiesto (generará ValueError)
-        Traceback (most recent call last):
-        ...
-        ValueError: day is out of range for month
+        >>> parts_to_date(2024, 1, -1)
+        datetime.date(2023, 12, 30)
+        >>> parts_to_date(2024, 0, 15)
+        datetime.date(2023, 12, 15)
 
-    **Cost:** O(1), constant time for date object creation.
+    Complexity: O(1)
     """
-    # Validar que los argumentos sean enteros
     if not all(isinstance(arg, int) for arg in [year, month, day]):
-        raise TypeError("Los argumentos 'year', 'month' y 'day' deben ser enteros.")
+        raise TypeError("Arguments 'year', 'month' and 'day' must be integers.")
 
-    try:
-        return date(year, month, day)
-    except ValueError as e:
-        # Re-lanzar ValueError con un mensaje más específico si es necesario,
-        # aunque el mensaje por defecto de date() suele ser claro.
-        raise ValueError(f"No se pudo crear la fecha con los valores proporcionados: {e}")
+    # Normalise month overflow.
+    month -= 1
+    year += month // 12
+    month = month % 12 + 1
+
+    # Build base date on the 1st, then add day offset.
+    return date(year, month, 1) + timedelta(days=day - 1)
 
 
 def parts_to_datetime(
@@ -1275,47 +1263,109 @@ def parts_to_datetime(
     hour: int = 0,
     minute: int = 0,
     second: int = 0,
-    microsecond: int = 0
+    microsecond: int = 0,
 ) -> datetime:
-    """
-    Crea un objeto 'datetime' a partir de sus componentes numéricos de fecha y hora.
+    """Create a datetime from components with overflow support.
+
+    Overflowing values are normalised: month 14 rolls into the next
+    year, day 0 becomes the last day of the previous month, hour 25
+    becomes 01:00 of the next day, etc.
 
     Args:
-        year (int): El año (por ejemplo, 2025).
-        month (int): El mes (1-12).
-        day (int): El día del mes (1-31).
-        hour (int, opcional): La hora (0-23). Por defecto es 0.
-        minute (int, opcional): El minuto (0-59). Por defecto es 0.
-        second (int, opcional): El segundo (0-59). Por defecto es 0.
-        microsecond (int, opcional): El microsegundo (0-999999). Por defecto es 0.
+        year: Year component.
+        month: Month component (may overflow).
+        day: Day component (may overflow; 0 = last day of prev. month).
+        hour: Hour component (default 0, may overflow).
+        minute: Minute component (default 0, may overflow).
+        second: Second component (default 0, may overflow).
+        microsecond: Microsecond component (default 0, may overflow).
 
     Returns:
-        datetime: Un nuevo objeto 'datetime.datetime' que representa la fecha y hora especificadas.
+        datetime: The resulting datetime after normalisation.
 
     Raises:
-        TypeError: Si alguno de los argumentos no es un entero.
-        ValueError: Si los valores de año, mes, día, hora, minuto, segundo o microsegundo
-                    están fuera de un rango válido.
+        TypeError: If any argument is not an integer.
 
-    Ejemplos de uso:
+    Example:
         >>> parts_to_datetime(2025, 10, 30, 15, 30, 45)
         datetime.datetime(2025, 10, 30, 15, 30, 45)
-        >>> parts_to_datetime(2025, 1, 1) # Solo fecha, hora por defecto a medianoche
+        >>> parts_to_datetime(2025, 1, 1)
         datetime.datetime(2025, 1, 1, 0, 0)
-        >>> parts_to_datetime(2025, 10, 30, microsecond=123456)
-        datetime.datetime(2025, 10, 30, 0, 0, 0, 123456)
+        >>> parts_to_datetime(2024, 1, 1, 25, 0, 0)
+        datetime.datetime(2024, 1, 2, 1, 0)
 
-    **Cost:** O(1), constant time for datetime object creation.
+    Complexity: O(1)
     """
-    # Validar que todos los argumentos sean enteros
     if not all(isinstance(arg, int) for arg in [year, month, day, hour, minute, second, microsecond]):
-        raise TypeError("Todos los argumentos de fecha y hora deben ser enteros.")
+        raise TypeError("All date/time arguments must be integers.")
 
-    try:
-        return datetime(year, month, day, hour, minute, second, microsecond)
-    except ValueError as e:
-        # Re-lanzar ValueError con un mensaje más específico si es necesario.
-        raise ValueError(f"No se pudo crear el objeto datetime con los valores proporcionados: {e}")
+    # Normalise month overflow.
+    month -= 1
+    year += month // 12
+    month = month % 12 + 1
+
+    # Build base at day 1, midnight, then add offsets.
+    base = datetime(year, month, 1)
+    delta = timedelta(
+        days=day - 1,
+        hours=hour,
+        minutes=minute,
+        seconds=second,
+        microseconds=microsecond,
+    )
+
+    return base + delta
+
+
+def parts_to_time(
+    hour: int = 0,
+    minute: int = 0,
+    second: int = 0,
+    microsecond: int = 0,
+) -> time:
+    """Create a time object from hour, minute and second with overflow.
+
+    Overflowing values wrap around a 24-hour clock: 90 minutes becomes
+    1 hour 30 minutes, 25 hours wraps to 01:00, etc.
+
+    Args:
+        hour: Hour component (may overflow, wraps mod 24).
+        minute: Minute component (may overflow).
+        second: Second component (may overflow).
+        microsecond: Microsecond component (may overflow).
+
+    Returns:
+        time: The resulting time after normalisation.
+
+    Raises:
+        TypeError: If any argument is not an integer.
+
+    Example:
+        >>> parts_to_time(14, 30, 0)
+        datetime.time(14, 30)
+        >>> parts_to_time(25, 0, 0)
+        datetime.time(1, 0)
+        >>> parts_to_time(0, 90, 0)
+        datetime.time(1, 30)
+
+    Complexity: O(1)
+    """
+    if not all(isinstance(arg, int) for arg in [hour, minute, second, microsecond]):
+        raise TypeError("All time arguments must be integers.")
+
+    total = timedelta(
+        hours=hour,
+        minutes=minute,
+        seconds=second,
+        microseconds=microsecond,
+    )
+    # Keep only the time-of-day portion (mod 24 h).
+    total_us = int(total.total_seconds() * 1_000_000) % (24 * 3600 * 1_000_000)
+    total_s, us = divmod(total_us, 1_000_000)
+    m, s = divmod(total_s, 60)
+    h, m = divmod(m, 60)
+
+    return time(h, m, s, us)
     
 
 def is_between_dates(
@@ -1806,64 +1856,108 @@ def get_week_range(year: int, week_number: int) -> Tuple[datetime, datetime]:
     )
 
 
-def get_year_calendar_by_weeks(year: int) -> List[Tuple[int, datetime, datetime]]:
-    """Generates a complete list of ISO weeks for a given year, with their start and end dates.
+def get_year_calendar_by_weeks(
+    year: int,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    granularity: str = "week",
+) -> list:
+    """Generates a calendar table for a year, similar to DAX CALENDAR/CALENDARAUTO.
 
-    This function iterates through all ISO weeks in the specified year, using the
-    `get_week_range` function to determine the Monday and Sunday for each week.
-    It's perfect for creating year-long weekly schedules or reports.
+    By default produces ISO-week rows (backward-compatible). When *granularity*
+    is ``"day"`` it returns one row per calendar day, matching
+    ``CALENDAR(start, end)`` / ``CALENDARAUTO()`` behaviour.
 
     Args:
-        year (int): The calendar year for which to generate the weekly calendar.
+        year: The calendar year. Ignored when both *start_date* and
+            *end_date* are supplied.
+        start_date: Optional first date of the range (inclusive).
+            Defaults to Jan 1 of *year*.
+        end_date: Optional last date of the range (inclusive).
+            Defaults to Dec 31 of *year*.
+        granularity: ``"week"`` (default, legacy) returns ISO-week tuples.
+            ``"day"`` returns one dict per day with date components.
 
     Returns:
-        List[Tuple[int, datetime, datetime]]: A list of tuples. Each tuple contains:
-                                               - The ISO week number (int)
-                                               - The start date (Monday) of the week (datetime)
-                                               - The end date (Sunday) of the week (datetime)
+        When *granularity* is ``"week"``:
+            List[Tuple[int, datetime, datetime]] — (week_number, monday, sunday).
+        When *granularity* is ``"day"``:
+            List[dict] — each dict has keys ``date``, ``year``, ``month``,
+            ``day``, ``weekday``, ``quarter``, ``iso_week``.
 
     Raises:
-        TypeError: If 'year' is not an integer.
-        ValueError: If 'year' is less than 1.
+        TypeError: If *year* is not an integer.
+        ValueError: If *year* < 1 or *granularity* is invalid.
 
     Example:
-        >>> # Get the calendar for 2023 (a 52-week year)
-        >>> calendar_2023 = get_year_calendar_by_weeks(2023)
-        >>> print(f"First week of 2023: {calendar_2023[0]}")
-        # Expected: (1, datetime.datetime(2023, 1, 2, 0, 0), datetime.datetime(2023, 1, 8, 0, 0))
-        >>> print(f"Last week of 2023: {calendar_2023[-1]}")
-        # Expected: (52, datetime.datetime(2023, 12, 25, 0, 0), datetime.datetime(2023, 12, 31, 0, 0))
-        >>> print(f"Total weeks in 2023: {len(calendar_2023)}")
-        # Expected: Total weeks in 2023: 52
+        >>> # Legacy week-based calendar
+        >>> cal = get_year_calendar_by_weeks(2023)
+        >>> cal[0]
+        (1, datetime.datetime(2023, 1, 2, 0, 0), datetime.datetime(2023, 1, 8, 0, 0))
 
-        >>> # Get the calendar for 2020 (a 53-week year)
-        >>> calendar_2020 = get_year_calendar_by_weeks(2020)
-        >>> print(f"Last week of 2020: {calendar_2020[-1]}")
-        # Expected: (53, datetime.datetime(2020, 12, 28, 0, 0), datetime.datetime(2021, 1, 3, 0, 0))
-        >>> print(f"Total weeks in 2020: {len(calendar_2020)}")
-        # Expected: Total weeks in 2020: 53
+        >>> # Day-level calendar (CALENDARAUTO style)
+        >>> days = get_year_calendar_by_weeks(2023, granularity="day")
+        >>> days[0]["date"]
+        datetime.date(2023, 1, 1)
 
-    **Cost:** O(n), where n is the number of weeks in the year (typically 52 or 53).
+        >>> # Custom date range (CALENDAR style)
+        >>> from datetime import datetime
+        >>> days = get_year_calendar_by_weeks(
+        ...     2023,
+        ...     start_date=datetime(2023, 6, 1),
+        ...     end_date=datetime(2023, 6, 30),
+        ...     granularity="day",
+        ... )
+        >>> len(days)
+        30
+
+    Complexity: O(n) where n is the number of rows produced.
     """
     if not isinstance(year, int):
         raise TypeError("Input 'year' must be an integer.")
+
     if year < 1:
         raise ValueError("Input 'year' must be a positive integer.")
 
-    year_calendar: List[Tuple[int, datetime, datetime]] = []
+    if granularity not in ("week", "day"):
+        raise ValueError("granularity must be 'week' or 'day'.")
 
-    # ISO years can have 52 or 53 weeks. We need to determine the maximum week number.
-    # The last ISO week of a year starts from `datetime(year, 12, 28)`.
-    # Its ISO week number will be the total number of weeks in that ISO year.
-    last_day_of_dec = datetime(year, 12, 28)
-    max_iso_week = last_day_of_dec.isocalendar()[1]
+    # --- week granularity (legacy behaviour) ---
+    if granularity == "week":
+        year_calendar: List[Tuple[int, datetime, datetime]] = []
+        last_day_of_dec = datetime(year, 12, 28)
+        max_iso_week = last_day_of_dec.isocalendar()[1]
 
-    for week_num in range(1, max_iso_week + 1):
-        # Use the previously defined get_week_range function to get dates for each week.
-        start_date, end_date = get_week_range(year, week_num)
-        year_calendar.append((week_num, start_date, end_date))
+        for week_num in range(1, max_iso_week + 1):
+            start, end = get_week_range(year, week_num)
+            year_calendar.append((week_num, start, end))
 
-    return year_calendar
+        return year_calendar
+
+    # --- day granularity (CALENDAR / CALENDARAUTO) ---
+    first = start_date or datetime(year, 1, 1)
+    last = end_date or datetime(year, 12, 31)
+    first_d = first.date() if isinstance(first, datetime) else first
+    last_d = last.date() if isinstance(last, datetime) else last
+
+    rows: List[Dict] = []
+    current = first_d
+    one_day = timedelta(days=1)
+
+    while current <= last_d:
+        _iso_year, iso_week, _ = current.isocalendar()
+        rows.append({
+            "date": current,
+            "year": current.year,
+            "month": current.month,
+            "day": current.day,
+            "weekday": current.isoweekday(),
+            "quarter": (current.month - 1) // 3 + 1,
+            "iso_week": iso_week,
+        })
+        current += one_day
+
+    return rows
 
 
 def get_quarter(date_input: Union[datetime, str], input_format: Optional[str] = None) -> int:
@@ -2449,6 +2543,189 @@ def get_previous_friday(date_input: datetime) -> datetime:
     
     # Ensure the time is set to midnight for consistency.
     return previous_friday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def next_weekday(date_input: datetime, target_weekday: int) -> datetime:
+    """Returns the next occurrence of a specific weekday after a given date.
+
+    Description:
+        Calculates the nearest future date matching the target weekday. If the
+        given date already falls on the target weekday, returns the same weekday
+        of the following week.
+
+    Args:
+        date_input: The starting date.
+        target_weekday: Weekday as integer (0=Monday … 6=Sunday). Constants
+                        from the ``calendar`` module (e.g. ``calendar.FRIDAY``)
+                        are accepted.
+
+    Returns:
+        datetime: The next occurrence at midnight.
+
+    Raises:
+        TypeError: If *date_input* is not a datetime object.
+        ValueError: If *target_weekday* is not in 0‑6.
+
+    Example:
+        >>> import calendar
+        >>> next_weekday(datetime(2025, 6, 9), calendar.FRIDAY)
+        datetime.datetime(2025, 6, 13, 0, 0)
+        >>> next_weekday(datetime(2025, 6, 13), calendar.FRIDAY)
+        datetime.datetime(2025, 6, 20, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("Input 'date_input' must be a datetime object.")
+
+    if not isinstance(target_weekday, int) or not (0 <= target_weekday <= 6):
+        raise ValueError("target_weekday must be an integer between 0 (Monday) and 6 (Sunday).")
+
+    days_ahead = (target_weekday - date_input.weekday() + 7) % 7
+
+    if days_ahead == 0:
+        days_ahead = 7
+
+    result = date_input + timedelta(days=days_ahead)
+    return result.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def previous_weekday(date_input: datetime, target_weekday: int) -> datetime:
+    """Returns the most recent occurrence of a specific weekday before a given date.
+
+    Description:
+        Calculates the nearest past date matching the target weekday. If the
+        given date already falls on the target weekday, returns that same date.
+
+    Args:
+        date_input: The starting date.
+        target_weekday: Weekday as integer (0=Monday … 6=Sunday).
+
+    Returns:
+        datetime: The previous (or current) occurrence at midnight.
+
+    Raises:
+        TypeError: If *date_input* is not a datetime object.
+        ValueError: If *target_weekday* is not in 0‑6.
+
+    Example:
+        >>> import calendar
+        >>> previous_weekday(datetime(2025, 6, 9), calendar.FRIDAY)
+        datetime.datetime(2025, 6, 6, 0, 0)
+        >>> previous_weekday(datetime(2025, 6, 6), calendar.FRIDAY)
+        datetime.datetime(2025, 6, 6, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("Input 'date_input' must be a datetime object.")
+
+    if not isinstance(target_weekday, int) or not (0 <= target_weekday <= 6):
+        raise ValueError("target_weekday must be an integer between 0 (Monday) and 6 (Sunday).")
+
+    days_back = (date_input.weekday() - target_weekday + 7) % 7
+    result = date_input - timedelta(days=days_back)
+    return result.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def last_weekday_of_month(date_input: datetime, target_weekday: int) -> datetime:
+    """Returns the last occurrence of a specific weekday in the month of a given date.
+
+    Description:
+        Finds the last day in the month that matches *target_weekday*. Useful for
+        recurring schedules like "last Friday of the month".
+
+    Args:
+        date_input: Any date within the target month.
+        target_weekday: Weekday as integer (0=Monday … 6=Sunday).
+
+    Returns:
+        datetime: The last matching weekday of the month at midnight.
+
+    Raises:
+        TypeError: If *date_input* is not a datetime object.
+        ValueError: If *target_weekday* is not in 0‑6.
+
+    Example:
+        >>> import calendar
+        >>> last_weekday_of_month(datetime(2025, 6, 1), calendar.FRIDAY)
+        datetime.datetime(2025, 6, 27, 0, 0)
+        >>> last_weekday_of_month(datetime(2024, 2, 10), calendar.THURSDAY)
+        datetime.datetime(2024, 2, 29, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("Input 'date_input' must be a datetime object.")
+
+    if not isinstance(target_weekday, int) or not (0 <= target_weekday <= 6):
+        raise ValueError("target_weekday must be an integer between 0 (Monday) and 6 (Sunday).")
+
+    _, last_day_num = calendar.monthrange(date_input.year, date_input.month)
+    last_date = datetime(date_input.year, date_input.month, last_day_num)
+    days_back = (last_date.weekday() - target_weekday + 7) % 7
+    return (last_date - timedelta(days=days_back)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+def last_day_of_month(date_input: Union[datetime, str], input_format: str = None) -> datetime:
+    """Returns the last day of the month for a given date.
+
+    Description:
+        Convenience alias for ``end_of_month`` with a more intuitive name.
+        Called by ``date_sys.current_last_day_of_month``.
+
+    Args:
+        date_input: A datetime object or date string.
+        input_format: Format string when *date_input* is a string.
+
+    Returns:
+        datetime: Last day of the month at end-of-day (23:59:59.999999).
+
+    Example:
+        >>> last_day_of_month(datetime(2025, 2, 10))
+        datetime.datetime(2025, 2, 28, 23, 59, 59, 999999)
+
+    Complexity: O(1)
+    """
+    return end_of_month(date_input, input_format)
+
+
+def add_years(date_input: datetime, years: int) -> datetime:
+    """Shifts a date forward or backward by a given number of years.
+
+    Description:
+        Preserves the month and day when possible. If the original date is Feb 29
+        and the target year is not a leap year, clamps to Feb 28.
+
+    Args:
+        date_input: The starting datetime.
+        years: Number of years to add (positive) or subtract (negative).
+
+    Returns:
+        datetime: The resulting date with time components preserved.
+
+    Raises:
+        TypeError: If *date_input* is not a datetime or *years* is not an int.
+
+    Example:
+        >>> add_years(datetime(2024, 2, 29, 10, 30), 1)
+        datetime.datetime(2025, 2, 28, 10, 30)
+        >>> add_years(datetime(2025, 6, 15), -3)
+        datetime.datetime(2022, 6, 15, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("Input 'date_input' must be a datetime object.")
+
+    if not isinstance(years, int):
+        raise TypeError("Input 'years' must be an integer.")
+
+    target_year = date_input.year + years
+    target_day = min(date_input.day, calendar.monthrange(target_year, date_input.month)[1])
+    return date_input.replace(year=target_year, day=target_day)
 
 
 def get_working_days_in_range(start_date: datetime, end_date: datetime, holidays: Optional[List[datetime]] = None) -> int:
@@ -3348,17 +3625,17 @@ def timedelta_to_components(timedelta_obj: timedelta) -> Dict[str, Union[int, fl
     abs_total_seconds = abs(total_seconds_float)
 
     # Extraer días (partes enteras de 24 horas)
-    days = int(math.floor(abs_total_seconds / (24 * 3600)))
+    days = int(abs_total_seconds // (24 * 3600))
     
     # Calcular los segundos restantes después de extraer los días completos
     remaining_seconds_after_days = abs_total_seconds % (24 * 3600)
 
     # Extraer horas, minutos y segundos de los segundos restantes
-    hours = int(math.floor(remaining_seconds_after_days / 3600))
+    hours = int(remaining_seconds_after_days // 3600)
     remaining_seconds_after_hours = remaining_seconds_after_days % 3600
 
-    minutes = int(math.floor(remaining_seconds_after_hours / 60))
-    seconds = int(math.floor(remaining_seconds_after_hours % 60))
+    minutes = int(remaining_seconds_after_hours // 60)
+    seconds = int(remaining_seconds_after_hours % 60)
     
     # Los microsegundos son la parte fraccionaria de los segundos restantes.
     # Se redondea para manejar posibles imprecisiones de flotantes.
@@ -4401,63 +4678,27 @@ def generate_random_datetime(start_dt: Optional[datetime] = None, end_dt: Option
     
 
 def get_week_of_year(date_input: datetime) -> int:
-    """Devuelve el número de la semana del año para una fecha dada.
+    """Returns the ISO 8601 week number for a given date.
 
-    Problema/Necesidad del Usuario: Es necesario saber en qué semana del año cae una fecha
-    específica para informes, planificación o análisis basados en periodos semanales.
-
-    Objetivos del Producto: Proporcionar una función directa y fiable para obtener el número
-    de semana ISO 8601 de cualquier fecha.
-
-    Descripción: Esta función toma un objeto `datetime` y devuelve el número de la semana del año.
-    Utiliza el estándar ISO 8601, lo que significa que la primera semana del año es aquella
-    que contiene el primer jueves del año. Esto asegura que cada semana tiene 7 días y que
-    la semana 01 de un año siempre precede a la semana 02.
+    Delegates to :func:`iso_week_number`.
 
     Args:
-        date_input (datetime): El objeto `datetime` para el cual se desea obtener el número de semana.
+        date_input (datetime): The datetime object.
 
     Returns:
-        int: El número de la semana del año (según ISO 8601), de 1 a 52 o 53.
+        int: ISO week number (1-53).
 
     Raises:
-        TypeError: Si `date_input` no es un objeto `datetime`.
+        TypeError: If date_input is not a datetime object.
 
     Example:
         >>> from datetime import datetime
-
-        >>> # Ejemplo 1: Una fecha en medio de año
         >>> get_week_of_year(datetime(2025, 6, 11))
         24
 
-        >>> # Ejemplo 2: Principio de año, semana 1
-        >>> get_week_of_year(datetime(2025, 1, 1))
-        1 # 2025-01-01 es miércoles, el primer jueves es 2025-01-02, así que la semana 1 empieza el 30/12/2024.
-
-        >>> # Ejemplo 3: Final de año, semana 52 o 53
-        >>> get_week_of_year(datetime(2025, 12, 31))
-        53 # El 31 de diciembre de 2025 es miércoles, el jueves 1 de enero de 2026 empieza una nueva semana ISO.
-
-        >>> # Ejemplo 4: Fecha que cae en la última semana del año anterior (según ISO)
-        >>> get_week_of_year(datetime(2024, 1, 1))
-        1 # 2024-01-01 es lunes, la semana 1 de 2024 empieza el lunes 01/01/2024.
-
-        >>> # Ejemplo 5: Tipo de dato incorrecto
-        >>> try:
-        >>>     get_week_of_year("not a date")
-        >>> except TypeError as e:
-        >>>     print(f"Error: {e}")
-        # Salida esperada: Error: date_input must be a datetime object.
+    Complexity: O(1)
     """
-    if not isinstance(date_input, datetime):
-        raise TypeError("date_input must be a datetime object.")
-
-    # El método .isocalendar() devuelve una tupla (año ISO, semana ISO, día de la semana ISO).
-    # El segundo elemento de esta tupla es el número de la semana.
-    # El estándar ISO 8601 define la semana 1 como la que contiene el primer jueves del año.
-    # Esto significa que el 1 de enero puede caer en la última semana del año anterior
-    # o la última semana del año puede ser la semana 1 del año siguiente.
-    return date_input.isocalendar()[1]
+    return iso_week_number(date_input)
 
 
 def week_of_month(date_input: datetime, start_of_week: int = 0) -> int:
@@ -4630,3 +4871,3008 @@ def filter_dates_by_weekday(dates: List[datetime], weekday: int) -> List[datetim
             filtered_dates.append(date_obj)
             
     return filtered_dates
+
+
+def days_360(start_date: datetime, end_date: datetime, method: str = 'us') -> int:
+    """Calculates days between two dates based on a 360-day year (12 months of 30 days).
+
+    Description:
+        Commonly used in financial calculations (bond pricing, interest accrual).
+        Two methods are supported: US (NASD) and European.
+
+    Args:
+        start_date: The start date.
+        end_date: The end date.
+        method: Calculation method — 'us' for US/NASD or 'eu' for European.
+                Defaults to 'us'.
+
+    Returns:
+        int: Number of days based on the 360-day year convention.
+
+    Raises:
+        TypeError: If start_date or end_date are not datetime objects.
+        ValueError: If method is not 'us' or 'eu'.
+
+    Example:
+        >>> from datetime import datetime
+        >>> days_360(datetime(2025, 1, 30), datetime(2025, 2, 28))
+        28
+        >>> days_360(datetime(2025, 1, 1), datetime(2025, 7, 1))
+        180
+
+    Complexity: O(1)
+    """
+    if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
+        raise TypeError("start_date and end_date must be datetime objects.")
+
+    method = method.lower()
+
+    if method not in ('us', 'eu'):
+        raise ValueError("method must be 'us' or 'eu'.")
+
+    if method == 'eu':
+        day1 = min(start_date.day, 30)
+        day2 = min(end_date.day, 30)
+    else:
+        day1 = start_date.day if start_date.day < 31 else 30
+        day2 = end_date.day
+
+        if end_date.day == 31 and start_date.day >= 30:
+            day2 = 30
+
+    return (
+        (end_date.year - start_date.year) * 360
+        + (end_date.month - start_date.month) * 30
+        + (day2 - day1)
+    )
+
+
+def network_days_intl(
+    start_date: datetime,
+    end_date: datetime,
+    weekend: Union[int, str] = 1,
+    holidays: Optional[List[datetime]] = None
+) -> int:
+    """Calculates working days between two dates with custom weekend definition.
+
+    Description:
+        Extension of get_working_days_in_range that allows specifying which days
+        are considered weekends. Weekend can be an integer preset (1-7) or a
+        7-character string of 0s/1s (Monday-Sunday, 1 = weekend day).
+
+    Args:
+        start_date: The start date (inclusive).
+        end_date: The end date (inclusive).
+        weekend: Weekend definition. Integer presets:
+                 1 = Sat-Sun (default), 2 = Sun-Mon, 3 = Mon-Tue,
+                 4 = Tue-Wed, 5 = Wed-Thu, 6 = Thu-Fri, 7 = Fri-Sat.
+                 Or a 7-char string of 0/1 (Mon-Sun), e.g. '0000011' = Sat-Sun.
+        holidays: Optional list of holiday datetimes to exclude.
+
+    Returns:
+        int: Number of working days.
+
+    Raises:
+        TypeError: If dates are not datetime objects.
+        ValueError: If start_date > end_date or weekend value is invalid.
+
+    Example:
+        >>> from datetime import datetime
+        >>> network_days_intl(datetime(2025, 1, 6), datetime(2025, 1, 10))
+        5
+        >>> network_days_intl(datetime(2025, 1, 6), datetime(2025, 1, 12), weekend='0000011')
+        5
+
+    Complexity: O(n) where n is the number of days in the range
+    """
+    if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
+        raise TypeError("start_date and end_date must be datetime objects.")
+
+    if start_date > end_date:
+        raise ValueError("start_date cannot be after end_date.")
+
+    weekend_days = _resolve_weekend_days(weekend)
+    holiday_set = _build_holiday_set(holidays)
+
+    count = 0
+    current = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    end = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    while current <= end:
+
+        if current.weekday() not in weekend_days and current.date() not in holiday_set:
+            count += 1
+
+        current += timedelta(days=1)
+
+    return count
+
+
+def workday(
+    start_date: datetime,
+    days: int,
+    holidays: Optional[List[datetime]] = None
+) -> datetime:
+    """Returns the date after a given number of working days (Mon-Fri).
+
+    Description:
+        Starting from start_date, counts forward (positive days) or backward
+        (negative days), skipping weekends (Saturday/Sunday) and optional
+        holidays. The start_date itself is not counted.
+
+    Args:
+        start_date: The starting date.
+        days: Number of working days to advance (positive) or go back (negative).
+        holidays: Optional list of holiday datetimes to skip.
+
+    Returns:
+        datetime: The resulting date after the specified working days.
+
+    Raises:
+        TypeError: If start_date is not a datetime or days is not an int.
+
+    Example:
+        >>> from datetime import datetime
+        >>> workday(datetime(2025, 1, 6), 5)  # Mon + 5 working days = Mon
+        datetime.datetime(2025, 1, 13, 0, 0)
+        >>> workday(datetime(2025, 1, 6), -1)
+        datetime.datetime(2025, 1, 3, 0, 0)
+
+    Complexity: O(n) where n is abs(days)
+    """
+    if not isinstance(start_date, datetime):
+        raise TypeError("start_date must be a datetime object.")
+
+    if not isinstance(days, int):
+        raise TypeError("days must be an integer.")
+
+    holiday_set = _build_holiday_set(holidays)
+    step = 1 if days >= 0 else -1
+    remaining = abs(days)
+    current = start_date
+
+    while remaining > 0:
+        current += timedelta(days=step)
+
+        if current.weekday() < 5 and current.date() not in holiday_set:
+            remaining -= 1
+
+    return current.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def workday_intl(
+    start_date: datetime,
+    days: int,
+    weekend: Union[int, str] = 1,
+    holidays: Optional[List[datetime]] = None
+) -> datetime:
+    """Returns the date after a given number of working days with custom weekends.
+
+    Description:
+        Like workday but allows specifying which days count as weekends via
+        the same convention as network_days_intl.
+
+    Args:
+        start_date: The starting date.
+        days: Number of working days to advance (positive) or go back (negative).
+        weekend: Weekend definition (see network_days_intl for details).
+        holidays: Optional list of holiday datetimes to skip.
+
+    Returns:
+        datetime: The resulting date.
+
+    Raises:
+        TypeError: If start_date is not a datetime or days is not an int.
+
+    Example:
+        >>> from datetime import datetime
+        >>> workday_intl(datetime(2025, 1, 6), 5, weekend=2)
+        datetime.datetime(2025, 1, 14, 0, 0)
+
+    Complexity: O(n) where n is abs(days)
+    """
+    if not isinstance(start_date, datetime):
+        raise TypeError("start_date must be a datetime object.")
+
+    if not isinstance(days, int):
+        raise TypeError("days must be an integer.")
+
+    weekend_days = _resolve_weekend_days(weekend)
+    holiday_set = _build_holiday_set(holidays)
+    step = 1 if days >= 0 else -1
+    remaining = abs(days)
+    current = start_date
+
+    while remaining > 0:
+        current += timedelta(days=step)
+
+        if current.weekday() not in weekend_days and current.date() not in holiday_set:
+            remaining -= 1
+
+    return current.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def year_fraction(start_date: datetime, end_date: datetime, basis: int = 0) -> float:
+    """Calculates the fraction of year between two dates.
+
+    Description:
+        Useful for financial calculations such as bond accrued interest or
+        prorated payments. Supports two day-count conventions.
+
+    Args:
+        start_date: The start date.
+        end_date: The end date.
+        basis: Day-count basis.
+               0 = US 30/360 (default), 1 = Actual/Actual.
+
+    Returns:
+        float: Fraction of the year between the dates.
+
+    Raises:
+        TypeError: If dates are not datetime objects.
+        ValueError: If basis is not 0 or 1.
+
+    Example:
+        >>> from datetime import datetime
+        >>> year_fraction(datetime(2025, 1, 1), datetime(2025, 7, 1), basis=0)
+        0.5
+        >>> year_fraction(datetime(2025, 1, 1), datetime(2025, 7, 1), basis=1)
+        0.4958904109589041
+
+    Complexity: O(1)
+    """
+    if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
+        raise TypeError("start_date and end_date must be datetime objects.")
+
+    if basis not in (0, 1):
+        raise ValueError("basis must be 0 (US 30/360) or 1 (Actual/Actual).")
+
+    if basis == 0:
+        numerator = days_360(start_date, end_date, method='us')
+        return numerator / 360
+    else:
+        actual_days = (end_date - start_date).days
+
+        if start_date.year == end_date.year:
+            year_days = 366 if calendar.isleap(start_date.year) else 365
+        else:
+            year_days = 365.25
+
+        return actual_days / year_days
+
+
+def week_number(date_input: datetime, system: int = 1) -> int:
+    """Returns the week number of the year for a given date.
+
+    Description:
+        Standalone convenience function to get the week number. Supports
+        two systems: week starting on Sunday (system 1) or ISO standard
+        (system 21, week starting on Monday with ISO rules).
+
+    Args:
+        date_input: The date to evaluate.
+        system: 1 = week begins on Sunday (default), 21 = ISO week number.
+
+    Returns:
+        int: Week number (1-53).
+
+    Raises:
+        TypeError: If date_input is not a datetime object.
+        ValueError: If system is not 1 or 21.
+
+    Example:
+        >>> from datetime import datetime
+        >>> week_number(datetime(2025, 1, 1))
+        1
+        >>> week_number(datetime(2025, 1, 1), system=21)
+        1
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("date_input must be a datetime object.")
+
+    if system not in (1, 21):
+        raise ValueError("system must be 1 (Sunday start) or 21 (ISO).")
+
+    if system == 21:
+        return date_input.isocalendar()[1]
+
+    # System 1: week starts on Sunday
+    # Jan 1 is always in week 1; week increments each Sunday
+    jan1 = datetime(date_input.year, 1, 1)
+    jan1_weekday = (jan1.weekday() + 1) % 7  # Sunday=0
+    day_of_year = date_input.timetuple().tm_yday
+    return (day_of_year + jan1_weekday - 1) // 7 + 1
+
+
+def iso_week_number(date_input: datetime) -> int:
+    """Returns the ISO 8601 week number for a given date.
+
+    Description:
+        The ISO week number ranges from 1 to 53. Week 1 is the week
+        containing the first Thursday of the year.
+
+    Args:
+        date_input: The date to evaluate.
+
+    Returns:
+        int: ISO week number (1-53).
+
+    Raises:
+        TypeError: If date_input is not a datetime object.
+
+    Example:
+        >>> from datetime import datetime
+        >>> iso_week_number(datetime(2025, 1, 1))
+        1
+        >>> iso_week_number(datetime(2025, 6, 15))
+        24
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("date_input must be a datetime object.")
+
+    return date_input.isocalendar()[1]
+
+
+def quarters_between_dates(start_date: datetime, end_date: datetime) -> int:
+    """Calculates the number of complete quarters between two dates.
+
+    Description:
+        Returns the whole-quarter difference. A positive result means end_date
+        is after start_date; negative means it is before.
+
+    Args:
+        start_date: The start date.
+        end_date: The end date.
+
+    Returns:
+        int: Number of quarters between the dates.
+
+    Raises:
+        TypeError: If start_date or end_date are not datetime objects.
+
+    Example:
+        >>> from datetime import datetime
+        >>> quarters_between_dates(datetime(2025, 1, 1), datetime(2025, 10, 1))
+        3
+        >>> quarters_between_dates(datetime(2025, 1, 15), datetime(2025, 4, 14))
+        0
+
+    Complexity: O(1)
+    """
+    if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
+        raise TypeError("start_date and end_date must be datetime objects.")
+
+    total_months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+
+    # Adjust for incomplete month if day hasn't been reached
+    if end_date.day < start_date.day:
+        total_months -= 1 if total_months > 0 else 0
+
+        if total_months < 0:
+            total_months += 1
+
+    # Integer division gives complete quarters
+    return total_months // 3
+
+
+def add_months(date_input: datetime, months: int) -> datetime:
+    """Shifts a date forward or backward by a given number of months.
+
+    Description:
+        Preserves the day-of-month when possible. If the target month has fewer
+        days than the original day (e.g. Jan 31 + 1 month), clamps to the last
+        day of the target month.
+
+    Args:
+        date_input: The starting date.
+        months: Number of months to add (positive) or subtract (negative).
+
+    Returns:
+        datetime: The resulting date with time components preserved.
+
+    Raises:
+        TypeError: If date_input is not a datetime or months is not an int.
+
+    Example:
+        >>> from datetime import datetime
+        >>> add_months(datetime(2025, 1, 31), 1)
+        datetime.datetime(2025, 2, 28, 0, 0)
+        >>> add_months(datetime(2025, 3, 15), -1)
+        datetime.datetime(2025, 2, 15, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("date_input must be a datetime object.")
+
+    if not isinstance(months, int):
+        raise TypeError("months must be an integer.")
+
+    target_year = date_input.year + (date_input.month + months - 1) // 12
+    target_month = (date_input.month + months - 1) % 12 + 1
+    max_day = calendar.monthrange(target_year, target_month)[1]
+    target_day = min(date_input.day, max_day)
+
+    return date_input.replace(year=target_year, month=target_month, day=target_day)
+
+
+def start_of_quarter(date_input: Union[datetime, str], input_format: Optional[str] = None) -> datetime:
+    """Returns the first day of the quarter for a given date.
+
+    Description:
+        Determines which quarter the date belongs to and returns the first
+        day of that quarter at 00:00:00.
+
+    Args:
+        date_input: The date for which to get the start of the quarter.
+        input_format: Format string if date_input is a string.
+
+    Returns:
+        datetime: First day of the quarter at midnight.
+
+    Raises:
+        TypeError: If date_input is not a datetime or string.
+        ValueError: If date_input is a string and input_format is not provided.
+
+    Example:
+        >>> from datetime import datetime
+        >>> start_of_quarter(datetime(2026, 8, 15))
+        datetime.datetime(2026, 7, 1, 0, 0)
+        >>> start_of_quarter(datetime(2026, 1, 20))
+        datetime.datetime(2026, 1, 1, 0, 0)
+
+    Complexity: O(1)
+    """
+    parsed_dt = _parse_date_input_internal(date_input, input_format)
+    quarter = (parsed_dt.month - 1) // 3
+    first_month = quarter * 3 + 1
+
+    return datetime(parsed_dt.year, first_month, 1, 0, 0, 0)
+
+
+def end_of_quarter(date_input: Union[datetime, str], input_format: Optional[str] = None) -> datetime:
+    """Returns the last day of the quarter for a given date.
+
+    Description:
+        Determines which quarter the date belongs to and returns the last
+        day of that quarter at 23:59:59.999999.
+
+    Args:
+        date_input: The date for which to get the end of the quarter.
+        input_format: Format string if date_input is a string.
+
+    Returns:
+        datetime: Last day of the quarter at 23:59:59.999999.
+
+    Raises:
+        TypeError: If date_input is not a datetime or string.
+        ValueError: If date_input is a string and input_format is not provided.
+
+    Example:
+        >>> from datetime import datetime
+        >>> end_of_quarter(datetime(2026, 8, 15))
+        datetime.datetime(2026, 9, 30, 23, 59, 59, 999999)
+        >>> end_of_quarter(datetime(2026, 1, 20))
+        datetime.datetime(2026, 3, 31, 23, 59, 59, 999999)
+
+    Complexity: O(1)
+    """
+    parsed_dt = _parse_date_input_internal(date_input, input_format)
+    quarter = (parsed_dt.month - 1) // 3
+    last_month = quarter * 3 + 3
+    last_day = calendar.monthrange(parsed_dt.year, last_month)[1]
+
+    return datetime(parsed_dt.year, last_month, last_day, 23, 59, 59, 999999)
+
+
+def end_of_month_offset(date_input: datetime, months: int) -> datetime:
+    """Returns the last day of the month that is N months from date_input.
+
+    Description:
+        Useful for calculating payment due dates, contract expirations, or
+        any scenario requiring the last calendar day of a future/past month.
+
+    Args:
+        date_input: The reference date.
+        months: Number of months to offset (positive = forward, negative = back).
+
+    Returns:
+        datetime: A datetime set to the last day of the target month at 23:59:59.999999.
+
+    Raises:
+        TypeError: If date_input is not a datetime or months is not an int.
+
+    Example:
+        >>> from datetime import datetime
+        >>> end_of_month_offset(datetime(2025, 1, 15), 0)
+        datetime.datetime(2025, 1, 31, 23, 59, 59, 999999)
+        >>> end_of_month_offset(datetime(2025, 1, 15), 1)
+        datetime.datetime(2025, 2, 28, 23, 59, 59, 999999)
+        >>> end_of_month_offset(datetime(2024, 1, 15), 1)
+        datetime.datetime(2024, 2, 29, 23, 59, 59, 999999)
+
+    Complexity: O(1)
+    """
+    if not isinstance(date_input, datetime):
+        raise TypeError("date_input must be a datetime object.")
+
+    if not isinstance(months, int):
+        raise TypeError("months must be an integer.")
+
+    target_year = date_input.year + (date_input.month + months - 1) // 12
+    target_month = (date_input.month + months - 1) % 12 + 1
+    last_day = calendar.monthrange(target_year, target_month)[1]
+
+    return datetime(target_year, target_month, last_day, 23, 59, 59, 999999)
+
+
+def date_range(
+    start: Union[datetime, str, date],
+    end: Union[datetime, str, date],
+    step: int = 1,
+    unit: str = 'days',
+) -> List[datetime]:
+    """Generates a list of dates between *start* and *end* at regular intervals.
+
+    Args:
+        start: Start date (inclusive). Accepts datetime, date, or ISO string.
+        end: End date (inclusive). Accepts datetime, date, or ISO string.
+        step: Number of *unit* between each generated date. Must be positive.
+        unit: Time unit for the step. Supported: 'days', 'weeks', 'hours',
+              'minutes', 'seconds'.
+
+    Returns:
+        List of datetime objects from *start* up to (and including) *end*.
+
+    Raises:
+        TypeError: If inputs cannot be converted to datetime.
+        ValueError: If *step* < 1 or *unit* is unsupported.
+
+    Example:
+        >>> from datetime import datetime
+        >>> date_range(datetime(2025, 1, 1), datetime(2025, 1, 5))
+        [datetime.datetime(2025, 1, 1, 0, 0), datetime.datetime(2025, 1, 2, 0, 0), datetime.datetime(2025, 1, 3, 0, 0), datetime.datetime(2025, 1, 4, 0, 0), datetime.datetime(2025, 1, 5, 0, 0)]
+        >>> date_range("2025-01-01", "2025-01-10", step=3, unit='days')
+        [datetime.datetime(2025, 1, 1, 0, 0), datetime.datetime(2025, 1, 4, 0, 0), datetime.datetime(2025, 1, 7, 0, 0), datetime.datetime(2025, 1, 10, 0, 0)]
+
+    Complexity: O(n) where n is the number of dates produced.
+    """
+    if not isinstance(step, int) or step < 1:
+        raise ValueError("step must be a positive integer.")
+
+    unit_map = {
+        'days': 'days',
+        'weeks': 'weeks',
+        'hours': 'hours',
+        'minutes': 'minutes',
+        'seconds': 'seconds',
+    }
+
+    key = unit.lower()
+
+    if key not in unit_map:
+        raise ValueError(
+            f"Unsupported unit '{unit}'. Use one of: {', '.join(unit_map)}."
+        )
+
+    parsed_start = string_to_date(start)
+    parsed_end = string_to_date(end)
+
+    if parsed_start is None:
+        raise TypeError(f"Could not parse start date: {start}")
+
+    if parsed_end is None:
+        raise TypeError(f"Could not parse end date: {end}")
+
+    # Normalise date -> datetime
+    if isinstance(parsed_start, date) and not isinstance(parsed_start, datetime):
+        parsed_start = datetime(parsed_start.year, parsed_start.month, parsed_start.day)
+
+    if isinstance(parsed_end, date) and not isinstance(parsed_end, datetime):
+        parsed_end = datetime(parsed_end.year, parsed_end.month, parsed_end.day)
+
+    delta = timedelta(**{unit_map[key]: step})
+    result: List[datetime] = []
+    current = parsed_start
+
+    while current <= parsed_end:
+        result.append(current)
+        current += delta
+
+    return result
+
+
+def easter_date(year: int) -> date:
+    """Computes the date of Easter Sunday for a given year.
+
+    Uses the Anonymous Gregorian algorithm (Meeus/Jones/Butcher) which is
+    valid for years in the Gregorian calendar.
+
+    Args:
+        year: The calendar year (e.g. 2025).
+
+    Returns:
+        A ``date`` object for Easter Sunday.
+
+    Raises:
+        TypeError: If *year* is not an integer.
+        ValueError: If *year* < 1.
+
+    Example:
+        >>> easter_date(2025)
+        datetime.date(2025, 4, 20)
+        >>> easter_date(2024)
+        datetime.date(2024, 3, 31)
+        >>> easter_date(2000)
+        datetime.date(2000, 4, 23)
+
+    Complexity: O(1)
+    """
+    if not isinstance(year, int):
+        raise TypeError("year must be an integer.")
+
+    if year < 1:
+        raise ValueError("year must be a positive integer.")
+
+    # Anonymous Gregorian algorithm
+    a = year % 19
+    b, c = divmod(year, 100)
+    d, e = divmod(b, 4)
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = divmod(c, 4)
+    el = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * el) // 451
+    month, day = divmod(h + el - 7 * m + 114, 31)
+
+    return date(year, month, day + 1)
+
+
+# --- Private helpers for weekend/holiday resolution ---
+
+def _build_holiday_set(holidays: Optional[List[datetime]]) -> Set[date]:
+    """Converts optional list of datetime holidays to a set of date objects.
+
+    Args:
+        holidays: Optional list of datetime objects.
+
+    Returns:
+        Set of date objects for efficient lookup.
+
+    Raises:
+        TypeError: If holidays is not a list of datetime objects.
+    """
+    if holidays is None:
+        return set()
+
+    if not isinstance(holidays, list):
+        raise TypeError("holidays must be a list of datetime objects or None.")
+
+    result: Set[date] = set()
+
+    for h in holidays:
+
+        if not isinstance(h, datetime):
+            raise TypeError("All items in holidays must be datetime objects.")
+
+        result.add(h.date())
+
+    return result
+
+
+def _resolve_weekend_days(weekend: Union[int, str]) -> Set[int]:
+    """Resolves weekend parameter into a set of weekday indices (0=Mon, 6=Sun).
+
+    Args:
+        weekend: Integer preset (1-7) or 7-char string of 0/1 (Mon-Sun).
+
+    Returns:
+        Set of weekday integers considered as weekend days.
+
+    Raises:
+        ValueError: If the weekend value is not recognized.
+    """
+    if isinstance(weekend, int):
+        presets = {
+            1: {5, 6},  # Sat-Sun
+            2: {6, 0},  # Sun-Mon
+            3: {0, 1},  # Mon-Tue
+            4: {1, 2},  # Tue-Wed
+            5: {2, 3},  # Wed-Thu
+            6: {3, 4},  # Thu-Fri
+            7: {4, 5},  # Fri-Sat
+        }
+
+        if weekend not in presets:
+            raise ValueError("weekend integer must be between 1 and 7.")
+
+        return presets[weekend]
+
+    if isinstance(weekend, str):
+
+        if len(weekend) != 7 or not all(c in '01' for c in weekend):
+            raise ValueError("weekend string must be 7 characters of '0' and '1' (Mon-Sun).")
+
+        return {i for i, ch in enumerate(weekend) if ch == '1'}
+
+    raise ValueError("weekend must be an integer (1-7) or a 7-character '0'/'1' string.")
+
+
+def age(birthdate: Union[str, date, datetime]) -> int:
+    """Calculates the age in complete years from a birth date to today.
+
+    Args:
+        birthdate: A date, datetime, or parseable date string.
+
+    Returns:
+        The number of complete years elapsed.
+
+    Raises:
+        TypeError: If birthdate cannot be interpreted as a date.
+        ValueError: If birthdate is in the future.
+
+    Example:
+        >>> from datetime import date
+        >>> age(date(2000, 1, 1))  # assuming today is 2026-04-04
+        26
+
+    Complexity: O(1)
+    """
+    if isinstance(birthdate, str):
+        birthdate = string_to_date(birthdate)
+
+    if isinstance(birthdate, datetime):
+        birthdate = birthdate.date()
+
+    if not isinstance(birthdate, date):
+        raise TypeError("birthdate must be a date, datetime, or date string.")
+
+    today = date.today()
+
+    if birthdate > today:
+        raise ValueError("birthdate cannot be in the future.")
+
+    years = today.year - birthdate.year
+
+    if (today.month, today.day) < (birthdate.month, birthdate.day):
+        years -= 1
+
+    return years
+
+
+def overlap_dates(
+    start1: Union[str, date, datetime],
+    end1: Union[str, date, datetime],
+    start2: Union[str, date, datetime],
+    end2: Union[str, date, datetime],
+) -> bool:
+    """Checks whether two date ranges overlap.
+
+    Two ranges overlap when one starts before the other ends, and vice versa.
+
+    Args:
+        start1: Start of the first range.
+        end1: End of the first range.
+        start2: Start of the second range.
+        end2: End of the second range.
+
+    Returns:
+        True if the ranges share at least one common day.
+
+    Example:
+        >>> from datetime import date
+        >>> overlap_dates(date(2026, 1, 1), date(2026, 1, 10), date(2026, 1, 5), date(2026, 1, 15))
+        True
+        >>> overlap_dates(date(2026, 1, 1), date(2026, 1, 10), date(2026, 1, 11), date(2026, 1, 20))
+        False
+
+    Complexity: O(1)
+    """
+    def _to_date(d: Union[str, date, datetime]) -> date:
+        if isinstance(d, str):
+            d = string_to_date(d)
+
+        if isinstance(d, datetime):
+            return d.date()
+
+        return d
+
+    s1, e1, s2, e2 = _to_date(start1), _to_date(end1), _to_date(start2), _to_date(end2)
+    return s1 <= e2 and s2 <= e1
+
+
+def relative_time_description(
+    dt_value: datetime,
+    reference: Optional[datetime] = None,
+    language: str = "en",
+) -> str:
+    """Returns a human-readable relative time string.
+
+    Computes the difference between *dt_value* and *reference* and produces
+    a short description such as ``"2 hours ago"`` or ``"hace 3 dias"``.
+
+    Args:
+        dt_value: The target datetime.
+        reference: The baseline datetime (defaults to ``datetime.now()``).
+        language: ``"en"`` for English, ``"es"`` for Spanish.
+
+    Returns:
+        A human-readable relative time string.
+
+    Raises:
+        TypeError: If *dt_value* is not a datetime.
+
+    Example:
+        >>> from datetime import datetime, timedelta
+        >>> ref = datetime(2026, 4, 4, 12, 0)
+        >>> relative_time_description(ref - timedelta(hours=2), ref)
+        '2 hours ago'
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt_value, datetime):
+        raise TypeError("dt_value must be a datetime object.")
+
+    if reference is None:
+        reference = datetime.now()
+
+    delta = dt_value - reference
+    total_seconds = int(delta.total_seconds())
+    is_future = total_seconds >= 0
+    total_seconds = abs(total_seconds)
+
+    units_en = [
+        (86400 * 365, "year", "years"),
+        (86400 * 30, "month", "months"),
+        (86400, "day", "days"),
+        (3600, "hour", "hours"),
+        (60, "minute", "minutes"),
+        (1, "second", "seconds"),
+    ]
+    units_es = [
+        (86400 * 365, "a\u00f1o", "a\u00f1os"),
+        (86400 * 30, "mes", "meses"),
+        (86400, "d\u00eda", "d\u00edas"),
+        (3600, "hora", "horas"),
+        (60, "minuto", "minutos"),
+        (1, "segundo", "segundos"),
+    ]
+    units = units_es if language == "es" else units_en
+
+    for threshold, singular, plural in units:
+
+        if total_seconds >= threshold:
+            count = total_seconds // threshold
+            name = singular if count == 1 else plural
+
+            if is_future:
+                return f"en {count} {name}" if language == "es" else f"in {count} {name}"
+
+            return f"hace {count} {name}" if language == "es" else f"{count} {name} ago"
+
+    if language == "es":
+        return "ahora mismo"
+
+    return "just now"
+
+
+def round_datetime(
+    dt_value: datetime,
+    unit: Literal["minute", "hour", "day"] = "hour",
+) -> datetime:
+    """Rounds a datetime to the nearest unit.
+
+    Args:
+        dt_value: The datetime to round.
+        unit: ``"minute"``, ``"hour"`` or ``"day"``.
+
+    Returns:
+        The rounded datetime.
+
+    Raises:
+        TypeError: If *dt_value* is not a datetime.
+        ValueError: If *unit* is invalid.
+
+    Example:
+        >>> round_datetime(datetime(2026, 4, 4, 14, 35), "hour")
+        datetime.datetime(2026, 4, 4, 15, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt_value, datetime):
+        raise TypeError("dt_value must be a datetime object.")
+
+    if unit == "minute":
+
+        if dt_value.second >= 30:
+            dt_value += timedelta(minutes=1)
+
+        return dt_value.replace(second=0, microsecond=0)
+
+    if unit == "hour":
+
+        if dt_value.minute >= 30:
+            dt_value += timedelta(hours=1)
+
+        return dt_value.replace(minute=0, second=0, microsecond=0)
+
+    if unit == "day":
+
+        if dt_value.hour >= 12:
+            dt_value += timedelta(days=1)
+
+        return dt_value.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    raise ValueError(f"Invalid unit '{unit}'. Use 'minute', 'hour' or 'day'.")
+
+
+def recurring_dates(
+    start: date,
+    end: date,
+    frequency: Literal["daily", "weekly", "biweekly", "monthly", "yearly"] = "monthly",
+    weekday: Optional[int] = None,
+) -> List[date]:
+    """Generates recurring dates within a range.
+
+    Args:
+        start: First date of the range (inclusive).
+        end: Last date of the range (inclusive).
+        frequency: One of ``"daily"``, ``"weekly"``, ``"biweekly"``,
+            ``"monthly"`` or ``"yearly"``.
+        weekday: For ``"weekly"``/``"biweekly"`` -- ISO weekday
+            (1=Monday ... 7=Sunday). Defaults to the weekday of *start*.
+
+    Returns:
+        A sorted list of dates matching the recurrence rule.
+
+    Raises:
+        ValueError: If *start* > *end* or frequency is invalid.
+
+    Example:
+        >>> from datetime import date
+        >>> recurring_dates(date(2026, 1, 1), date(2026, 3, 1), "monthly")
+        [datetime.date(2026, 1, 1), datetime.date(2026, 2, 1), datetime.date(2026, 3, 1)]
+
+    Complexity: O(n) where n is the number of occurrences.
+    """
+    if start > end:
+        raise ValueError("start must be <= end.")
+
+    result: List[date] = []
+
+    if frequency == "daily":
+        current = start
+
+        while current <= end:
+            result.append(current)
+            current += timedelta(days=1)
+
+    elif frequency in ("weekly", "biweekly"):
+        step = 7 if frequency == "weekly" else 14
+        target_wd = (weekday or start.isoweekday()) % 7
+        current_wd = start.isoweekday() % 7
+        offset = (target_wd - current_wd) % 7
+        current = start + timedelta(days=offset)
+
+        while current <= end:
+            result.append(current)
+            current += timedelta(days=step)
+
+    elif frequency == "monthly":
+        current = start
+
+        while current <= end:
+            result.append(current)
+            month = current.month + 1
+            year = current.year
+
+            if month > 12:
+                month = 1
+                year += 1
+
+            day_val = min(start.day, calendar.monthrange(year, month)[1])
+            current = date(year, month, day_val)
+
+    elif frequency == "yearly":
+        current = start
+
+        while current <= end:
+            result.append(current)
+            year = current.year + 1
+            day_val = min(start.day, calendar.monthrange(year, start.month)[1])
+            current = date(year, start.month, day_val)
+
+    else:
+        raise ValueError(
+            f"Invalid frequency '{frequency}'. Use 'daily', 'weekly', "
+            "'biweekly', 'monthly' or 'yearly'."
+        )
+
+    return result
+
+
+def overlap_days(
+    start1: date, end1: date,
+    start2: date, end2: date,
+) -> int:
+    """Counts the overlapping days between two date ranges.
+
+    Both ranges are inclusive on both ends.
+
+    Args:
+        start1: Start of the first range.
+        end1: End of the first range.
+        start2: Start of the second range.
+        end2: End of the second range.
+
+    Returns:
+        Number of overlapping days (0 if no overlap).
+
+    Example:
+        >>> from datetime import date
+        >>> overlap_days(date(2026, 1, 1), date(2026, 1, 10),
+        ...             date(2026, 1, 5), date(2026, 1, 15))
+        6
+
+    Complexity: O(1)
+    """
+    overlap_start = max(start1, start2)
+    overlap_end = min(end1, end2)
+    delta = (overlap_end - overlap_start).days + 1
+    return max(delta, 0)
+
+
+def business_hours_between(
+    start_dt: datetime,
+    end_dt: datetime,
+    work_start: time = time(9, 0),
+    work_end: time = time(17, 0),
+) -> float:
+    """Calculates the number of business hours between two datetimes.
+
+    Counts only Mon--Fri hours within the ``[work_start, work_end)`` window.
+
+    Args:
+        start_dt: Start datetime.
+        end_dt: End datetime.
+        work_start: Daily work-start time (default 09:00).
+        work_end: Daily work-end time (default 17:00).
+
+    Returns:
+        Total business hours as a float.
+
+    Raises:
+        ValueError: If *start_dt* > *end_dt* or *work_start* >= *work_end*.
+
+    Example:
+        >>> business_hours_between(
+        ...     datetime(2026, 4, 6, 10, 0),
+        ...     datetime(2026, 4, 6, 15, 30))
+        5.5
+
+    Complexity: O(d) where d is the number of calendar days spanned.
+    """
+    if start_dt > end_dt:
+        raise ValueError("start_dt must be <= end_dt.")
+
+    if work_start >= work_end:
+        raise ValueError("work_start must be before work_end.")
+
+    total = 0.0
+    current_date = start_dt.date()
+
+    while current_date <= end_dt.date():
+
+        if current_date.weekday() < 5:
+            day_start = datetime.combine(current_date, work_start)
+            day_end = datetime.combine(current_date, work_end)
+            eff_start = max(start_dt, day_start)
+            eff_end = min(end_dt, day_end)
+
+            if eff_start < eff_end:
+                total += (eff_end - eff_start).total_seconds()
+
+        current_date += timedelta(days=1)
+
+    return round(total / 3600, 2)
+
+
+# ---------------------------------------------------------------------------
+# Human-readable duration & relative time
+# ---------------------------------------------------------------------------
+
+
+def human_readable_duration(seconds: Union[int, float]) -> str:
+    """Format a number of seconds as a human-readable duration string.
+
+    Produces compact output like ``"2h 30m 15s"``, ``"3 days 4h"``, or
+    ``"1.5s"`` depending on magnitude.
+
+    Args:
+        seconds: Total seconds (can be float for sub-second precision).
+
+    Returns:
+        Human-readable duration string.
+
+    Example:
+        >>> human_readable_duration(9015)
+        '2h 30m 15s'
+        >>> human_readable_duration(90061)
+        '1 day 1h 1m 1s'
+        >>> human_readable_duration(45)
+        '45s'
+
+    Complexity: O(1)
+    """
+
+    if seconds < 0:
+        return "-" + human_readable_duration(-seconds)
+
+    if seconds < 1:
+        return f"{seconds:.2f}s"
+
+    total = int(seconds)
+    days, remainder = divmod(total, 86400)
+    hours, remainder = divmod(remainder, 3600)
+    minutes, secs = divmod(remainder, 60)
+
+    parts: List[str] = []
+
+    if days:
+        parts.append(f"{days} day{'s' if days != 1 else ''}")
+
+    if hours:
+        parts.append(f"{hours}h")
+
+    if minutes:
+        parts.append(f"{minutes}m")
+
+    if secs or not parts:
+        parts.append(f"{secs}s")
+
+    return " ".join(parts)
+
+
+def relative_time(dt_input: Union[datetime, date],
+                  reference: Optional[Union[datetime, date]] = None,
+                  lang: str = "en") -> str:
+    """Describe a datetime relative to a reference point.
+
+    Produces output like ``"2 hours ago"``, ``"in 3 days"``,
+    ``"hace 2 horas"``, ``"en 3 días"``.
+
+    Args:
+        dt_input: Target date/datetime.
+        reference: Reference point (defaults to now).
+        lang: Language code (``'en'`` or ``'es'``). Defaults to ``'en'``.
+
+    Returns:
+        Human-readable relative time string.
+
+    Example:
+        >>> from datetime import datetime, timedelta
+        >>> ref = datetime(2025, 6, 15, 12, 0, 0)
+        >>> relative_time(ref - timedelta(hours=2), ref)
+        '2 hours ago'
+        >>> relative_time(ref + timedelta(days=3), ref, 'es')
+        'en 3 días'
+
+    Complexity: O(1)
+    """
+
+    if isinstance(dt_input, date) and not isinstance(dt_input, datetime):
+        dt_input = datetime(dt_input.year, dt_input.month, dt_input.day)
+
+    if reference is None:
+        reference = datetime.now()
+    elif isinstance(reference, date) and not isinstance(reference, datetime):
+        reference = datetime(reference.year, reference.month, reference.day)
+
+    delta = dt_input - reference
+    total_seconds = delta.total_seconds()
+    past = total_seconds < 0
+    mag = abs(total_seconds)
+
+    # Determine unit and count
+    if mag < 60:
+        count, unit_en, unit_es = int(mag), "second", "segundo"
+    elif mag < 3600:
+        count, unit_en, unit_es = int(mag // 60), "minute", "minuto"
+    elif mag < 86400:
+        count, unit_en, unit_es = int(mag // 3600), "hour", "hora"
+    elif mag < 2_592_000:
+        count, unit_en, unit_es = int(mag // 86400), "day", "día"
+    elif mag < 31_536_000:
+        count, unit_en, unit_es = int(mag // 2_592_000), "month", "mes"
+    else:
+        count, unit_en, unit_es = int(mag // 31_536_000), "year", "año"
+
+    count = max(count, 1)
+
+    if lang == "es":
+        plural = unit_es if count == 1 else (unit_es + "s" if unit_es != "mes" else "meses")
+
+        if past:
+            return f"hace {count} {plural}"
+
+        return f"en {count} {plural}"
+
+    # English
+    plural = unit_en if count == 1 else unit_en + "s"
+
+    if past:
+        return f"{count} {plural} ago"
+
+    return f"in {count} {plural}"
+
+
+def is_same_business_day(date1: Union[datetime, date],
+                         date2: Union[datetime, date],
+                         holidays: Optional[List] = None) -> bool:
+    """Check whether two dates fall on the same business day.
+
+    A date that falls on a weekend or listed holiday is **not** considered a
+    business day, so two dates can only be the "same business day" if they
+    share the same calendar date **and** that date is Mon–Fri and not a
+    holiday.
+
+    Args:
+        date1: First date.
+        date2: Second date.
+        holidays: Optional list of holiday dates.
+
+    Returns:
+        True if both dates share the same business day.
+
+    Example:
+        >>> from datetime import date
+        >>> is_same_business_day(date(2025, 6, 16), date(2025, 6, 16))
+        True
+        >>> is_same_business_day(date(2025, 6, 14), date(2025, 6, 14))
+        False
+
+    Complexity: O(h) where h = len(holidays)
+    """
+
+    d1 = date1.date() if isinstance(date1, datetime) else date1
+    d2 = date2.date() if isinstance(date2, datetime) else date2
+
+    if d1 != d2:
+        return False
+
+    if d1.weekday() >= 5:
+        return False
+
+    if holidays:
+
+        for h in holidays:
+            hd = h.date() if isinstance(h, datetime) else h
+
+            if hd == d1:
+                return False
+
+    return True
+
+
+def snap_to_weekday(date_input: Union[datetime, date],
+                    target_weekday: int,
+                    direction: str = "next") -> Union[datetime, date]:
+    """Snap a date to the nearest specified weekday.
+
+    Args:
+        date_input: Starting date.
+        target_weekday: Target weekday (0=Monday … 6=Sunday).
+        direction: ``'next'`` to move forward or ``'previous'`` to move backward.
+            If date_input is already on the target weekday, returns as-is.
+
+    Returns:
+        Date snapped to the target weekday (same type as input).
+
+    Raises:
+        ValueError: If target_weekday is not in [0, 6] or direction is invalid.
+
+    Example:
+        >>> from datetime import date
+        >>> snap_to_weekday(date(2025, 6, 11), 0)
+        datetime.date(2025, 6, 16)
+        >>> snap_to_weekday(date(2025, 6, 11), 0, 'previous')
+        datetime.date(2025, 6, 9)
+
+    Complexity: O(1)
+    """
+
+    if not 0 <= target_weekday <= 6:
+        raise ValueError(f"target_weekday ({target_weekday}) must be in [0, 6].")
+
+    if direction not in ("next", "previous"):
+        raise ValueError(f"direction must be 'next' or 'previous', got '{direction}'.")
+
+    d = date_input.date() if isinstance(date_input, datetime) else date_input
+    current_wd = d.weekday()
+
+    if current_wd == target_weekday:
+        return date_input
+
+    if direction == "next":
+        days_ahead = (target_weekday - current_wd) % 7
+
+        if days_ahead == 0:
+            days_ahead = 7
+
+    else:
+        days_back = (current_wd - target_weekday) % 7
+
+        if days_back == 0:
+            days_back = 7
+
+        days_ahead = -days_back
+
+    result_date = d + timedelta(days=days_ahead)
+
+    if isinstance(date_input, datetime):
+        return datetime.combine(result_date, date_input.time())
+
+    return result_date
+
+
+def networkdays(
+    start_date: Union[date, datetime],
+    end_date: Union[date, datetime],
+    holidays: Union[List[Union[date, datetime]], None] = None,
+) -> int:
+    """Counts working days (Mon-Fri) between two dates, excluding holidays.
+
+    Description:
+        Returns the number of business days between start_date and end_date,
+        both inclusive. Weekends (Saturday, Sunday) and optional holidays are
+        excluded. Equivalent to Excel NETWORKDAYS.
+
+    Args:
+        start_date: The start date.
+        end_date: The end date.
+        holidays: Optional list of holiday dates to exclude.
+
+    Returns:
+        int: Number of working days.
+
+    Raises:
+        TypeError: If dates are not date/datetime objects.
+
+    Example:
+        >>> from datetime import date
+        >>> networkdays(date(2025, 1, 1), date(2025, 1, 10))
+        8
+        >>> networkdays(date(2025, 1, 1), date(2025, 1, 10), [date(2025, 1, 6)])
+        7
+
+    Complexity: O(n) where n is the number of days in the range
+    """
+    if isinstance(start_date, datetime):
+        start_date = start_date.date()
+
+    if isinstance(end_date, datetime):
+        end_date = end_date.date()
+
+    if not isinstance(start_date, date) or not isinstance(end_date, date):
+        raise TypeError("start_date and end_date must be date or datetime objects.")
+
+    holiday_set: Set[date] = set()
+
+    if holidays:
+
+        for h in holidays:
+            holiday_set.add(h.date() if isinstance(h, datetime) else h)
+
+    sign = 1
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+        sign = -1
+
+    count = 0
+    current = start_date
+
+    while current <= end_date:
+
+        if current.weekday() < 5 and current not in holiday_set:
+            count += 1
+
+        current += timedelta(days=1)
+
+    return count * sign
+
+
+def networkdays_intl(
+    start_date: Union[date, datetime],
+    end_date: Union[date, datetime],
+    weekend: Union[int, str] = 1,
+    holidays: Optional[List[Union[date, datetime]]] = None,
+) -> int:
+    """Counts working days between two dates with custom weekends.
+
+    Description:
+        Like networkdays but allows specifying which days count as weekends
+        via an integer preset (1-7) or a 7-character binary string.
+        Equivalent to Excel NETWORKDAYS.INTL.
+
+    Args:
+        start_date: The start date (inclusive).
+        end_date: The end date (inclusive).
+        weekend: Weekend definition. Integer 1-7 for presets or a 7-char
+                 string of '0'/'1' (Mon-Sun) where '1' = weekend day.
+        holidays: Optional list of holiday dates to exclude.
+
+    Returns:
+        int: Number of working days.
+
+    Raises:
+        TypeError: If dates are not date/datetime objects.
+        ValueError: If weekend parameter is invalid.
+
+    Example:
+        >>> from datetime import date
+        >>> networkdays_intl(date(2025, 1, 6), date(2025, 1, 10))
+        5
+        >>> networkdays_intl(date(2025, 1, 6), date(2025, 1, 10), weekend=2)
+        4
+
+    Complexity: O(n) where n is the number of days in the range
+    """
+    if isinstance(start_date, datetime):
+        start_date = start_date.date()
+
+    if isinstance(end_date, datetime):
+        end_date = end_date.date()
+
+    if not isinstance(start_date, date) or not isinstance(end_date, date):
+        raise TypeError("start_date and end_date must be date or datetime objects.")
+
+    weekend_days = _resolve_weekend_days(weekend)
+
+    holiday_set: Set[date] = set()
+
+    if holidays:
+
+        for h in holidays:
+            holiday_set.add(h.date() if isinstance(h, datetime) else h)
+
+    sign = 1
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+        sign = -1
+
+    count = 0
+    current = start_date
+
+    while current <= end_date:
+
+        if current.weekday() not in weekend_days and current not in holiday_set:
+            count += 1
+
+        current += timedelta(days=1)
+
+    return count * sign
+
+
+def datedif(
+    start_date: Union[date, datetime],
+    end_date: Union[date, datetime],
+    unit: str,
+) -> int:
+    """Calculates the difference between two dates in specified units.
+
+    Description:
+        Returns the difference measured in complete years ("Y"), months ("M"),
+        days ("D"), months ignoring years ("YM"), days ignoring months and
+        years ("MD"), or days ignoring years ("YD").
+        Equivalent to Excel DATEDIF.
+
+    Args:
+        start_date: The earlier date.
+        end_date: The later date.
+        unit: One of "Y", "M", "D", "YM", "MD", "YD".
+
+    Returns:
+        int: The difference in the requested unit.
+
+    Raises:
+        TypeError: If dates are not date/datetime objects.
+        ValueError: If start_date > end_date or unit is invalid.
+
+    Example:
+        >>> from datetime import date
+        >>> datedif(date(2020, 3, 15), date(2025, 7, 20), "Y")
+        5
+        >>> datedif(date(2020, 3, 15), date(2025, 7, 20), "M")
+        64
+        >>> datedif(date(2020, 3, 15), date(2025, 7, 20), "D")
+        1953
+
+    Complexity: O(1)
+    """
+    if isinstance(start_date, datetime):
+        start_date = start_date.date()
+
+    if isinstance(end_date, datetime):
+        end_date = end_date.date()
+
+    if not isinstance(start_date, date) or not isinstance(end_date, date):
+        raise TypeError("Both dates must be date or datetime objects.")
+
+    if start_date > end_date:
+        raise ValueError("start_date must be on or before end_date.")
+
+    unit = unit.upper()
+
+    if unit not in ("Y", "M", "D", "YM", "MD", "YD"):
+        raise ValueError("unit must be one of 'Y', 'M', 'D', 'YM', 'MD', 'YD'.")
+
+    if unit == "D":
+        return (end_date - start_date).days
+
+    year_diff = end_date.year - start_date.year
+    month_diff = end_date.month - start_date.month
+    day_diff = end_date.day - start_date.day
+
+    total_months = year_diff * 12 + month_diff
+
+    if day_diff < 0:
+        total_months -= 1
+
+    if unit == "Y":
+        return total_months // 12
+
+    if unit == "M":
+        return total_months
+
+    if unit == "YM":
+        return total_months % 12
+
+    if unit == "MD":
+        # Days ignoring month and year differences
+        if end_date.day >= start_date.day:
+            return end_date.day - start_date.day
+
+        prev_month = end_date.month - 1 if end_date.month > 1 else 12
+        prev_year = end_date.year if end_date.month > 1 else end_date.year - 1
+        days_in_prev = calendar.monthrange(prev_year, prev_month)[1]
+        return days_in_prev - start_date.day + end_date.day
+
+    # unit == "YD"
+    start_same_year = start_date.replace(year=end_date.year)
+
+    if start_same_year > end_date:
+        start_same_year = start_date.replace(year=end_date.year - 1)
+
+    return (end_date - start_same_year).days
+
+
+def days_between(
+    start_date: datetime,
+    end_date: datetime,
+    basis: int = 0,
+) -> int:
+    """Calculates days between two dates based on a day-count basis.
+
+    Provides a single implementation for the five standard day-count
+    conventions used in financial calculations.
+
+    Args:
+        start_date: The start date.
+        end_date: The end date.
+        basis: Day-count convention:
+            0 — 30/360 US (NASD).
+            1 — Actual/Actual.
+            2 — Actual/360.
+            3 — Actual/365.
+            4 — 30/360 European.
+
+    Returns:
+        Number of days according to the chosen basis.
+
+    Example:
+        >>> from datetime import datetime
+        >>> days_between(datetime(2025, 1, 1), datetime(2025, 7, 1), basis=0)
+        180
+
+    Complexity: O(1)
+    """
+    if basis == 0:
+        return days_360(start_date, end_date, method='us')
+
+    if basis == 4:
+        return days_360(start_date, end_date, method='eu')
+
+    # basis 1, 2, 3 — all use actual day count
+    return (end_date - start_date).days
+
+
+def next_business_day(
+    d: Union[datetime, date],
+    holidays: Optional[List[Union[datetime, date]]] = None,
+) -> date:
+    """Returns the next business day after the given date.
+
+    Skips weekends (Saturday/Sunday) and optionally provided holidays.
+
+    Args:
+        d: Starting date.
+        holidays: Optional list of holiday dates to skip.
+
+    Returns:
+        The next business day as a date object.
+
+    Raises:
+        TypeError: If d is not a date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> next_business_day(date(2026, 4, 3))  # Friday
+        datetime.date(2026, 4, 6)
+        >>> next_business_day(date(2026, 4, 4))  # Saturday
+        datetime.date(2026, 4, 6)
+
+    Complexity: O(h) where h is the number of consecutive holidays.
+    """
+    if not isinstance(d, (datetime, date)):
+        raise TypeError("d must be a date or datetime object.")
+
+    from datetime import timedelta
+
+    holiday_set = set()
+
+    if holidays:
+        holiday_set = {
+            h.date() if isinstance(h, datetime) else h for h in holidays
+        }
+
+    current = d.date() if isinstance(d, datetime) else d
+    current += timedelta(days=1)
+
+    while current.weekday() >= 5 or current in holiday_set:
+        current += timedelta(days=1)
+
+    return current
+
+
+def previous_business_day(
+    d: Union[datetime, date],
+    holidays: Optional[List[Union[datetime, date]]] = None,
+) -> date:
+    """Returns the previous business day before the given date.
+
+    Skips weekends (Saturday/Sunday) and optionally provided holidays.
+
+    Args:
+        d: Starting date.
+        holidays: Optional list of holiday dates to skip.
+
+    Returns:
+        The previous business day as a date object.
+
+    Raises:
+        TypeError: If d is not a date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> previous_business_day(date(2026, 4, 6))  # Monday
+        datetime.date(2026, 4, 3)
+        >>> previous_business_day(date(2026, 4, 5))  # Sunday
+        datetime.date(2026, 4, 3)
+
+    Complexity: O(h) where h is the number of consecutive holidays.
+    """
+    if not isinstance(d, (datetime, date)):
+        raise TypeError("d must be a date or datetime object.")
+
+    from datetime import timedelta
+
+    holiday_set = set()
+
+    if holidays:
+        holiday_set = {
+            h.date() if isinstance(h, datetime) else h for h in holidays
+        }
+
+    current = d.date() if isinstance(d, datetime) else d
+    current -= timedelta(days=1)
+
+    while current.weekday() >= 5 or current in holiday_set:
+        current -= timedelta(days=1)
+
+    return current
+
+
+def date_sequence(
+    start: Union[datetime, date],
+    end: Union[datetime, date],
+    step_days: int = 1,
+) -> List[date]:
+    """Generates a list of dates from start to end (inclusive).
+
+    Args:
+        start: First date in the sequence.
+        end: Last date in the sequence (inclusive if reached by step).
+        step_days: Number of days between consecutive dates (default 1).
+
+    Returns:
+        A list of date objects.
+
+    Raises:
+        TypeError: If start/end are not dates or step_days is not int.
+        ValueError: If step_days == 0 or step direction doesn't match date order.
+
+    Example:
+        >>> from datetime import date
+        >>> date_sequence(date(2026, 1, 1), date(2026, 1, 5))
+        [datetime.date(2026, 1, 1), datetime.date(2026, 1, 2), datetime.date(2026, 1, 3), datetime.date(2026, 1, 4), datetime.date(2026, 1, 5)]
+
+    Complexity: O(n) where n is the number of dates generated.
+    """
+    if not isinstance(start, (datetime, date)) or not isinstance(end, (datetime, date)):
+        raise TypeError("start and end must be date or datetime objects.")
+
+    if not isinstance(step_days, int):
+        raise TypeError("step_days must be an integer.")
+
+    if step_days == 0:
+        raise ValueError("step_days cannot be zero.")
+
+    from datetime import timedelta
+
+    s = start.date() if isinstance(start, datetime) else start
+    e = end.date() if isinstance(end, datetime) else end
+
+    if step_days > 0 and s > e:
+        raise ValueError("start must be <= end when step_days > 0.")
+
+    if step_days < 0 and s < e:
+        raise ValueError("start must be >= end when step_days < 0.")
+
+    result = []
+    current = s
+    delta = timedelta(days=step_days)
+
+    if step_days > 0:
+
+        while current <= e:
+            result.append(current)
+            current += delta
+
+    else:
+
+        while current >= e:
+            result.append(current)
+            current += delta
+
+    return result
+
+
+def fiscal_quarter(
+    d: Union[datetime, date],
+    fiscal_start_month: int = 1,
+) -> int:
+    """Returns the fiscal quarter (1-4) for a given date.
+
+    Args:
+        d: A datetime or date object.
+        fiscal_start_month: The month the fiscal year starts (1-12).
+            Default 1 = calendar year.
+
+    Returns:
+        An integer 1-4 representing the fiscal quarter.
+
+    Raises:
+        TypeError: If d is not a datetime/date or fiscal_start_month not int.
+        ValueError: If fiscal_start_month not in 1-12.
+
+    Example:
+        >>> from datetime import date
+        >>> fiscal_quarter(date(2026, 3, 15))
+        1
+        >>> fiscal_quarter(date(2026, 3, 15), fiscal_start_month=4)
+        4
+        >>> fiscal_quarter(date(2026, 7, 1), fiscal_start_month=4)
+        2
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (datetime, date)):
+        raise TypeError("Input must be a datetime or date object.")
+
+    if not isinstance(fiscal_start_month, int):
+        raise TypeError("fiscal_start_month must be an integer.")
+
+    if not 1 <= fiscal_start_month <= 12:
+        raise ValueError("fiscal_start_month must be between 1 and 12.")
+
+    month = d.month
+    adjusted = (month - fiscal_start_month) % 12
+    return adjusted // 3 + 1
+
+
+def countdown_days(
+    target: Union[datetime, date],
+    from_date: Union[datetime, date, None] = None,
+) -> int:
+    """Counts the number of days until a target date.
+
+    Positive means target is in the future; negative means it is in the past.
+
+    Args:
+        target: The target date.
+        from_date: The start date (defaults to today).
+
+    Returns:
+        Number of days between from_date and target.
+
+    Raises:
+        TypeError: If inputs are not datetime or date objects.
+
+    Example:
+        >>> from datetime import date
+        >>> countdown_days(date(2026, 12, 31), date(2026, 1, 1))
+        364
+
+    Complexity: O(1)
+    """
+    if not isinstance(target, (datetime, date)):
+        raise TypeError("target must be a datetime or date object.")
+
+    if from_date is not None and not isinstance(from_date, (datetime, date)):
+        raise TypeError("from_date must be a datetime or date object.")
+
+    t = target.date() if isinstance(target, datetime) else target
+
+    if from_date is None:
+        f = date.today()
+    else:
+        f = from_date.date() if isinstance(from_date, datetime) else from_date
+
+    return (t - f).days
+
+
+def decimal_hours_between(
+    dt1: Union[datetime, date],
+    dt2: Union[datetime, date],
+) -> float:
+    """Returns the decimal number of hours between two datetimes.
+
+    If plain ``date`` objects are given they are treated as midnight.
+
+    Args:
+        dt1: Start datetime.
+        dt2: End datetime.
+
+    Returns:
+        Decimal hours (positive when dt2 > dt1, negative otherwise).
+
+    Raises:
+        TypeError: If arguments are not datetime or date.
+
+    Example:
+        >>> from datetime import datetime
+        >>> decimal_hours_between(
+        ...     datetime(2024, 1, 1, 8, 0),
+        ...     datetime(2024, 1, 1, 9, 30),
+        ... )
+        1.5
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt1, (datetime, date)):
+        raise TypeError("dt1 must be a datetime or date object.")
+
+    if not isinstance(dt2, (datetime, date)):
+        raise TypeError("dt2 must be a datetime or date object.")
+
+    d1 = dt1 if isinstance(dt1, datetime) else datetime(dt1.year, dt1.month, dt1.day)
+    d2 = dt2 if isinstance(dt2, datetime) else datetime(dt2.year, dt2.month, dt2.day)
+
+    return (d2 - d1).total_seconds() / 3600.0
+
+
+def semester(d: Union[datetime, date, str]) -> int:
+    """Returns which semester (1 or 2) a date falls in.
+
+    Semester 1 = January–June, Semester 2 = July–December.
+
+    Args:
+        d: A date, datetime, or ISO-format string (``YYYY-MM-DD``).
+
+    Returns:
+        ``1`` or ``2``.
+
+    Raises:
+        TypeError: If the argument is not a valid date type.
+
+    Example:
+        >>> from datetime import date
+        >>> semester(date(2024, 3, 15))
+        1
+
+    Complexity: O(1)
+    """
+    if isinstance(d, str):
+        d = datetime.strptime(d, "%Y-%m-%d").date()
+
+    if isinstance(d, datetime):
+        d = d.date()
+
+    if not isinstance(d, date):
+        raise TypeError("d must be a datetime, date, or ISO-format string.")
+
+    return 1 if d.month <= 6 else 2
+
+
+def elapsed_business_days(
+    start: Union[datetime, date],
+    end: Union[datetime, date],
+    holidays: Optional[List[Union[datetime, date]]] = None,
+) -> int:
+    """Counts business days (Mon–Fri) between two dates, excluding holidays.
+
+    Both ``start`` and ``end`` are included when counting.
+
+    Args:
+        start: Start date (inclusive).
+        end: End date (inclusive).
+        holidays: Optional list of holiday dates to exclude.
+
+    Returns:
+        Number of business days.
+
+    Raises:
+        TypeError: If dates are not datetime or date objects.
+
+    Example:
+        >>> from datetime import date
+        >>> elapsed_business_days(date(2024, 1, 1), date(2024, 1, 5))
+        5
+
+    Complexity: O(n) where n is number of days in range
+    """
+    if not isinstance(start, (datetime, date)):
+        raise TypeError("start must be a datetime or date object.")
+
+    if not isinstance(end, (datetime, date)):
+        raise TypeError("end must be a datetime or date object.")
+
+    s = start.date() if isinstance(start, datetime) else start
+    e = end.date() if isinstance(end, datetime) else end
+
+    if s > e:
+        s, e = e, s
+
+    hol_set: set = set()
+
+    if holidays:
+
+        for h in holidays:
+
+            if isinstance(h, datetime):
+                hol_set.add(h.date())
+
+            elif isinstance(h, date):
+                hol_set.add(h)
+
+    count = 0
+    current = s
+
+    while current <= e:
+
+        if current.weekday() < 5 and current not in hol_set:
+            count += 1
+
+        current += timedelta(days=1)
+
+    return count
+
+
+def day_of_year(d: Union[datetime, date]) -> int:
+    """Returns the ordinal day of the year (1–366).
+
+    Args:
+        d: A date or datetime.
+
+    Returns:
+        The day number within the year.
+
+    Raises:
+        TypeError: If d is not a date or datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> day_of_year(date(2024, 3, 1))
+        61
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (datetime, date)):
+        raise TypeError("d must be a datetime or date object.")
+
+    dt = d.date() if isinstance(d, datetime) else d
+    return dt.timetuple().tm_yday
+
+
+def days_remaining_in_year(d: Union[datetime, date]) -> int:
+    """Returns the number of days remaining until 31 December.
+
+    Args:
+        d: A date or datetime.
+
+    Returns:
+        Days remaining in the year (0 on Dec 31).
+
+    Raises:
+        TypeError: If d is not a date or datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> days_remaining_in_year(date(2024, 12, 30))
+        1
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (datetime, date)):
+        raise TypeError("d must be a datetime or date object.")
+
+    dt = d.date() if isinstance(d, datetime) else d
+    end_of_year = date(dt.year, 12, 31)
+    return (end_of_year - dt).days
+
+
+# ---------------------------------------------------------------------------
+# Cron scheduling helpers
+# ---------------------------------------------------------------------------
+
+_CRON_MONTH_DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+
+def _cron_field_matches(value: int, field: str, lo: int, hi: int) -> bool:
+    """Return True if *value* satisfies a single cron field expression."""
+
+    for part in field.split(","):
+        step = 1
+
+        if "/" in part:
+            part, step_s = part.split("/", 1)
+            step = int(step_s)
+
+        if part == "*":
+            rng = range(lo, hi + 1)
+        elif "-" in part:
+            a, b = part.split("-", 1)
+            rng = range(int(a), int(b) + 1)
+        else:
+            rng = range(int(part), int(part) + 1)
+
+        if value in range(rng.start, rng.stop, step):
+            return True
+
+    return False
+
+
+def cron_next_run(
+    cron_expr: str,
+    from_dt: Union[datetime, None] = None,
+) -> datetime:
+    """Returns the next datetime that matches a 5-field cron expression.
+
+    Fields: ``minute hour day month weekday`` (standard POSIX cron,
+    weekday 0=Sunday or 0=Monday both accepted via mod-7).
+
+    Args:
+        cron_expr: Five space-separated cron fields.
+        from_dt: Reference datetime (defaults to now).
+
+    Returns:
+        The next matching datetime (seconds/microseconds zeroed).
+
+    Raises:
+        TypeError: If cron_expr is not a string.
+        ValueError: If cron_expr does not have exactly 5 fields.
+
+    Example:
+        >>> from datetime import datetime
+        >>> cron_next_run("0 9 * * *", datetime(2026, 4, 8, 10, 0))
+        datetime.datetime(2026, 4, 9, 9, 0)
+
+    Complexity: O(k) where k is minutes until next match (bounded by ~1 year)
+    """
+    if not isinstance(cron_expr, str):
+        raise TypeError("cron_expr must be a string")
+
+    fields = cron_expr.strip().split()
+
+    if len(fields) != 5:
+        raise ValueError("cron_expr must have exactly 5 fields: minute hour day month weekday")
+
+    f_min, f_hour, f_dom, f_mon, f_dow = fields
+    dt_cur = (from_dt or datetime.now()).replace(second=0, microsecond=0) + timedelta(minutes=1)
+
+    # Search up to ~2 years of minutes (safety cap)
+    for _ in range(366 * 24 * 60):
+
+        if (
+            _cron_field_matches(dt_cur.month, f_mon, 1, 12)
+            and _cron_field_matches(dt_cur.day, f_dom, 1, 31)
+            and _cron_field_matches(dt_cur.weekday(), f_dow.replace("7", "0"), 0, 6)
+            and _cron_field_matches(dt_cur.hour, f_hour, 0, 23)
+            and _cron_field_matches(dt_cur.minute, f_min, 0, 59)
+        ):
+            return dt_cur
+
+        dt_cur += timedelta(minutes=1)
+
+    raise ValueError("No matching datetime found within search window")
+
+
+def cron_previous_run(
+    cron_expr: str,
+    from_dt: Union[datetime, None] = None,
+) -> datetime:
+    """Returns the most recent past datetime matching a 5-field cron expression.
+
+    Args:
+        cron_expr: Five space-separated cron fields.
+        from_dt: Reference datetime (defaults to now).
+
+    Returns:
+        The most recent past matching datetime.
+
+    Raises:
+        TypeError: If cron_expr is not a string.
+        ValueError: If cron_expr does not have exactly 5 fields.
+
+    Example:
+        >>> from datetime import datetime
+        >>> cron_previous_run("0 9 * * *", datetime(2026, 4, 8, 10, 0))
+        datetime.datetime(2026, 4, 8, 9, 0)
+
+    Complexity: O(k) where k is minutes since last match
+    """
+    if not isinstance(cron_expr, str):
+        raise TypeError("cron_expr must be a string")
+
+    fields = cron_expr.strip().split()
+
+    if len(fields) != 5:
+        raise ValueError("cron_expr must have exactly 5 fields: minute hour day month weekday")
+
+    f_min, f_hour, f_dom, f_mon, f_dow = fields
+    dt_cur = (from_dt or datetime.now()).replace(second=0, microsecond=0) - timedelta(minutes=1)
+
+    for _ in range(366 * 24 * 60):
+
+        if (
+            _cron_field_matches(dt_cur.month, f_mon, 1, 12)
+            and _cron_field_matches(dt_cur.day, f_dom, 1, 31)
+            and _cron_field_matches(dt_cur.weekday(), f_dow.replace("7", "0"), 0, 6)
+            and _cron_field_matches(dt_cur.hour, f_hour, 0, 23)
+            and _cron_field_matches(dt_cur.minute, f_min, 0, 59)
+        ):
+            return dt_cur
+
+        dt_cur -= timedelta(minutes=1)
+
+    raise ValueError("No matching datetime found within search window")
+
+
+# ---------------------------------------------------------------------------
+# Astronomy approximations
+# ---------------------------------------------------------------------------
+
+def sunrise_sunset(
+    latitude: float,
+    longitude: float,
+    d: Union[date, datetime],
+) -> Tuple:
+    """Approximate sunrise and sunset times for a location (UTC).
+
+    Uses the NOAA simplified solar equations. Accuracy is typically
+    within a few minutes.
+
+    Args:
+        latitude: Latitude in decimal degrees (positive North).
+        longitude: Longitude in decimal degrees (positive East).
+        d: The date for calculation.
+
+    Returns:
+        Tuple of (sunrise, sunset) as datetime objects in UTC.
+
+    Raises:
+        TypeError: If inputs have wrong types.
+        ValueError: If latitude or longitude is out of range.
+
+    Example:
+        >>> from datetime import date
+        >>> sr, ss = sunrise_sunset(40.4168, -3.7038, date(2026, 6, 21))
+        >>> sr.hour  # ~5 UTC for Madrid summer
+        5
+
+    Complexity: O(1)
+    """
+    if not isinstance(latitude, (int, float)):
+        raise TypeError("latitude must be numeric")
+
+    if not isinstance(longitude, (int, float)):
+        raise TypeError("longitude must be numeric")
+
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    if not -90 <= latitude <= 90:
+        raise ValueError("latitude must be between -90 and 90")
+
+    if not -180 <= longitude <= 180:
+        raise ValueError("longitude must be between -180 and 180")
+
+    dt_date = d.date() if isinstance(d, datetime) else d
+    n = (dt_date - date(2000, 1, 1)).days + 0.5
+
+    # Solar mean anomaly
+    m_deg = (357.5291 + 0.98560028 * n) % 360
+    m_rad = math.radians(m_deg)
+
+    # Equation of center
+    c = 1.9148 * math.sin(m_rad) + 0.02 * math.sin(2 * m_rad) + 0.0003 * math.sin(3 * m_rad)
+
+    # Ecliptic longitude
+    lam_deg = (m_deg + c + 180 + 102.9372) % 360
+    lam_rad = math.radians(lam_deg)
+
+    # Declination
+    decl = math.asin(math.sin(lam_rad) * math.sin(math.radians(23.4393)))
+
+    # Hour angle
+    lat_rad = math.radians(latitude)
+    cos_ha = (
+        math.sin(math.radians(-0.83)) - math.sin(lat_rad) * math.sin(decl)
+    ) / (math.cos(lat_rad) * math.cos(decl))
+
+    # Clamp for polar regions
+    if cos_ha < -1 or cos_ha > 1:
+        raise ValueError("Sun does not rise or set on this date at this latitude")
+
+    ha_deg = math.degrees(math.acos(cos_ha))
+
+    # Solar transit (noon)
+    j_transit = 2451545.0 + n + ((-longitude / 360) - round(-longitude / 360))
+    j_transit += 0.0053 * math.sin(m_rad) - 0.0069 * math.sin(2 * lam_rad)
+
+    j_rise = j_transit - ha_deg / 360
+    j_set = j_transit + ha_deg / 360
+
+    def _jd_to_datetime(jd: float) -> datetime:
+        """Convert Julian date to datetime (UTC)."""
+        epoch = datetime(2000, 1, 1, 12, 0, 0)
+        delta = timedelta(days=jd - 2451545.0)
+        return epoch + delta
+
+    return _jd_to_datetime(j_rise), _jd_to_datetime(j_set)
+
+
+def daylight_hours(latitude: float, d: Union[date, datetime]) -> float:
+    """Estimates hours of daylight for a given latitude and date.
+
+    Args:
+        latitude: Latitude in decimal degrees (positive North).
+        d: The date for calculation.
+
+    Returns:
+        Approximate hours of daylight.
+
+    Raises:
+        TypeError: If inputs have wrong types.
+        ValueError: If latitude is out of range.
+
+    Example:
+        >>> round(daylight_hours(40.4168, date(2026, 6, 21)), 1)  # Madrid summer
+        15.1
+
+    Complexity: O(1)
+    """
+    if not isinstance(latitude, (int, float)):
+        raise TypeError("latitude must be numeric")
+
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    if not -90 <= latitude <= 90:
+        raise ValueError("latitude must be between -90 and 90")
+
+    dt_date = d.date() if isinstance(d, datetime) else d
+    day_of_year = (dt_date - date(dt_date.year, 1, 1)).days + 1
+
+    # Solar declination approximation
+    decl = math.radians(23.44) * math.sin(math.radians((360 / 365) * (day_of_year + 284)))
+    lat_rad = math.radians(latitude)
+
+    cos_ha = -math.tan(lat_rad) * math.tan(decl)
+
+    if cos_ha <= -1:
+        return 24.0  # Midnight sun
+
+    if cos_ha >= 1:
+        return 0.0  # Polar night
+
+    ha = math.acos(cos_ha)
+    return (2 * ha / math.pi) * 12.0
+
+
+def shift_schedule(
+    start_date: Union[date, datetime],
+    shift_days: int,
+    rest_days: int,
+    target_date: Union[date, datetime],
+) -> str:
+    """Determines if a target date is a work or rest day in a cyclic rotation.
+
+    Models a rotating shift pattern like "4 days on, 2 days off" starting
+    from *start_date*.
+
+    Args:
+        start_date: First day of the first shift cycle.
+        shift_days: Number of consecutive working days per cycle.
+        rest_days: Number of consecutive rest days per cycle.
+        target_date: The date to evaluate.
+
+    Returns:
+        ``"work"`` or ``"rest"``.
+
+    Raises:
+        TypeError: If dates or integers have wrong types.
+        ValueError: If shift_days or rest_days are not positive.
+
+    Example:
+        >>> from datetime import date
+        >>> shift_schedule(date(2026, 1, 1), 4, 2, date(2026, 1, 5))
+        'work'
+        >>> shift_schedule(date(2026, 1, 1), 4, 2, date(2026, 1, 6))
+        'rest'
+
+    Complexity: O(1)
+    """
+    if not isinstance(start_date, (date, datetime)):
+        raise TypeError("start_date must be a date or datetime")
+
+    if not isinstance(target_date, (date, datetime)):
+        raise TypeError("target_date must be a date or datetime")
+
+    if not isinstance(shift_days, int) or not isinstance(rest_days, int):
+        raise TypeError("shift_days and rest_days must be integers")
+
+    if shift_days <= 0 or rest_days <= 0:
+        raise ValueError("shift_days and rest_days must be positive")
+
+    s = start_date.date() if isinstance(start_date, datetime) else start_date
+    t = target_date.date() if isinstance(target_date, datetime) else target_date
+    delta = (t - s).days
+
+    if delta < 0:
+        raise ValueError("target_date must be on or after start_date")
+
+    cycle = shift_days + rest_days
+    position = delta % cycle
+
+    return "work" if position < shift_days else "rest"
+
+
+def time_zone_abbreviation(tz_name: str, ref: datetime | None = None) -> str:
+    """Return the common abbreviation for a timezone at a given moment.
+
+    Uses only the standard library ``zoneinfo`` (Python 3.9+).
+
+    Args:
+        tz_name: IANA timezone name (e.g. ``"Europe/Madrid"``).
+        ref: Reference datetime. Defaults to now (UTC).
+
+    Returns:
+        Timezone abbreviation string (e.g. ``"CET"``, ``"CEST"``).
+
+    Raises:
+        TypeError: If *tz_name* is not a string.
+        ValueError: If *tz_name* is not a recognized timezone.
+
+    Example:
+        >>> time_zone_abbreviation("US/Eastern", datetime(2026, 1, 15))
+        'EST'
+
+    Complexity: O(1)
+    """
+    if not isinstance(tz_name, str):
+        raise TypeError("tz_name must be a string")
+
+    try:
+        from zoneinfo import ZoneInfo
+    except ImportError:
+        raise ImportError("zoneinfo requires Python 3.9+")
+
+    try:
+        tz = ZoneInfo(tz_name)
+    except KeyError:
+        raise ValueError(f"Unknown timezone: {tz_name!r}")
+
+    if ref is None:
+        ref = datetime.now(tz)
+    elif ref.tzinfo is None:
+        ref = ref.replace(tzinfo=ZoneInfo("UTC"))
+
+    return ref.astimezone(tz).strftime("%Z")
+
+
+def next_occurrence(
+    weekday: int,
+    hour: int = 0,
+    minute: int = 0,
+    ref: date | datetime | None = None,
+) -> datetime:
+    """Find the next occurrence of a given weekday and time.
+
+    Args:
+        weekday: ISO weekday (1=Monday … 7=Sunday).
+        hour: Hour component (0-23). Default 0.
+        minute: Minute component (0-59). Default 0.
+        ref: Reference date/datetime. Defaults to today.
+
+    Returns:
+        A ``datetime`` representing the next occurrence (always in the future
+        relative to *ref*).
+
+    Raises:
+        TypeError: If *weekday* is not an integer.
+        ValueError: If *weekday* not in 1-7 or hour/minute out of range.
+
+    Example:
+        >>> from datetime import date
+        >>> # Next Monday after 2026-04-08 (Wednesday)
+        >>> next_occurrence(1, ref=date(2026, 4, 8))
+        datetime.datetime(2026, 4, 13, 0, 0)
+
+    Complexity: O(1)
+    """
+    if not isinstance(weekday, int):
+        raise TypeError("weekday must be an integer")
+
+    if weekday < 1 or weekday > 7:
+        raise ValueError("weekday must be 1 (Mon) to 7 (Sun)")
+
+    if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+        raise ValueError("hour must be 0-23, minute must be 0-59")
+
+    if ref is None:
+        ref_dt = datetime.now()
+    elif isinstance(ref, datetime):
+        ref_dt = ref
+    elif isinstance(ref, date):
+        ref_dt = datetime(ref.year, ref.month, ref.day)
+    else:
+        raise TypeError("ref must be a date or datetime")
+
+    target_iso = weekday  # 1=Mon..7=Sun
+    current_iso = ref_dt.isoweekday()
+    days_ahead = (target_iso - current_iso) % 7
+
+    if days_ahead == 0:
+        candidate = ref_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+        if candidate <= ref_dt:
+            days_ahead = 7
+
+    target_date = ref_dt + timedelta(days=days_ahead)
+    return target_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+
+def business_days_until(
+    start: date | datetime,
+    end: date | datetime,
+    holidays: list | None = None,
+) -> int:
+    """Count working days between two dates, excluding weekends and holidays.
+
+    Args:
+        start: Start date (inclusive).
+        end: End date (exclusive).
+        holidays: Optional list of ``date`` objects to exclude.
+
+    Returns:
+        Number of business days.
+
+    Raises:
+        TypeError: If *start* or *end* are not date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> business_days_until(date(2026, 4, 6), date(2026, 4, 13))
+        5
+
+    Complexity: O(d), d = days between start and end.
+    """
+    if not isinstance(start, (date, datetime)):
+        raise TypeError("start must be a date or datetime")
+
+    if not isinstance(end, (date, datetime)):
+        raise TypeError("end must be a date or datetime")
+
+    s = start.date() if isinstance(start, datetime) else start
+    e = end.date() if isinstance(end, datetime) else end
+
+    holiday_set: set[date] = set(holidays) if holidays else set()
+    count = 0
+    current = s
+
+    while current < e:
+
+        if current.weekday() < 5 and current not in holiday_set:
+            count += 1
+
+        current += timedelta(days=1)
+
+    return count
+
+
+def trading_days_between(
+    start: date | datetime,
+    end: date | datetime,
+    holidays: list[date] | None = None,
+    weekend: tuple[int, ...] = (5, 6),
+) -> int:
+    """Count trading days between two dates.
+
+    Similar to :func:`business_days_between` but allows a configurable
+    weekend tuple, making it suitable for markets that trade on
+    Saturdays or close on Sundays/Fridays.
+
+    Args:
+        start: Start date (inclusive).
+        end: End date (exclusive).
+        holidays: Optional market holidays to exclude.
+        weekend: Weekday numbers considered non-trading (Mon=0).
+
+    Returns:
+        Number of trading days.
+
+    Raises:
+        TypeError: If *start* or *end* are not date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> trading_days_between(date(2026, 4, 6), date(2026, 4, 13))
+        5
+
+    Complexity: O(d), d = days between start and end.
+    """
+    if not isinstance(start, (date, datetime)):
+        raise TypeError("start must be a date or datetime")
+
+    if not isinstance(end, (date, datetime)):
+        raise TypeError("end must be a date or datetime")
+
+    s = start.date() if isinstance(start, datetime) else start
+    e = end.date() if isinstance(end, datetime) else end
+
+    holiday_set: set[date] = set(holidays) if holidays else set()
+    weekend_set = set(weekend)
+    count = 0
+    current = s
+
+    while current < e:
+
+        if current.weekday() not in weekend_set and current not in holiday_set:
+            count += 1
+
+        current += timedelta(days=1)
+
+    return count
+
+
+def iso_week_start(year: int, week: int) -> date:
+    """Return the Monday that starts a given ISO week.
+
+    Args:
+        year: ISO year.
+        week: ISO week number (1-53).
+
+    Returns:
+        ``date`` object for the Monday of that ISO week.
+
+    Raises:
+        TypeError: If arguments are not integers.
+        ValueError: If *week* is outside [1, 53].
+
+    Example:
+        >>> iso_week_start(2026, 1)
+        datetime.date(2025, 12, 29)
+
+    Complexity: O(1)
+    """
+    if not isinstance(year, int) or not isinstance(week, int):
+        raise TypeError("year and week must be integers")
+
+    if week < 1 or week > 53:
+        raise ValueError("week must be between 1 and 53")
+
+    # Jan 4 is always in ISO week 1
+    jan4 = date(year, 1, 4)
+    # Monday of week 1
+    week1_monday = jan4 - timedelta(days=jan4.weekday())
+
+    return week1_monday + timedelta(weeks=week - 1)
+
+
+def time_overlap(
+    start1: datetime,
+    end1: datetime,
+    start2: datetime,
+    end2: datetime,
+) -> float:
+    """Return overlapping seconds between two time intervals.
+
+    If the intervals do not overlap, returns ``0.0``.
+
+    Args:
+        start1: Start of first interval.
+        end1: End of first interval.
+        start2: Start of second interval.
+        end2: End of second interval.
+
+    Returns:
+        Overlap duration in seconds.
+
+    Raises:
+        TypeError: If arguments are not datetime instances.
+
+    Example:
+        >>> from datetime import datetime
+        >>> a, b = datetime(2026, 1, 1, 8, 0), datetime(2026, 1, 1, 12, 0)
+        >>> c, d = datetime(2026, 1, 1, 10, 0), datetime(2026, 1, 1, 14, 0)
+        >>> time_overlap(a, b, c, d)
+        7200.0
+
+    Complexity: O(1)
+    """
+    for name, val in (("start1", start1), ("end1", end1),
+                      ("start2", start2), ("end2", end2)):
+
+        if not isinstance(val, datetime):
+            raise TypeError(f"{name} must be a datetime")
+
+    overlap_start = max(start1, start2)
+    overlap_end = min(end1, end2)
+
+    delta = (overlap_end - overlap_start).total_seconds()
+
+    return max(0.0, delta)
+
+
+def next_full_moon(d: date | datetime) -> date:
+    """Approximate date of the next full moon after *d*.
+
+    Uses the mean synodic month (29.53058867 days) anchored to a
+    known full moon (2000-01-06 18:14 UTC).
+
+    Args:
+        d: Reference date.
+
+    Returns:
+        ``date`` of the next full moon.
+
+    Raises:
+        TypeError: If *d* is not a date or datetime.
+
+    Example:
+        >>> next_full_moon(date(2026, 1, 1))
+        datetime.date(2026, 1, 3)
+
+    Complexity: O(1)
+    """
+    if not isinstance(d, (date, datetime)):
+        raise TypeError("d must be a date or datetime")
+
+    known_full = datetime(2000, 1, 6, 18, 14)
+    synodic = 29.53058867
+
+    target = datetime(d.year, d.month, d.day) if not isinstance(d, datetime) else d
+
+    diff_days = (target - known_full).total_seconds() / 86400.0
+    cycles = diff_days / synodic
+    next_cycle = math.ceil(cycles)
+
+    next_full_dt = known_full + timedelta(days=next_cycle * synodic)
+
+    return next_full_dt.date()
+
+
+def working_hours_in_month(
+    year: int,
+    month: int,
+    hours_per_day: float = 8.0,
+    holidays: list[date] | None = None,
+) -> float:
+    """Calculate total working hours in a given month.
+
+    Counts weekdays (Mon-Fri) excluding holidays, then multiplies
+    by *hours_per_day*.
+
+    Args:
+        year: Calendar year.
+        month: Calendar month (1-12).
+        hours_per_day: Working hours per business day.
+        holidays: Optional list of holidays to exclude.
+
+    Returns:
+        Total working hours as a float.
+
+    Raises:
+        TypeError: If arguments have wrong types.
+        ValueError: If *month* is outside [1, 12].
+
+    Example:
+        >>> working_hours_in_month(2026, 1)
+        176.0
+
+    Complexity: O(d), d = days in month.
+    """
+    if not isinstance(year, int) or not isinstance(month, int):
+        raise TypeError("year and month must be integers")
+
+    if month < 1 or month > 12:
+        raise ValueError("month must be between 1 and 12")
+
+    if not isinstance(hours_per_day, (int, float)):
+        raise TypeError("hours_per_day must be numeric")
+
+    holiday_set: set[date] = set(holidays) if holidays else set()
+    days_in_month = calendar.monthrange(year, month)[1]
+    count = 0
+
+    for day in range(1, days_in_month + 1):
+        d = date(year, month, day)
+
+        if d.weekday() < 5 and d not in holiday_set:
+            count += 1
+
+    return float(count * hours_per_day)
+
+
+def business_quarter_label(d: date) -> str:
+    """Returns a business quarter label for a date.
+
+    Args:
+        d: A ``date`` or ``datetime`` instance.
+
+    Returns:
+        String in the form ``'Q1 2024'``.
+
+    Raises:
+        TypeError: If d is not a date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> business_quarter_label(date(2024, 3, 15))
+        'Q1 2024'
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime")
+
+    q = (d.month - 1) // 3 + 1
+
+    return f"Q{q} {d.year}"
+
+
+def academic_year(d: date, start_month: int = 9) -> str:
+    """Returns the academic year label for a date.
+
+    An academic year that starts in September 2023 runs until
+    August 2024 and is labelled ``'2023/2024'``.
+
+    Args:
+        d: A ``date`` or ``datetime`` instance.
+        start_month: Month the academic year begins (default 9).
+
+    Returns:
+        String in the form ``'2023/2024'``.
+
+    Raises:
+        TypeError: If d is not a date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> academic_year(date(2024, 2, 1))
+        '2023/2024'
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime")
+
+    if d.month >= start_month:
+        return f"{d.year}/{d.year + 1}"
+
+    return f"{d.year - 1}/{d.year}"
+
+
+def date_to_week_label(d: date) -> str:
+    """Returns an ISO week label for a date.
+
+    Args:
+        d: A ``date`` or ``datetime`` instance.
+
+    Returns:
+        String in the form ``'W02-2024'``.
+
+    Raises:
+        TypeError: If d is not a date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> date_to_week_label(date(2024, 1, 8))
+        'W02-2024'
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime")
+
+    iso_year, iso_week, _ = d.isocalendar()
+
+    return f"W{iso_week:02d}-{iso_year}"
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 – Batch 35: Date Operations
+# ---------------------------------------------------------------------------
+
+def format_date_iso(d) -> str:
+    """Format a date or datetime as ISO 8601 string (YYYY-MM-DD).
+
+    Args:
+        d: A ``date`` or ``datetime`` object.
+
+    Returns:
+        ISO 8601 date string.
+
+    Raises:
+        TypeError: If *d* is not a date or datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> format_date_iso(date(2024, 3, 15))
+        '2024-03-15'
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime.")
+    return d.isoformat()
+
+
+def format_datetime_iso(dt) -> str:
+    """Format a datetime as ISO 8601 string (YYYY-MM-DDTHH:MM:SS).
+
+    Args:
+        dt: A ``datetime`` object.
+
+    Returns:
+        ISO 8601 datetime string.
+
+    Raises:
+        TypeError: If *dt* is not a datetime.
+
+    Example:
+        >>> from datetime import datetime
+        >>> format_datetime_iso(datetime(2024, 3, 15, 10, 30, 0))
+        '2024-03-15T10:30:00'
+
+    Complexity: O(1)
+    """
+    if not isinstance(dt, datetime):
+        raise TypeError("dt must be a datetime.")
+    return dt.isoformat()
+
+
+def clamp_date(d, min_date, max_date):
+    """Clamp a date to the range [min_date, max_date].
+
+    Args:
+        d: Date to clamp.
+        min_date: Lower bound.
+        max_date: Upper bound.
+
+    Returns:
+        Clamped date.
+
+    Raises:
+        TypeError: If arguments are not date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> clamp_date(date(2024, 6, 15), date(2024, 1, 1), date(2024, 3, 31))
+        datetime.date(2024, 3, 31)
+
+    Complexity: O(1)
+    """
+    for name, val in [("d", d), ("min_date", min_date), ("max_date", max_date)]:
+        if not isinstance(val, (date, datetime)):
+            raise TypeError(f"{name} must be a date or datetime.")
+    if d < min_date:
+        return min_date
+    if d > max_date:
+        return max_date
+    return d
+
+
+def midpoint_date(d1, d2):
+    """Return the midpoint date between two dates.
+
+    Args:
+        d1: First date.
+        d2: Second date.
+
+    Returns:
+        Midpoint as a ``date``.
+
+    Raises:
+        TypeError: If arguments are not date/datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> midpoint_date(date(2024, 1, 1), date(2024, 1, 11))
+        datetime.date(2024, 1, 6)
+
+    Complexity: O(1)
+    """
+    if isinstance(d1, datetime):
+        d1 = d1.date()
+    if isinstance(d2, datetime):
+        d2 = d2.date()
+    if not isinstance(d1, date) or not isinstance(d2, date):
+        raise TypeError("Both arguments must be date or datetime.")
+    delta = (d2 - d1).days
+    return d1 + timedelta(days=delta // 2)
+
+
+def date_to_ordinal(d) -> int:
+    """Return the proleptic Gregorian ordinal of a date.
+
+    Args:
+        d: A ``date`` or ``datetime`` object.
+
+    Returns:
+        Ordinal integer (1 = January 1 of year 1).
+
+    Raises:
+        TypeError: If *d* is not a date or datetime.
+
+    Example:
+        >>> from datetime import date
+        >>> date_to_ordinal(date(2024, 1, 1))
+        738886
+
+    Complexity: O(1)
+    """
+    if isinstance(d, datetime):
+        d = d.date()
+    if not isinstance(d, date):
+        raise TypeError("d must be a date or datetime.")
+    return d.toordinal()

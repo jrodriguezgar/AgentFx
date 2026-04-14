@@ -19,11 +19,9 @@ Key Features:
 
 from datetime import datetime
 from typing import Optional, Union, Any
-import locale as sys_locale
+import warnings
 
-from urllib.parse import quote_plus # For optional encoding if needed later
 
-import importlib.resources # To access resources within the installed package
 import os # For path management if not using importlib.resources (less recommended for packages)
 
 import re
@@ -187,29 +185,10 @@ _TITLES_TO_REMOVE = frozenset({
     'MR', 'MRS', 'MS', 'MISS', 'ING', 'LIC', 'ARQ', 'C'
 })
 
-
-#my modules
-import os
-import sys
-def add_to_syspath(directory):
-    def search(start):
-        root = os.path.abspath(os.sep)
-        while True:
-            path = os.path.join(start, directory)
-            if os.path.isdir(path):
-                sys.path.insert(0, path) if path not in sys.path else None
-                print(f"Se encontró y agregó a sys.path: {path}")
-                return True
-            if start.lower() == root.lower(): return False
-            start = os.path.dirname(start)
-    if search(os.path.abspath(os.getcwd())): return
-    try:
-        if search(os.path.dirname(os.path.abspath(__file__))): return
-    except NameError: print("No se pudo obtener el directorio del módulo.")
-    raise FileNotFoundError(f"No se encontró {directory}")
-
-add_to_syspath("fxString")
-import string_operations as fxStrOp
+try:
+    from formulite.fxString import string_operations as fxStrOp
+except ImportError:
+    from . import string_operations as fxStrOp
 
 
 #Load legal forms data (executed once when the module is imported) ---
@@ -232,7 +211,10 @@ def _load_legal_forms_data():
         data_file = os.path.join(module_dir, 'data', 'company_legalforms.txt')
         
         if not os.path.exists(data_file):
-            print(f"Warning: Legal forms data file not found at {data_file}")
+            warnings.warn(
+                f"Legal forms data file not found at {data_file}",
+                stacklevel=2,
+            )
             return
         
         file_path = data_file
@@ -263,14 +245,16 @@ def _load_legal_forms_data():
                     LEGAL_FORMS_BY_COUNTRY[code_country].add(normalized_form)
                     
     except FileNotFoundError:
-        # Why: It's important to inform the user if the data file is missing,
-        # as it affects the core functionality of the module.
-        print(f"Warning: Legal forms file '{file_path}' not found. "
-              "Parsing functionality might be incomplete.")
+        warnings.warn(
+            f"Legal forms file '{file_path}' not found. "
+            "Parsing functionality might be incomplete.",
+            stacklevel=2,
+        )
     except Exception as e:
-        # Why: Catching a general exception here provides robustness against unexpected issues
-        # during file reading or parsing.
-        print(f"Unexpected error loading legal forms: {e}")
+        warnings.warn(
+            f"Unexpected error loading legal forms: {e}",
+            stacklevel=2,
+        )
 
 # Call the data loading function **once** when the module is imported.
 # Why: This ensures the data is available immediately upon module import
@@ -909,7 +893,8 @@ def pad_string(text: str, length: int, char: str = ' ', direction: str = 'right'
 
     # Calcular cuántos caracteres de relleno se necesitan
     padding_needed = length - len(text)
-    if padding_needed < 0: padding_needed = 0
+    if padding_needed < 0:
+        padding_needed = 0
 
     if direction == 'right':
         return text + (char * padding_needed)
@@ -975,7 +960,7 @@ def normalize_spaces(text: Optional[str]) -> Optional[str]:
 
 
 def normalize_symbols(text: Optional[str]) -> Optional[str]:
-    """
+    r"""
     Normalizes spacing around common symbols and punctuation marks in a string.
     Optimized with pre-compiled regex patterns for better performance.
 
@@ -1141,11 +1126,7 @@ def string_aZ09(input_string):
     Cost:
         O(n) where n is the length of input_string. Uses pre-compiled regex pattern.
     """
-    if not isinstance(input_string, str):
-        return None
-
-    # Use pre-compiled regex pattern for better performance
-    return _RE_ALPHANUMERIC.sub("", input_string)
+    return string_aZ09_plus(input_string)
 
 
 def string_aZ09_plus(input_string, additional_charset=""):
@@ -1221,11 +1202,7 @@ def string_aZ(input_string):
     Cost:
         O(n) where n is the length of input_string. Uses pre-compiled regex pattern.
     """
-    if not isinstance(input_string, str):
-        return None
-
-    # Use pre-compiled regex pattern for better performance
-    return _RE_ALPHABETIC.sub("", input_string)
+    return string_aZ_plus(input_string)
 
 
 def string_aZ_plus(input_string, additional_charset=""):
@@ -1271,7 +1248,8 @@ def string_aZ_plus(input_string, additional_charset=""):
     # anything NOT in the specified set, allowing for a single substitution operation.
     # The re.escape is used to treat special regex characters in additional_charset
     # as literal characters.
-    if not additional_charset: additional_charset = ""
+    if not additional_charset:
+        additional_charset = ""
     regex_pattern = r"[^a-zA-Z" + re.escape(additional_charset) + r"]"
     disallowed_characters = re.compile(regex_pattern)
 
@@ -1937,3 +1915,602 @@ def parse_company(company_name: str, legal_forms_set_override: set = None) -> li
     return [remaining_company_name, found_legal_form]
 
 
+def swap_case(text: Optional[str]) -> Optional[str]:
+    """Inverts the case of every character in a string.
+
+    Uppercase becomes lowercase and vice versa.
+
+    Args:
+        text: The input string.
+
+    Returns:
+        The string with swapped case, or None if input is None.
+
+    Example:
+        >>> swap_case("Hello World")
+        'hELLO wORLD'
+        >>> swap_case("PyThOn")
+        'pYtHoN'
+
+    Complexity: O(n)
+    """
+    if text is None:
+        return None
+
+    return str(text).swapcase()
+
+
+def zfill(text: str, width: int) -> str:
+    """Pads a string with leading zeros to fill a given width.
+
+    Args:
+        text: The input string.
+        width: The minimum total width of the result.
+
+    Returns:
+        The zero-padded string.
+
+    Example:
+        >>> zfill("42", 5)
+        '00042'
+        >>> zfill("hello", 3)
+        'hello'
+
+    Complexity: O(width)
+    """
+    return str(text).zfill(width)
+
+
+def rot13(text: str) -> str:
+    """Applies the ROT13 substitution cipher to a string.
+
+    Each letter is shifted by 13 positions in the alphabet.
+    Applying ROT13 twice returns the original text.
+
+    Args:
+        text: The input string.
+
+    Returns:
+        The ROT13-encoded string.
+
+    Example:
+        >>> rot13("Hello")
+        'Uryyb'
+        >>> rot13("Uryyb")
+        'Hello'
+
+    Complexity: O(n)
+    """
+    import codecs
+
+    return codecs.encode(str(text), "rot_13")
+
+
+def camel_to_snake(text: str) -> str:
+    """Converts a camelCase or PascalCase string to snake_case.
+
+    Handles sequences of uppercase letters (acronyms) correctly:
+    ``"getHTTPResponse"`` becomes ``"get_http_response"``.
+
+    Args:
+        text: The camelCase or PascalCase string.
+
+    Returns:
+        The snake_case equivalent.
+
+    Example:
+        >>> camel_to_snake("camelCase")
+        'camel_case'
+        >>> camel_to_snake("PascalCase")
+        'pascal_case'
+        >>> camel_to_snake("getHTTPResponse")
+        'get_http_response'
+        >>> camel_to_snake("already_snake")
+        'already_snake'
+
+    Complexity: O(n)
+    """
+    # Insert underscore between a lowercase/digit and an uppercase letter
+    s = re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', str(text))
+
+    # Insert underscore between an uppercase letter and an uppercase+lowercase sequence
+    s = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', s)
+
+    return s.lower()
+
+
+def snake_to_camel(text: str, pascal: bool = False) -> str:
+    """Converts a snake_case string to camelCase (or PascalCase).
+
+    Args:
+        text: The snake_case string.
+        pascal: If True, returns PascalCase (first letter uppercase).
+                Defaults to False (camelCase).
+
+    Returns:
+        The camelCase or PascalCase equivalent.
+
+    Example:
+        >>> snake_to_camel("snake_case")
+        'snakeCase'
+        >>> snake_to_camel("hello_world", pascal=True)
+        'HelloWorld'
+        >>> snake_to_camel("already")
+        'already'
+        >>> snake_to_camel("get_http_response")
+        'getHttpResponse'
+
+    Complexity: O(n)
+    """
+    parts = str(text).split('_')
+
+    if not parts:
+        return ''
+
+    if pascal:
+        return ''.join(word.capitalize() for word in parts)
+
+    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+
+
+def word_wrap(text: str, width: int = 80) -> str:
+    """Wraps text to a specified line width, breaking at word boundaries.
+
+    Long words that exceed *width* are kept intact on their own line
+    (no mid-word breaks).
+
+    Args:
+        text: The input text to wrap.
+        width: Maximum number of characters per line. Defaults to 80.
+
+    Returns:
+        The wrapped text with newline separators.
+
+    Raises:
+        ValueError: If *width* is less than 1.
+
+    Example:
+        >>> word_wrap("The quick brown fox jumps over the lazy dog", 20)
+        'The quick brown fox\\njumps over the lazy\\ndog'
+        >>> word_wrap("short", 80)
+        'short'
+
+    Complexity: O(n)
+    """
+    if width < 1:
+        raise ValueError("width must be at least 1.")
+
+    import textwrap
+
+    return textwrap.fill(str(text), width=width)
+
+
+def format_list_as_sentence(
+    items: list[str],
+    conjunction: str = "and",
+    separator: str = ", ",
+) -> str:
+    """Formats a list of strings as a human-readable sentence.
+
+    Args:
+        items: The list of string items.
+        conjunction: Word placed before the last item (e.g. "and", "or", "y").
+        separator: Separator between items (default ", ").
+
+    Returns:
+        Formatted string joining all items.
+
+    Example:
+        >>> format_list_as_sentence(["a", "b", "c"])
+        'a, b and c'
+        >>> format_list_as_sentence(["x", "y"], conjunction="or")
+        'x or y'
+        >>> format_list_as_sentence(["only"])
+        'only'
+
+    Complexity: O(n)
+    """
+    if not items:
+        return ""
+
+    if len(items) == 1:
+        return items[0]
+
+    if len(items) == 2:
+        return f"{items[0]} {conjunction} {items[1]}"
+
+    return f"{separator.join(items[:-1])} {conjunction} {items[-1]}"
+
+
+def pluralize_count(
+    count: int,
+    singular: str,
+    plural: Optional[str] = None,
+) -> str:
+    """Returns a count with its noun in singular or plural form.
+
+    Args:
+        count: The numeric quantity.
+        singular: The singular noun (e.g. "item").
+        plural: The plural noun. If omitted, appends "s" to *singular*.
+
+    Returns:
+        Formatted string like ``"1 item"`` or ``"3 items"``.
+
+    Example:
+        >>> pluralize_count(1, "item")
+        '1 item'
+        >>> pluralize_count(5, "item")
+        '5 items'
+        >>> pluralize_count(2, "child", "children")
+        '2 children'
+
+    Complexity: O(1)
+    """
+    if plural is None:
+        plural = singular + "s"
+
+    return f"{count} {singular}" if count == 1 else f"{count} {plural}"
+
+
+def format_as_currency(
+    number: float, decimals: int = 2, symbol: str = "$"
+) -> str:
+    """Formats a number as currency text with thousands separator.
+
+    Description:
+        Converts a number to a formatted currency string with the given
+        symbol, decimal places, and comma-separated thousands.
+        Equivalent to Excel DOLLAR.
+
+    Args:
+        number: The number to format.
+        decimals: Number of decimal places (default 2).
+        symbol: Currency symbol to prepend (default '$').
+
+    Returns:
+        The formatted currency string.
+
+    Raises:
+        TypeError: If number is not numeric or decimals is not an integer.
+
+    Example:
+        >>> format_as_currency(1234.567)
+        '$1,234.57'
+        >>> format_as_currency(1234.567, 0)
+        '$1,235'
+        >>> format_as_currency(-1234.5, 2, '€')
+        '-€1,234.50'
+
+    Complexity: O(n) where n is the number of digits.
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("number must be numeric.")
+
+    if not isinstance(decimals, int):
+        raise TypeError("decimals must be an integer.")
+
+    negative = number < 0
+    abs_number = abs(number)
+
+    if decimals < 0:
+        rounded = round(abs_number, decimals)
+        formatted = f"{int(rounded):,}"
+    elif decimals == 0:
+        formatted = f"{round(abs_number):,}"
+    else:
+        formatted = f"{abs_number:,.{decimals}f}"
+
+    if negative:
+        return f"-{symbol}{formatted}"
+
+    return f"{symbol}{formatted}"
+
+
+def fixed(
+    number: Union[int, float],
+    decimals: int = 2,
+    no_commas: bool = False,
+) -> str:
+    """Format number with a fixed number of decimal places.
+
+    Description:
+        Rounds a number to the given decimal places and returns
+        a text string, optionally without thousands separators.
+        Equivalent to Excel FIXED.
+
+    Args:
+        number: Numeric value to format.
+        decimals: Decimal places (default 2).
+        no_commas: If True, suppress thousands separators.
+
+    Returns:
+        str: Formatted text representation.
+
+    Raises:
+        TypeError: If number is not numeric or decimals not int.
+
+    Example:
+        >>> fixed(1234567.89, 1)
+        '1,234,567.9'
+        >>> fixed(1234567.89, 1, True)
+        '1234567.9'
+
+    Complexity: O(1)
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("number must be numeric.")
+
+    if not isinstance(decimals, int):
+        raise TypeError("decimals must be an integer.")
+
+    if decimals < 0:
+        rounded = round(number, decimals)
+        text = f"{int(rounded)}"
+    else:
+        text = f"{number:.{decimals}f}"
+
+    if not no_commas:
+        # Add thousands separators to integer part
+        parts = text.split(".")
+        sign = ""
+
+        if parts[0].startswith("-"):
+            sign = "-"
+            parts[0] = parts[0][1:]
+
+        int_part = parts[0]
+        int_part_fmt = f"{int(int_part):,}"
+
+        if len(parts) == 2:
+            text = f"{sign}{int_part_fmt}.{parts[1]}"
+        else:
+            text = f"{sign}{int_part_fmt}"
+
+    return text
+
+
+def dollar(
+    number: Union[int, float],
+    decimals: int = 2,
+) -> str:
+    """Format number as currency text with dollar sign.
+
+    Description:
+        Converts a number to text using currency format with
+        a dollar sign, commas, and specified decimals.
+        Equivalent to Excel DOLLAR.
+
+    Args:
+        number: Numeric value to format.
+        decimals: Decimal places (default 2).
+
+    Returns:
+        str: Dollar-formatted text.
+
+    Raises:
+        TypeError: If number is not numeric or decimals not int.
+
+    Example:
+        >>> dollar(1234.567)
+        '$1,234.57'
+        >>> dollar(-1234.567, 1)
+        '-$1,234.6'
+
+    Complexity: O(1)
+    """
+    return format_as_currency(number, decimals)
+
+
+def format_as_number(
+    number: Union[int, float],
+    decimals: int = 2,
+    use_parens_for_negative: bool = True,
+) -> str:
+    """Format a number with thousands separators and optional parentheses for negatives.
+
+    Description:
+        Rounds the number, adds comma thousands separators, and optionally
+        wraps negative values in parentheses instead of using a minus sign.
+        Equivalent to VBA ``FormatNumber``.
+
+    Args:
+        number: Numeric value to format.
+        decimals: Number of decimal places (default 2).
+        use_parens_for_negative: Wrap negatives in parentheses (default True).
+
+    Returns:
+        Formatted number string.
+
+    Raises:
+        TypeError: If number is not numeric or decimals is not an integer.
+
+    Example:
+        >>> format_as_number(1234.5678, 2)
+        '1,234.57'
+        >>> format_as_number(-42.5)
+        '(42.50)'
+        >>> format_as_number(-42.5, 2, False)
+        '-42.50'
+
+    Complexity: O(1)
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("number must be numeric.")
+
+    if not isinstance(decimals, int):
+        raise TypeError("decimals must be an integer.")
+
+    value = float(number)
+    formatted = f"{abs(value):,.{decimals}f}"
+
+    if value < 0 and use_parens_for_negative:
+        return f"({formatted})"
+
+    if value < 0:
+        return f"-{formatted}"
+
+    return formatted
+
+
+def format_as_percent(
+    number: Union[int, float],
+    decimals: int = 2,
+    use_parens_for_negative: bool = True,
+) -> str:
+    """Format a number as a percentage string (multiplied by 100).
+
+    Description:
+        Multiplies by 100, rounds to the given decimals, adds a ``%``
+        suffix, and optionally uses parentheses for negatives.
+        Equivalent to VBA ``FormatPercent``.
+
+    Args:
+        number: Numeric value (0.25 → 25%).
+        decimals: Number of decimal places (default 2).
+        use_parens_for_negative: Wrap negatives in parentheses (default True).
+
+    Returns:
+        Formatted percentage string.
+
+    Raises:
+        TypeError: If number is not numeric or decimals is not an integer.
+
+    Example:
+        >>> format_as_percent(0.25)
+        '25.00%'
+        >>> format_as_percent(-0.1234, 1)
+        '(12.3%)'
+        >>> format_as_percent(-0.1234, 1, False)
+        '-12.3%'
+
+    Complexity: O(1)
+    """
+    if not isinstance(number, (int, float)):
+        raise TypeError("number must be numeric.")
+
+    if not isinstance(decimals, int):
+        raise TypeError("decimals must be an integer.")
+
+    value = float(number) * 100
+    formatted = f"{abs(value):,.{decimals}f}%"
+
+    if value < 0 and use_parens_for_negative:
+        return f"({formatted})"
+
+    if value < 0:
+        return f"-{formatted}"
+
+    return formatted
+
+
+def format_with_pattern(value, pattern: str) -> str:
+    """Format a numeric or date value using an Excel/VBA-style pattern.
+
+    Supports common patterns including percentage (``"%"``), thousands
+    separator (``"#,##0"``), fixed decimals (``"0.00"``), and date/time
+    patterns (``"yyyy-mm-dd"``, ``"hh:nn:ss"``, etc.).
+
+    Args:
+        value: Numeric value (int/float) or ``datetime`` object.
+        pattern: Excel/VBA format string.
+
+    Returns:
+        Formatted string representation of *value*.
+
+    Example:
+        >>> format_with_pattern(1234.5, "#,##0.00")
+        '1,234.50'
+        >>> format_with_pattern(0.75, "0%")
+        '75%'
+        >>> from datetime import datetime
+        >>> format_with_pattern(datetime(2025, 3, 15), "yyyy-mm-dd")
+        '2025-03-15'
+
+    Complexity: O(n) where n is the length of *pattern*.
+    """
+    from datetime import datetime as _dt
+
+    if isinstance(value, _dt):
+        fmt_map = {
+            "yyyy": "%Y", "yy": "%y",
+            "mm": "%m", "dd": "%d",
+            "hh": "%H", "nn": "%M", "ss": "%S",
+        }
+        result = pattern.lower()
+
+        for token, py_fmt in fmt_map.items():
+            result = result.replace(token, py_fmt)
+
+        return value.strftime(result)
+
+    try:
+        num = float(value)
+    except (ValueError, TypeError):
+        return str(value)
+
+    if "%" in pattern:
+        dec = max(pattern.count("0") - 1, 0)
+        return f"{num * 100:.{dec}f}%"
+
+    if "#,##0" in pattern or "0,0" in pattern:
+        dec = 0
+
+        if "." in pattern:
+            dec = pattern.split(".")[-1].count("0")
+
+        return f"{num:,.{dec}f}"
+
+    if "0." in pattern:
+        dec = pattern.split(".")[-1].count("0")
+        return f"{num:.{dec}f}"
+
+    return str(num)
+
+
+def format_file_size(size_bytes: int | float, binary: bool = True) -> str:
+    """Convert a byte count to a human-readable file-size string.
+
+    Args:
+        size_bytes: Number of bytes (non-negative).
+        binary: If True use IEC binary units (KiB, MiB, …) with 1024 base;
+                if False use SI decimal units (KB, MB, …) with 1000 base.
+
+    Returns:
+        Human-readable string, e.g. ``"1.50 GiB"`` or ``"1.50 GB"``.
+
+    Raises:
+        TypeError: If *size_bytes* is not numeric.
+        ValueError: If *size_bytes* is negative.
+
+    Example:
+        >>> format_file_size(1536)
+        '1.50 KiB'
+        >>> format_file_size(1500, binary=False)
+        '1.50 KB'
+
+    Complexity: O(1)
+    """
+    if not isinstance(size_bytes, (int, float)):
+        raise TypeError("size_bytes must be numeric")
+
+    if size_bytes < 0:
+        raise ValueError("size_bytes must be non-negative")
+
+    if binary:
+        base = 1024
+        suffixes = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"]
+    else:
+        base = 1000
+        suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB"]
+
+    value = float(size_bytes)
+
+    for suffix in suffixes[:-1]:
+
+        if abs(value) < base:
+            return f"{value:.2f} {suffix}" if suffix != "B" else f"{int(value)} B"
+
+        value /= base
+
+    return f"{value:.2f} {suffixes[-1]}"

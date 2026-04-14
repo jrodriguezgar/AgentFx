@@ -5,8 +5,27 @@ Description
     Funciones matemáticas compatibles con VBA/Access.
 """
 
-import math
-import random
+from formulite.fxNumeric.arithmetic_functions import (
+    absolute_value as _core_abs,
+    exp as _core_exp,
+    natural_log as _core_log,
+    sign as _core_sign,
+    square_root as _core_sqrt,
+)
+from formulite.fxNumeric.random_functions import (
+    random_float as _core_random_float,
+)
+from formulite.fxNumeric.trigonometry_functions import (
+    arctangent as _core_atan,
+    cosine as _core_cos,
+    sine as _core_sin,
+    tangent as _core_tan,
+)
+from formulite.fxNumeric.rounding_functions import (
+    round_down as _core_floor,
+    round_to_n_decimals as _core_round,
+    truncate_float as _core_trunc,
+)
 
 __all__ = [
     "Abs_",
@@ -45,7 +64,7 @@ def Abs_(number: float) -> float:
     Cost
         O(1)
     """
-    return abs(number)
+    return _core_abs(number)
 
 
 def Atn(number: float) -> float:
@@ -66,7 +85,7 @@ def Atn(number: float) -> float:
     Cost
         O(1)
     """
-    return math.atan(number)
+    return _core_atan(number)
 
 
 def Cos(number: float) -> float:
@@ -87,7 +106,7 @@ def Cos(number: float) -> float:
     Cost
         O(1)
     """
-    return math.cos(number)
+    return _core_cos(number)
 
 
 def Exp(number: float) -> float:
@@ -108,7 +127,7 @@ def Exp(number: float) -> float:
     Cost
         O(1)
     """
-    return math.exp(number)
+    return _core_exp(number)
 
 
 def Fix(number: float) -> int:
@@ -131,7 +150,7 @@ def Fix(number: float) -> int:
     Cost
         O(1)
     """
-    return int(number)
+    return _core_trunc(number)
 
 
 def Int_(number: float) -> int:
@@ -154,7 +173,7 @@ def Int_(number: float) -> int:
     Cost
         O(1)
     """
-    return math.floor(number)
+    return _core_floor(number)
 
 
 def Log(number: float) -> float:
@@ -178,7 +197,7 @@ def Log(number: float) -> float:
     Cost
         O(1)
     """
-    return math.log(number)
+    return _core_log(number)
 
 
 def Rnd(number: int = None) -> float:
@@ -199,7 +218,7 @@ def Rnd(number: int = None) -> float:
     Cost
         O(1)
     """
-    return random.random()
+    return _core_random_float(0.0, 1.0)
 
 
 def Round_(number: float, num_digits_after_decimal: int = 0) -> float:
@@ -223,7 +242,7 @@ def Round_(number: float, num_digits_after_decimal: int = 0) -> float:
     Cost
         O(1)
     """
-    return round(number, num_digits_after_decimal)
+    return _core_round(number, num_digits_after_decimal)
 
 
 def Sgn(number: float) -> int:
@@ -248,12 +267,7 @@ def Sgn(number: float) -> int:
     Cost
         O(1)
     """
-    if number > 0:
-        return 1
-    elif number == 0:
-        return 0
-    else:
-        return -1
+    return _core_sign(number)
 
 
 def Sin(number: float) -> float:
@@ -274,7 +288,7 @@ def Sin(number: float) -> float:
     Cost
         O(1)
     """
-    return math.sin(number)
+    return _core_sin(number)
 
 
 def Sqr(number: float) -> float:
@@ -300,7 +314,7 @@ def Sqr(number: float) -> float:
     Cost
         O(1)
     """
-    return math.sqrt(number)
+    return _core_sqrt(number)
 
 
 def Tan(number: float) -> float:
@@ -321,4 +335,4 @@ def Tan(number: float) -> float:
     Cost
         O(1)
     """
-    return math.tan(number)
+    return _core_tan(number)

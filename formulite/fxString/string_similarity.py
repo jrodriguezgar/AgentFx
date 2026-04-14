@@ -3,8 +3,11 @@ import os
 import importlib
 import subprocess
 import difflib
+import logging
 from collections import deque
 from typing import Union, List, Dict, Any, Tuple, Optional, Literal
+
+_logger = logging.getLogger(__name__)
 
 
 _lazy_loaded_modules = {}
@@ -35,7 +38,7 @@ def _is_uv_managed_environment() -> bool:
                 content = f.read()
                 if 'uv =' in content or 'uv=' in content:
                     return True
-        except:
+        except Exception:
             pass
     # Fallback: Check VIRTUAL_ENV environment variable
     venv = os.environ.get('VIRTUAL_ENV', '')
@@ -45,7 +48,7 @@ def _is_uv_managed_environment() -> bool:
                 content = f.read()
                 if 'uv =' in content or 'uv=' in content:
                     return True
-        except:
+        except Exception:
             pass
     return False
 
@@ -83,7 +86,7 @@ def _lazy_import(module_name: str, package_name: str = None):
         return module
     except ImportError:
         install_name = package_name if package_name else module_name
-        print(f"Warning: La librería '{module_name}' no está instalada.")
+        _logger.warning("Library '%s' is not installed.", module_name)
         
         installed = False
         
@@ -91,7 +94,7 @@ def _lazy_import(module_name: str, package_name: str = None):
         if _is_uv_managed_environment():
             project_dir = _find_pyproject_dir()
             if project_dir:
-                print(f"Intentando instalar: uv add {install_name}")
+                _logger.info("Attempting install: uv add %s", install_name)
                 try:
                     subprocess.check_call(["uv", "add", install_name], cwd=project_dir)
                     installed = True
@@ -100,7 +103,7 @@ def _lazy_import(module_name: str, package_name: str = None):
             
             # Strategy 2: uv pip install (for uv without pyproject.toml)
             if not installed:
-                print(f"Intentando instalar: uv pip install {install_name}")
+                _logger.info("Attempting install: uv pip install %s", install_name)
                 try:
                     subprocess.check_call(["uv", "pip", "install", install_name, "--python", sys.executable])
                     installed = True
@@ -109,7 +112,7 @@ def _lazy_import(module_name: str, package_name: str = None):
         
         # Strategy 3: Standard pip
         if not installed:
-            print(f"Intentando instalar: pip install {install_name}")
+            _logger.info("Attempting install: pip install %s", install_name)
             try:
                 subprocess.check_call([sys.executable, "-m", "pip", "install", install_name])
                 installed = True
@@ -135,18 +138,19 @@ def _lazy_import(module_name: str, package_name: str = None):
             try:
                 module = importlib.import_module(module_name)
                 _lazy_loaded_modules[module_name] = module
-                print(f"✓ '{install_name}' installed and '{module_name}' loaded")
+                _logger.info("'%s' installed and '%s' loaded.", install_name, module_name)
                 return module
             except ImportError as e:
-                print(f"✗ '{install_name}' installed but import '{module_name}' failed: {e}")
+                _logger.error("'%s' installed but import '%s' failed: %s", install_name, module_name, e)
                 _lazy_loaded_modules[module_name] = None
                 return None
         else:
-            print(f"✗ No se pudo instalar '{install_name}' automáticamente.")
-            print(f"  Instala manualmente usando uno de:")
-            print(f"    - uv add {install_name}")
-            print(f"    - uv pip install {install_name} --python {sys.executable}")
-            print(f"    - {sys.executable} -m pip install {install_name} --break-system-packages")
+            _logger.error(
+                "Could not install '%s' automatically. Install manually with: "
+                "uv add %s | uv pip install %s --python %s | %s -m pip install %s",
+                install_name, install_name, install_name,
+                sys.executable, sys.executable, install_name,
+            )
             _lazy_loaded_modules[module_name] = None
             return None
 
@@ -1798,6 +1802,160 @@ def string_lcs_record(a: str, b: str) -> Tuple[float, str]:
     return score, this[1]
 
 
+def string_cosine_score(a: str, b: str, n: int = 2) -> Dict[str, float]:
+    """Calculates cosine similarity between two strings using character n-grams.
+
+    Uses character n-gram vectors and computes the cosine of the angle between them.
+
+    Args:
+        a: The first string.
+        b: The second string.
+        n: The size of character n-grams.
+
+    Returns:
+        Dict with 'similarity' (0.0-1.0) and 'score' (0.0-100.0).
+
+    Example:
+        >>> result = string_cosine_score("night", "nacht")
+        >>> result['score'] > 0
+        True
+
+    Complexity: O(len(a) + len(b))
+    """
+    from collections import Counter
+    import math
+
+    def _ngrams(text: str, size: int) -> list[str]:
+        return [text[i:i + size] for i in range(len(text) - size + 1)]
+
+    if not a or not b:
+        return {"similarity": 0.0, "score": 0.0}
+
+    vec_a = Counter(_ngrams(a.lower(), n))
+    vec_b = Counter(_ngrams(b.lower(), n))
+
+    common_keys = set(vec_a.keys()) & set(vec_b.keys())
+    dot = sum(vec_a[k] * vec_b[k] for k in common_keys)
+
+    mag_a = math.sqrt(sum(v * v for v in vec_a.values()))
+    mag_b = math.sqrt(sum(v * v for v in vec_b.values()))
+
+    if mag_a == 0 or mag_b == 0:
+        return {"similarity": 0.0, "score": 0.0}
+
+    similarity = dot / (mag_a * mag_b)
+    return {"similarity": round(similarity, 6), "score": round(similarity * 100, 2)}
+
+
+def generate_ngrams(text: str, n: int = 2) -> list[str]:
+    """Generates character n-grams from a string.
+
+    Args:
+        text: The input string.
+        n: The size of each n-gram.
+
+    Returns:
+        A list of n-gram strings.
+
+    Example:
+        >>> generate_ngrams("hello", 2)
+        ['he', 'el', 'll', 'lo']
+        >>> generate_ngrams("abc", 3)
+        ['abc']
+
+    Complexity: O(len(text))
+    """
+    if not text or n < 1 or n > len(text):
+        return []
+
+    return [text[i:i + n] for i in range(len(text) - n + 1)]
+
+
+def find_closest_match(target: str, candidates: list[str],
+                       algorithm: str = "levenshtein") -> Optional[Tuple[str, float]]:
+    """Finds the best matching string from a list of candidates.
+
+    Args:
+        target: The string to match against.
+        candidates: A list of candidate strings.
+        algorithm: Similarity algorithm — "levenshtein", "jaro_winkler", or "jaccard".
+
+    Returns:
+        A tuple of (best_match, similarity_score), or None if candidates is empty.
+
+    Example:
+        >>> find_closest_match("apple", ["aple", "orange", "banana"])
+        ('aple', ...)
+
+    Complexity: O(k * n * m) where k is number of candidates.
+    """
+    if not candidates:
+        return None
+
+    best_match = None
+    best_score = -1.0
+
+    score_funcs = {
+        "levenshtein": string_levenshtein_score,
+        "jaro_winkler": string_jarowinkler_score,
+        "jaccard": string_jaccard_score,
+    }
+
+    score_fn = score_funcs.get(algorithm, string_levenshtein_score)
+
+    for candidate in candidates:
+        result = score_fn(target, candidate)
+        score = result.get("score", result.get("similarity", 0.0))
+
+        if score > best_score:
+            best_score = score
+            best_match = candidate
+
+    return (best_match, best_score)
+
+
+def rank_by_similarity(target: str, candidates: list[str],
+                       algorithm: str = "levenshtein",
+                       top_n: int = 0) -> list[Tuple[str, float]]:
+    """Ranks a list of candidates by similarity to a target string.
+
+    Args:
+        target: The string to compare against.
+        candidates: A list of candidate strings.
+        algorithm: Similarity algorithm — "levenshtein", "jaro_winkler", or "jaccard".
+        top_n: Maximum results to return (0 = all).
+
+    Returns:
+        A list of (candidate, score) tuples sorted by score descending.
+
+    Example:
+        >>> rank_by_similarity("apple", ["aple", "orange", "applet"])
+        [('applet', ...), ('aple', ...), ('orange', ...)]
+
+    Complexity: O(k * n * m + k log k) where k is number of candidates.
+    """
+    score_funcs = {
+        "levenshtein": string_levenshtein_score,
+        "jaro_winkler": string_jarowinkler_score,
+        "jaccard": string_jaccard_score,
+    }
+
+    score_fn = score_funcs.get(algorithm, string_levenshtein_score)
+    scored = []
+
+    for candidate in candidates:
+        result = score_fn(target, candidate)
+        score = result.get("score", result.get("similarity", 0.0))
+        scored.append((candidate, score))
+
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    if top_n > 0:
+        return scored[:top_n]
+
+    return scored
+
+
 def string_similarity_score(a: str, b: str) -> List[Tuple[str, Union[Dict[str, float], float]]]:
     """
     Calculates similarity scores using multiple string comparison algorithms.
@@ -1845,6 +2003,7 @@ def string_similarity_score(a: str, b: str) -> List[Tuple[str, Union[Dict[str, f
     lscores.append(('jarowinkler', string_jarowinkler_score(a, b)))
     lscores.append(('jaccard', string_jaccard_score(a, b)))
     lscores.append(('ratcliffobershelp', string_ratcliffobershelp_score(a, b)))
+    lscores.append(('cosine', string_cosine_score(a, b)))
     return lscores
 
 
@@ -1936,35 +2095,35 @@ if __name__ == "__main__":
     print("\n1. USO BÁSICO - Levenshtein (por defecto)")
     print("-" * 50)
     resultado = calculate_similarity("casa", "caza")
-    print(f"calculate_similarity('casa', 'caza')")
+    print("calculate_similarity('casa', 'caza')")
     print(f"  Resultado: {resultado:.2%}")
 
     print("\n2. SIMILITUD FONÉTICA - Metaphone")
     print("-" * 50)
     resultado = calculate_similarity("conocimiento", "conosimiento", algorithm='metaphone')
-    print(f"calculate_similarity('conocimiento', 'conosimiento', algorithm='metaphone')")
+    print("calculate_similarity('conocimiento', 'conosimiento', algorithm='metaphone')")
     print(f"  ¿Suenan igual?: {resultado}")
 
     print("\n3. JARO-WINKLER - Excelente para nombres")
     print("-" * 50)
     resultado = calculate_similarity("martha", "marhta", algorithm='jaro_winkler')
-    print(f"calculate_similarity('martha', 'marhta', algorithm='jaro_winkler')")
+    print("calculate_similarity('martha', 'marhta', algorithm='jaro_winkler')")
     print(f"  Score: {resultado['score']:.4f}")
     print(f"  Normalized Similarity: {resultado['normalized_similarity']:.4f}")
 
     print("\n4. EQUIVALENCIA EFECTIVA - Criterio combinado")
     print("-" * 50)
     resultado, metricas = calculate_similarity("aplicacion", "aplikacion", algorithm='effective_same')
-    print(f"calculate_similarity('aplicacion', 'aplikacion', algorithm='effective_same')")
+    print("calculate_similarity('aplicacion', 'aplikacion', algorithm='effective_same')")
     print(f"  ¿Son la misma?: {resultado}")
-    print(f"  Métricas:")
+    print("  Métricas:")
     for key, value in metricas.items():
         print(f"    {key}: {value}")
 
     print("\n5. LCS - Longest Common Subsequence")
     print("-" * 50)
     resultado = calculate_similarity("ABCBDAB", "BDCABA", algorithm='lcs')
-    print(f"calculate_similarity('ABCBDAB', 'BDCABA', algorithm='lcs')")
+    print("calculate_similarity('ABCBDAB', 'BDCABA', algorithm='lcs')")
     print(f"  Secuencia común: '{resultado['sequence']}'")
     print(f"  Longitud: {resultado['length']}")
     print(f"  Similarity: {resultado['similarity']:.4f}")
@@ -1972,7 +2131,7 @@ if __name__ == "__main__":
     print("\n6. TODOS LOS ALGORITMOS - Comparación completa")
     print("-" * 50)
     resultados = calculate_similarity("python", "pyton", algorithm='all')
-    print(f"calculate_similarity('python', 'pyton', algorithm='all')")
+    print("calculate_similarity('python', 'pyton', algorithm='all')")
     print("  Resultados seleccionados:")
     print(f"    Metaphone Match: {resultados['metaphone_match']}")
     print(f"    Levenshtein Ratio: {resultados['levenshtein_ratio']:.4f}")
@@ -1986,14 +2145,14 @@ if __name__ == "__main__":
         "a quick red fox",
         algorithm='sorensen_dice'
     )
-    print(f"calculate_similarity('the quick brown fox', 'a quick red fox', algorithm='sorensen_dice')")
+    print("calculate_similarity('the quick brown fox', 'a quick red fox', algorithm='sorensen_dice')")
     print(f"  Score: {resultado['score']:.4f}")
     print(f"  Similarity: {resultado['normalized_similarity']:.4f}")
 
     print("\n8. NEEDLEMAN-WUNSCH - Con gap cost personalizado")
     print("-" * 50)
     resultado = calculate_similarity("GATTACA", "GTAC", algorithm='needleman_wunsch', nw_gap_cost=2)
-    print(f"calculate_similarity('GATTACA', 'GTAC', algorithm='needleman_wunsch', nw_gap_cost=2)")
+    print("calculate_similarity('GATTACA', 'GTAC', algorithm='needleman_wunsch', nw_gap_cost=2)")
     print(f"  Score: {resultado['score']:.4f}")
     print(f"  Normalized Similarity: {resultado['normalized_similarity']:.4f}")
 
@@ -2006,7 +2165,7 @@ if __name__ == "__main__":
         jaro_winkler_threshold=0.85,
         metaphone_required=False
     )
-    print(f"calculate_similarity('color', 'colour', algorithm='effective_same', ...)")
+    print("calculate_similarity('color', 'colour', algorithm='effective_same', ...)")
     print(f"  ¿Son la misma?: {resultado}")
     print(f"  Levenshtein Ratio: {metricas['levenshtein_ratio']:.4f}")
 

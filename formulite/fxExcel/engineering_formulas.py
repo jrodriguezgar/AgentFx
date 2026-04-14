@@ -14,10 +14,27 @@ All functions follow Excel's naming conventions and behavior.
 """
 
 import cmath
-import math
 from typing import Union
 
-import mpmath
+
+from formulite.fxNumeric.arithmetic_functions import (
+    bessel_i as _core_bessel_i,
+    bessel_j as _core_bessel_j,
+    bessel_k as _core_bessel_k,
+    bessel_y as _core_bessel_y,
+    bit_lshift as _core_bit_lshift,
+    bit_rshift as _core_bit_rshift,
+    bitwise_and as _core_bitwise_and,
+    bitwise_or as _core_bitwise_or,
+    bitwise_xor as _core_bitwise_xor,
+    complementary_error_function as _core_erfc,
+    delta as _core_delta,
+    error_function as _core_erf,
+    gestep as _core_gestep,
+)
+from formulite.fxNumeric.conversion_functions import (
+    convert_units as _core_convert_units,
+)
 
 
 # ========== BESSEL FUNCTIONS ==========
@@ -42,10 +59,7 @@ def BESSELI(n: Union[int, float], x: Union[int, float]) -> float:
 
     **Cost:** O(1), Bessel function computation.
     """
-    try:
-        return float(mpmath.besseli(n, x))
-    except ValueError as e:
-        raise ValueError(f"Error computing BESSELI({n}, {x}): {e}")
+    return float(_core_bessel_i(x, n))
 
 
 def BESSELJ(n: Union[int, float], x: Union[int, float]) -> float:
@@ -68,10 +82,7 @@ def BESSELJ(n: Union[int, float], x: Union[int, float]) -> float:
 
     **Cost:** O(1), Bessel function computation.
     """
-    try:
-        return float(mpmath.besselj(n, x))
-    except ValueError as e:
-        raise ValueError(f"Error computing BESSELJ({n}, {x}): {e}")
+    return float(_core_bessel_j(x, n))
 
 
 def BESSELK(n: Union[int, float], x: Union[int, float]) -> float:
@@ -96,10 +107,8 @@ def BESSELK(n: Union[int, float], x: Union[int, float]) -> float:
     """
     if x <= 0:
         raise ValueError("x must be positive for BESSELK")
-    try:
-        return float(mpmath.besselk(n, x))
-    except ValueError as e:
-        raise ValueError(f"Error computing BESSELK({n}, {x}): {e}")
+
+    return float(_core_bessel_k(x, n))
 
 
 def BESSELY(n: Union[int, float], x: Union[int, float]) -> float:
@@ -124,315 +133,8 @@ def BESSELY(n: Union[int, float], x: Union[int, float]) -> float:
     """
     if x <= 0:
         raise ValueError("x must be positive for BESSELY")
-    try:
-        return float(mpmath.bessely(n, x))
-    except ValueError as e:
-        raise ValueError(f"Error computing BESSELY({n}, {x}): {e}")
 
-
-# ========== NUMBER BASE CONVERSIONS ==========
-
-def BIN2DEC(binary_str: str) -> int:
-    """
-    Converts a binary string to decimal.
-
-    Args:
-        binary_str (str): Binary string (e.g., "1010").
-
-    Returns:
-        int: Decimal representation.
-
-    Raises:
-        ValueError: If the input is not a valid binary string.
-
-    Example:
-        >>> BIN2DEC("1010")
-        10
-
-    **Cost:** O(n), where n is the length of the binary string.
-    """
-    try:
-        return int(binary_str, 2)
-    except ValueError:
-        raise ValueError(f"Invalid binary string: {binary_str}")
-
-
-def BIN2HEX(binary_str: str) -> str:
-    """
-    Converts a binary string to hexadecimal.
-
-    Args:
-        binary_str (str): Binary string (e.g., "1010").
-
-    Returns:
-        str: Hexadecimal representation (uppercase).
-
-    Raises:
-        ValueError: If the input is not a valid binary string.
-
-    Example:
-        >>> BIN2HEX("1010")
-        'A'
-
-    **Cost:** O(n), where n is the length of the binary string.
-    """
-    try:
-        dec = BIN2DEC(binary_str)
-        return hex(dec)[2:].upper()
-    except ValueError as e:
-        raise ValueError(f"Error converting binary to hex: {e}")
-
-
-def BIN2OCT(binary_str: str) -> str:
-    """
-    Converts a binary string to octal.
-
-    Args:
-        binary_str (str): Binary string (e.g., "1010").
-
-    Returns:
-        str: Octal representation.
-
-    Raises:
-        ValueError: If the input is not a valid binary string.
-
-    Example:
-        >>> BIN2OCT("1010")
-        '12'
-
-    **Cost:** O(n), where n is the length of the binary string.
-    """
-    try:
-        dec = BIN2DEC(binary_str)
-        return oct(dec)[2:]
-    except ValueError as e:
-        raise ValueError(f"Error converting binary to octal: {e}")
-
-
-def DEC2BIN(decimal: int) -> str:
-    """
-    Converts a decimal number to binary.
-
-    Args:
-        decimal (int): Decimal number.
-
-    Returns:
-        str: Binary representation.
-
-    Raises:
-        ValueError: If the input is not an integer.
-
-    Example:
-        >>> DEC2BIN(10)
-        '1010'
-
-    **Cost:** O(log n), where n is the decimal value.
-    """
-    if not isinstance(decimal, int):
-        raise ValueError("Input must be an integer")
-    return bin(decimal)[2:]
-
-
-def DEC2HEX(decimal: int) -> str:
-    """
-    Converts a decimal number to hexadecimal.
-
-    Args:
-        decimal (int): Decimal number.
-
-    Returns:
-        str: Hexadecimal representation (uppercase).
-
-    Raises:
-        ValueError: If the input is not an integer.
-
-    Example:
-        >>> DEC2HEX(255)
-        'FF'
-
-    **Cost:** O(log n), where n is the decimal value.
-    """
-    if not isinstance(decimal, int):
-        raise ValueError("Input must be an integer")
-    return hex(decimal)[2:].upper()
-
-
-def DEC2OCT(decimal: int) -> str:
-    """
-    Converts a decimal number to octal.
-
-    Args:
-        decimal (int): Decimal number.
-
-    Returns:
-        str: Octal representation.
-
-    Raises:
-        ValueError: If the input is not an integer.
-
-    Example:
-        >>> DEC2OCT(8)
-        '10'
-
-    **Cost:** O(log n), where n is the decimal value.
-    """
-    if not isinstance(decimal, int):
-        raise ValueError("Input must be an integer")
-    return oct(decimal)[2:]
-
-
-def HEX2BIN(hex_str: str) -> str:
-    """
-    Converts a hexadecimal string to binary.
-
-    Args:
-        hex_str (str): Hexadecimal string (e.g., "FF").
-
-    Returns:
-        str: Binary representation.
-
-    Raises:
-        ValueError: If the input is not a valid hexadecimal string.
-
-    Example:
-        >>> HEX2BIN("A")
-        '1010'
-
-    **Cost:** O(n), where n is the length of the hex string.
-    """
-    try:
-        dec = int(hex_str, 16)
-        return bin(dec)[2:]
-    except ValueError:
-        raise ValueError(f"Invalid hexadecimal string: {hex_str}")
-
-
-def HEX2DEC(hex_str: str) -> int:
-    """
-    Converts a hexadecimal string to decimal.
-
-    Args:
-        hex_str (str): Hexadecimal string (e.g., "FF").
-
-    Returns:
-        int: Decimal representation.
-
-    Raises:
-        ValueError: If the input is not a valid hexadecimal string.
-
-    Example:
-        >>> HEX2DEC("FF")
-        255
-
-    **Cost:** O(n), where n is the length of the hex string.
-    """
-    try:
-        return int(hex_str, 16)
-    except ValueError:
-        raise ValueError(f"Invalid hexadecimal string: {hex_str}")
-
-
-def HEX2OCT(hex_str: str) -> str:
-    """
-    Converts a hexadecimal string to octal.
-
-    Args:
-        hex_str (str): Hexadecimal string (e.g., "FF").
-
-    Returns:
-        str: Octal representation.
-
-    Raises:
-        ValueError: If the input is not a valid hexadecimal string.
-
-    Example:
-        >>> HEX2OCT("A")
-        '12'
-
-    **Cost:** O(n), where n is the length of the hex string.
-    """
-    try:
-        dec = HEX2DEC(hex_str)
-        return oct(dec)[2:]
-    except ValueError as e:
-        raise ValueError(f"Error converting hex to octal: {e}")
-
-
-def OCT2BIN(octal_str: str) -> str:
-    """
-    Converts an octal string to binary.
-
-    Args:
-        octal_str (str): Octal string (e.g., "12").
-
-    Returns:
-        str: Binary representation.
-
-    Raises:
-        ValueError: If the input is not a valid octal string.
-
-    Example:
-        >>> OCT2BIN("12")
-        '1010'
-
-    **Cost:** O(n), where n is the length of the octal string.
-    """
-    try:
-        dec = int(octal_str, 8)
-        return bin(dec)[2:]
-    except ValueError:
-        raise ValueError(f"Invalid octal string: {octal_str}")
-
-
-def OCT2DEC(octal_str: str) -> int:
-    """
-    Converts an octal string to decimal.
-
-    Args:
-        octal_str (str): Octal string (e.g., "12").
-
-    Returns:
-        int: Decimal representation.
-
-    Raises:
-        ValueError: If the input is not a valid octal string.
-
-    Example:
-        >>> OCT2DEC("12")
-        10
-
-    **Cost:** O(n), where n is the length of the octal string.
-    """
-    try:
-        return int(octal_str, 8)
-    except ValueError:
-        raise ValueError(f"Invalid octal string: {octal_str}")
-
-
-def OCT2HEX(octal_str: str) -> str:
-    """
-    Converts an octal string to hexadecimal.
-
-    Args:
-        octal_str (str): Octal string (e.g., "12").
-
-    Returns:
-        str: Hexadecimal representation (uppercase).
-
-    Raises:
-        ValueError: If the input is not a valid octal string.
-
-    Example:
-        >>> OCT2HEX("12")
-        'A'
-
-    **Cost:** O(n), where n is the length of the octal string.
-    """
-    try:
-        dec = OCT2DEC(octal_str)
-        return hex(dec)[2:].upper()
-    except ValueError as e:
-        raise ValueError(f"Error converting octal to hex: {e}")
+    return float(_core_bessel_y(x, n))
 
 
 # ========== BITWISE OPERATIONS ==========
@@ -457,9 +159,7 @@ def BITRSHIFT(number: int, shift: int) -> int:
 
     **Cost:** O(1), bitwise operation.
     """
-    if not isinstance(number, int) or not isinstance(shift, int):
-        raise ValueError("Both arguments must be integers")
-    return number >> shift
+    return _core_bit_rshift(number, shift)
 
 
 def BITLSHIFT(number: int, shift: int) -> int:
@@ -482,9 +182,7 @@ def BITLSHIFT(number: int, shift: int) -> int:
 
     **Cost:** O(1), bitwise operation.
     """
-    if not isinstance(number, int) or not isinstance(shift, int):
-        raise ValueError("Both arguments must be integers")
-    return number << shift
+    return _core_bit_lshift(number, shift)
 
 
 def BITOR(number1: int, number2: int) -> int:
@@ -507,9 +205,7 @@ def BITOR(number1: int, number2: int) -> int:
 
     **Cost:** O(1), bitwise operation.
     """
-    if not isinstance(number1, int) or not isinstance(number2, int):
-        raise ValueError("Both arguments must be integers")
-    return number1 | number2
+    return _core_bitwise_or(number1, number2)
 
 
 def BITXOR(number1: int, number2: int) -> int:
@@ -532,9 +228,7 @@ def BITXOR(number1: int, number2: int) -> int:
 
     **Cost:** O(1), bitwise operation.
     """
-    if not isinstance(number1, int) or not isinstance(number2, int):
-        raise ValueError("Both arguments must be integers")
-    return number1 ^ number2
+    return _core_bitwise_xor(number1, number2)
 
 
 def BITAND(number1: int, number2: int) -> int:
@@ -557,9 +251,7 @@ def BITAND(number1: int, number2: int) -> int:
 
     **Cost:** O(1), bitwise operation.
     """
-    if not isinstance(number1, int) or not isinstance(number2, int):
-        raise ValueError("Both arguments must be integers")
-    return number1 & number2
+    return _core_bitwise_and(number1, number2)
 
 
 # ========== COMPLEX NUMBER OPERATIONS ==========
@@ -809,50 +501,6 @@ def IMLN(complex_num: complex) -> complex:
         return cmath.log(complex_num)
     except (TypeError, ValueError) as e:
         raise ValueError(f"Error computing IMLN: {e}")
-
-
-def IMLOG10(complex_num: complex) -> complex:
-    """
-    Returns the base-10 logarithm of a complex number.
-
-    Args:
-        complex_num (complex): Complex number.
-
-    Returns:
-        complex: Base-10 logarithm.
-
-    Example:
-        >>> IMLOG10(3+4j)
-        (0.6989700043360189+0.40268586324965054j)
-
-    **Cost:** O(1), complex logarithm.
-    """
-    try:
-        return cmath.log(complex_num, 10)
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"Error computing IMLOG10: {e}")
-
-
-def IMLOG2(complex_num: complex) -> complex:
-    """
-    Returns the base-2 logarithm of a complex number.
-
-    Args:
-        complex_num (complex): Complex number.
-
-    Returns:
-        complex: Base-2 logarithm.
-
-    Example:
-        >>> IMLOG2(3+4j)
-        (2.321928094887362+1.337820935834243j)
-
-    **Cost:** O(1), complex logarithm.
-    """
-    try:
-        return cmath.log(complex_num, 2)
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"Error computing IMLOG2: {e}")
 
 
 def IMPOWER(complex_num: complex, n: Union[int, float]) -> complex:
@@ -1165,10 +813,7 @@ def ERF(x: Union[int, float]) -> float:
 
     **Cost:** O(1), error function computation.
     """
-    try:
-        return float(mpmath.erf(x))
-    except ValueError as e:
-        raise ValueError(f"Error computing ERF: {e}")
+    return float(_core_erf(x))
 
 
 def ERFC(x: Union[int, float]) -> float:
@@ -1187,10 +832,7 @@ def ERFC(x: Union[int, float]) -> float:
 
     **Cost:** O(1), complementary error function computation.
     """
-    try:
-        return float(mpmath.erfc(x))
-    except ValueError as e:
-        raise ValueError(f"Error computing ERFC: {e}")
+    return float(_core_erfc(x))
 
 
 def ERF_PRECISE(x: Union[int, float]) -> float:
@@ -1252,7 +894,7 @@ def DELTA(value1: Union[int, float], value2: Union[int, float] = 0) -> int:
 
     **Cost:** O(1), equality comparison.
     """
-    return 1 if value1 == value2 else 0
+    return _core_delta(value1, value2)
 
 
 def GESTEP(number: Union[int, float], threshold: Union[int, float] = 0) -> int:
@@ -1275,10 +917,7 @@ def GESTEP(number: Union[int, float], threshold: Union[int, float] = 0) -> int:
 
     **Cost:** O(1), comparison operation.
     """
-    try:
-        return 1 if number >= threshold else 0
-    except TypeError:
-        raise ValueError("Both arguments must be comparable")
+    return _core_gestep(number, threshold)
 
 
 def CONVERT(number: Union[int, float], from_unit: str, to_unit: str) -> float:
@@ -1304,21 +943,7 @@ def CONVERT(number: Union[int, float], from_unit: str, to_unit: str) -> float:
 
     **Cost:** O(1), unit conversion lookup.
     """
-    conversion_factors = {
-        ('m', 'cm'): 100,
-        ('cm', 'm'): 0.01,
-        ('kg', 'g'): 1000,
-        ('g', 'kg'): 0.001,
-        ('km', 'm'): 1000,
-        ('m', 'km'): 0.001,
-    }
-    try:
-        key = (from_unit, to_unit)
-        if key not in conversion_factors:
-            raise ValueError(f"Conversion from {from_unit} to {to_unit} not supported")
-        return number * conversion_factors[key]
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"Error in CONVERT: {e}")
+    return float(_core_convert_units(number, from_unit, to_unit))
 
 
 # ========== BASE CONVERSION FUNCTIONS ==========
@@ -1890,3 +1515,4 @@ def IMLOG2(complex_num: complex) -> complex:
         return cmath.log(complex_num) / cmath.log(2)
     except (ValueError, ZeroDivisionError) as e:
         raise ValueError(f"Error computing IMLOG2: {e}")
+

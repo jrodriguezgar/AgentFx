@@ -16,11 +16,10 @@ complexity analysis.
 """
 
 import json
-from typing import Iterable, Callable, Any, Union, List, Tuple, Set, Sequence, Hashable, Optional
 import sys
-from collections.abc import Iterable
+from collections.abc import Callable, Hashable, Iterable, Sequence
+from typing import Any, List, Optional, Set, Tuple, Union
 import subprocess
-import operator
 import re
 
 
@@ -178,33 +177,25 @@ def unique_tuple_list(p_list: list[tuple]) -> list[tuple]:
 
 
 def flatten_list(p_list: list[list]) -> list:
-    """
-    Flattens a list of lists into a single, one-dimensional list.
+    """Flattens a list of lists into a single, one-dimensional list.
 
-    This function uses a list comprehension for a concise and efficient
-    way to iterate over sublists and their elements.
+    Delegates to :func:`~formulite.fxPython.py_itertools.flatten`.
 
     Args:
-        p_list (list[list]): The input list of lists. Each sublist can contain
-                             any type of elements.
+        p_list (list[list]): The input list of lists.
 
     Returns:
-        list: A new list containing all elements from the sublists in the order
-              they appeared.
+        list: A new list containing all elements from the sublists.
 
-    Example usage:
-        my_nested_list = [[1, 2, 3], [4, 5], [6, 7, 8, 9]]
-        flattened_result = flatten_list(my_nested_list)
-        # flattened_result will be [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        # Cost: O(n), where n is the total number of elements across all sublists,
-        # as each element is processed once.
+    Example of use:
+        >>> flatten_list([[1, 2, 3], [4, 5], [6]])
+        [1, 2, 3, 4, 5, 6]
+
+    Cost: O(n), where n is the total number of elements across all sublists.
     """
-    # Use a list comprehension to iterate through each sublist in p_list
-    # and then iterate through each element within that sublist.
-    # This efficiently collects all elements into a new, flat list.
-    flattened = [element for sublist in p_list for element in sublist]
-    
-    return flattened
+    from formulite.fxPython.py_itertools import flatten
+
+    return list(flatten(p_list))
 
 
 def list_intersection(p_list1: list, p_list2: list) -> set:
@@ -965,56 +956,35 @@ def execute_os_command(command: Union[str, list[str]]) -> Tuple[int, str, str]:
     
 
 def calculate(expression_string):
-    """
-    Evaluates a compound arithmetic expression from a string.
+    """Evaluates a compound arithmetic expression from a string.
 
-    This function safely evaluates a string containing a mathematical expression,
-    respecting the standard order of operations (PEMDAS/BODMAS). It also
-    handles implicit multiplication, e.g., converting '3(4+2)' to '3*(4+2)'.
-
-    The cost of this function depends on the complexity of the expression
-    but is generally efficient for common arithmetic.
+    Handles implicit multiplication (e.g. ``3(4+2)`` → ``3*(4+2)``), then
+    delegates to :func:`~formulite.fxNumeric.calculator_functions.evaluate_expression`
+    for safe AST-based evaluation.
 
     Args:
         expression_string (str): The mathematical expression to be evaluated.
 
     Returns:
-        (int | float): The numerical result of the expression.
+        int | float: The numerical result of the expression.
 
     Raises:
-        ValueError: If the expression string is syntactically incorrect,
-                    attempts a division by zero, or contains invalid characters.
+        ValueError: If the expression is syntactically incorrect or invalid.
 
     Example of use:
-        result1 = evaluate_compound_expression("3 + 4 * 5")
-        # result1 will be 23
+        >>> calculate("3 + 4 * 5")
+        23
+        >>> calculate("2 * 3(6 / 2) - 9 + 6")
+        15.0
 
-        result2 = evaluate_compound_expression("2 * 3(6 / 2) - 9 + 6")
-        # result2 will be 15.0
+    Cost: O(n) where n is the expression length.
     """
-
-    # Why: The standard eval() does not understand implicit multiplication (e.g., '3(4)').
-    # This regular expression finds a number or a closing parenthesis followed by
-    # an opening parenthesis and inserts a '*' to make it explicit.
+    # Expand implicit multiplication before delegating.
     processed_string = re.sub(r'(?<=[0-9\)])\s*\(', '*(', expression_string)
 
-    # Why: Using a try-except block to catch common math or syntax errors
-    # from eval() and present them to the user in a controlled way.
-    try:
-        # Why: eval() is powerful but dangerous if used with untrusted input.
-        # We restrict its scope by providing empty dictionaries for globals and locals,
-        # which prevents it from accessing system functions or variables.
-        # The {"__builtins__": {}} part is the key security measure.
-        allowed_globals = {"__builtins__": {}}
-        allowed_locals = {}
-        
-        result = eval(processed_string, allowed_globals, allowed_locals)
-        return result
+    from formulite.fxNumeric.calculator_functions import evaluate_expression
 
-    except (SyntaxError, ZeroDivisionError, NameError, TypeError) as e:
-        # Why: Raise a single, clear error type to the user, embedding the
-        # original error message for better debugging.
-        raise ValueError(f"Invalid or malformed expression provided: {e}")
+    return evaluate_expression(processed_string)
 
 
 def search(collection: Iterable[Any], target_element: Any) -> Optional[Any]:
@@ -1337,4 +1307,1935 @@ def collection_sum(collection: Iterable[Union[int, float]], ignore_none: bool = 
     return total
 
 
+def deep_merge(dict1: dict, dict2: dict) -> dict:
+    """Recursively merges two dictionaries.
+
+    Nested dicts are merged instead of overwritten. For non-dict values,
+    *dict2* takes precedence.
+
+    Args:
+        dict1: The base dictionary.
+        dict2: The dictionary whose values override *dict1*.
+
+    Returns:
+        A new merged dictionary. Original inputs are not mutated.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Example:
+        >>> deep_merge({"a": 1, "b": {"x": 10}}, {"b": {"y": 20}, "c": 3})
+        {'a': 1, 'b': {'x': 10, 'y': 20}, 'c': 3}
+        >>> deep_merge({"a": 1}, {"a": 2})
+        {'a': 2}
+
+    **Cost:** O(n) where n is the total number of keys across both dicts.
+    """
+    if not isinstance(dict1, dict):
+        raise TypeError("dict1 must be a dict.")
+
+    if not isinstance(dict2, dict):
+        raise TypeError("dict2 must be a dict.")
+
+    result = dict1.copy()
+
+    for key, value in dict2.items():
+
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = deep_merge(result[key], value)
+        else:
+            result[key] = value
+
+    return result
+
+
+def get_nested(data: dict, keys: List[str], default: Any = None) -> Any:
+    """Retrieves a value from a nested dictionary using a sequence of keys.
+
+    Safely traverses nested dicts without raising ``KeyError``. Returns
+    *default* if any intermediate key is missing or not a dict.
+
+    Args:
+        data: The nested dictionary.
+        keys: Ordered list of keys forming the path.
+        default: Value to return if the path does not exist.
+
+    Returns:
+        The value at the nested path, or *default*.
+
+    Raises:
+        TypeError: If *data* is not a dict or *keys* is not a list.
+
+    Example:
+        >>> get_nested({"a": {"b": {"c": 42}}}, ["a", "b", "c"])
+        42
+        >>> get_nested({"a": {"b": 1}}, ["a", "x"], default=-1)
+        -1
+        >>> get_nested({}, ["a"], default="missing")
+        'missing'
+
+    **Cost:** O(k) where k is the length of *keys*.
+    """
+    if not isinstance(data, dict):
+        raise TypeError("data must be a dict.")
+
+    if not isinstance(keys, list):
+        raise TypeError("keys must be a list.")
+
+    current: Any = data
+
+    for key in keys:
+
+        if not isinstance(current, dict):
+            return default
+
+        current = current.get(key, default)
+
+        if current is default:
+            return default
+
+    return current
+
+
+def chunk(iterable: Iterable, n: int) -> List[list]:
+    """Splits an iterable into fixed-size chunks.
+
+    The last chunk may contain fewer than *n* elements.
+
+    Args:
+        iterable: The input iterable to split.
+        n: Size of each chunk. Must be >= 1.
+
+    Returns:
+        A list of lists, each containing up to *n* elements.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not int.
+        ValueError: If *n* < 1.
+
+    Example:
+        >>> chunk([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5]]
+        >>> chunk("abcdef", 3)
+        [['a', 'b', 'c'], ['d', 'e', 'f']]
+        >>> chunk(range(7), 4)
+        [[0, 1, 2, 3], [4, 5, 6]]
+
+    **Cost:** O(n) where n is the number of elements.
+    """
+    if not isinstance(n, int):
+        raise TypeError("n must be an integer.")
+
+    if n < 1:
+        raise ValueError("n must be at least 1.")
+
+    items = list(iterable)
+    return [items[i:i + n] for i in range(0, len(items), n)]
+
+
+def group_by(iterable: Iterable, key_func: Callable) -> dict:
+    """Groups elements of an iterable by a key function.
+
+    Args:
+        iterable: The collection to group.
+        key_func: A callable that returns the grouping key for each element.
+
+    Returns:
+        A dictionary mapping each key to a list of matching elements.
+
+    Example:
+        >>> group_by(["apple", "avocado", "banana", "blueberry"], lambda x: x[0])
+        {'a': ['apple', 'avocado'], 'b': ['banana', 'blueberry']}
+        >>> group_by([1, 2, 3, 4, 5, 6], lambda x: x % 2)
+        {1: [1, 3, 5], 0: [2, 4, 6]}
+
+    **Cost:** O(n) where n is the number of elements.
+    """
+    if not callable(key_func):
+        raise TypeError("key_func must be callable.")
+
+    result: dict = {}
+
+    for item in iterable:
+        key = key_func(item)
+        result.setdefault(key, []).append(item)
+
+    return result
+
+
+def partition(
+    predicate: Callable,
+    iterable: Iterable,
+) -> Tuple[list, list]:
+    """Splits an iterable into two lists based on a predicate.
+
+    Args:
+        predicate: A callable returning True/False for each element.
+        iterable: The collection to partition.
+
+    Returns:
+        A tuple ``(true_items, false_items)``.
+
+    Example:
+        >>> partition(lambda x: x > 3, [1, 2, 3, 4, 5, 6])
+        ([4, 5, 6], [1, 2, 3])
+        >>> partition(str.isupper, ["A", "b", "C", "d"])
+        (['A', 'C'], ['b', 'd'])
+
+    **Cost:** O(n) where n is the number of elements.
+    """
+    if not callable(predicate):
+        raise TypeError("predicate must be callable.")
+
+    true_items: list = []
+    false_items: list = []
+
+    for item in iterable:
+
+        if predicate(item):
+            true_items.append(item)
+        else:
+            false_items.append(item)
+
+    return true_items, false_items
+
+
+def pluck(iterable: Iterable, key: Any) -> list:
+    """Extracts a single field from each element in a collection.
+
+    Works with dictionaries (by key) and objects (by attribute name).
+
+    Args:
+        iterable: A collection of dicts or objects.
+        key: The dictionary key or attribute name to extract.
+
+    Returns:
+        A list of extracted values.
+
+    Example:
+        >>> pluck([{"name": "Alice"}, {"name": "Bob"}], "name")
+        ['Alice', 'Bob']
+        >>> pluck([{"x": 1, "y": 2}, {"x": 3, "y": 4}], "x")
+        [1, 3]
+
+    **Cost:** O(n) where n is the number of elements.
+    """
+    result: list = []
+
+    for item in iterable:
+
+        if isinstance(item, dict):
+            result.append(item[key])
+        else:
+            result.append(getattr(item, key))
+
+    return result
+
+
+def find(
+    predicate: Callable,
+    iterable: Iterable,
+    default: Any = None,
+) -> Any:
+    """Returns the first element matching a predicate.
+
+    Args:
+        predicate: A callable returning True for the desired element.
+        iterable: The collection to search.
+        default: Value returned when no match is found (default None).
+
+    Returns:
+        The first matching element, or ``default``.
+
+    Example:
+        >>> find(lambda x: x > 3, [1, 2, 3, 4, 5])
+        4
+        >>> find(lambda x: x > 10, [1, 2, 3], default=-1)
+        -1
+
+    **Cost:** O(n) worst case.
+    """
+    if not callable(predicate):
+        raise TypeError("predicate must be callable.")
+
+    for item in iterable:
+
+        if predicate(item):
+            return item
+
+    return default
+
+
+def sort_dict_by_value(d: dict, reverse: bool = False) -> dict:
+    """Return a new dict sorted by values.
+
+    Args:
+        d: Input dictionary.
+        reverse: If True, sort descending. Defaults to False.
+
+    Returns:
+        Ordered dict sorted by values.
+
+    Example:
+        >>> sort_dict_by_value({'b': 2, 'a': 1, 'c': 3})
+        {'a': 1, 'b': 2, 'c': 3}
+
+    Complexity: O(n log n)
+    """
+
+    return dict(sorted(d.items(), key=lambda item: item[1], reverse=reverse))
+
+
+def sort_dict_by_key(d: dict, reverse: bool = False) -> dict:
+    """Return a new dict sorted by keys.
+
+    Args:
+        d: Input dictionary.
+        reverse: If True, sort descending. Defaults to False.
+
+    Returns:
+        Ordered dict sorted by keys.
+
+    Example:
+        >>> sort_dict_by_key({'c': 3, 'a': 1, 'b': 2})
+        {'a': 1, 'b': 2, 'c': 3}
+
+    Complexity: O(n log n)
+    """
+
+    return dict(sorted(d.items(), key=lambda item: item[0], reverse=reverse))
+
+
+def deep_flatten(nested: Any) -> list:
+    """Recursively flatten a nested structure of arbitrary depth.
+
+    Unlike :func:`flatten_list` which flattens one level, this function
+    handles any nesting depth. Strings are not expanded.
+
+    Args:
+        nested: Nested lists/tuples/iterables.
+
+    Returns:
+        Flat list of all leaf elements.
+
+    Example:
+        >>> deep_flatten([1, [2, [3, [4]], 5]])
+        [1, 2, 3, 4, 5]
+        >>> deep_flatten([[1, 2], 'hello', [3, [4]]])
+        [1, 2, 'hello', 3, 4]
+
+    Complexity: O(n) total elements
+    """
+
+    result: list = []
+
+    for item in nested:
+
+        if isinstance(item, (list, tuple)):
+            result.extend(deep_flatten(item))
+        else:
+            result.append(item)
+
+    return result
+
+
+def zip_dict(keys: List[Any], values: List[Any]) -> dict:
+    """Create a dictionary from two parallel lists of keys and values.
+
+    If lists differ in length, extra elements are dropped.
+
+    Args:
+        keys: List of keys.
+        values: List of values.
+
+    Returns:
+        Dictionary mapping keys[i] to values[i].
+
+    Example:
+        >>> zip_dict(['a', 'b', 'c'], [1, 2, 3])
+        {'a': 1, 'b': 2, 'c': 3}
+
+    Complexity: O(n)
+    """
+
+    return dict(zip(keys, values))
+
+
+def count_by(iterable: Iterable[Any],
+             key_func: Callable[[Any], Any]) -> dict:
+    """Count the number of elements in each group defined by a key function.
+
+    Args:
+        iterable: Input iterable.
+        key_func: Function returning the grouping key.
+
+    Returns:
+        Dict mapping each key to its count.
+
+    Example:
+        >>> count_by(['apple', 'ant', 'banana', 'avocado'], lambda s: s[0])
+        {'a': 3, 'b': 1}
+
+    Complexity: O(n)
+    """
+
+    result: dict = {}
+
+    for item in iterable:
+        key = key_func(item)
+        result[key] = result.get(key, 0) + 1
+
+    return result
+
+
+def index_by(dicts: List[dict], key: str) -> dict:
+    """Index a list of dicts by a given field, creating a lookup table.
+
+    If multiple dicts share the same key value, the last one wins.
+
+    Args:
+        dicts: List of dictionaries.
+        key: Field name to use as the index key.
+
+    Returns:
+        Dict mapping key values to their source dicts.
+
+    Example:
+        >>> data = [{'id': 1, 'name': 'Alice'}, {'id': 2, 'name': 'Bob'}]
+        >>> index_by(data, 'id')
+        {1: {'id': 1, 'name': 'Alice'}, 2: {'id': 2, 'name': 'Bob'}}
+
+    Complexity: O(n)
+    """
+
+    return {d[key]: d for d in dicts if key in d}
+
+
+def flatten_dict(
+    d: dict,
+    separator: str = ".",
+    parent_key: str = "",
+) -> dict:
+    """Flattens a nested dictionary into a single-level dictionary.
+
+    Nested keys are joined with *separator*.
+
+    Args:
+        d: The nested dictionary to flatten.
+        separator: Separator between key levels (default ".").
+        parent_key: Internal prefix (used by recursion).
+
+    Returns:
+        A flat dictionary with composite keys.
+
+    Example:
+        >>> flatten_dict({"a": {"b": 1, "c": {"d": 2}}})
+        {'a.b': 1, 'a.c.d': 2}
+
+    **Cost:** O(n) where n is total number of leaf values.
+    """
+    items: list[tuple[str, Any]] = []
+
+    for key, value in d.items():
+        new_key = f"{parent_key}{separator}{key}" if parent_key else str(key)
+
+        if isinstance(value, dict):
+            items.extend(flatten_dict(value, separator, new_key).items())
+        else:
+            items.append((new_key, value))
+
+    return dict(items)
+
+
+def unflatten_dict(d: dict, separator: str = ".") -> dict:
+    """Reconstructs a nested dictionary from a flat one.
+
+    Composite keys are split by *separator* to create nested levels.
+
+    Args:
+        d: The flat dictionary with composite keys.
+        separator: The separator used in the keys (default ".").
+
+    Returns:
+        A nested dictionary.
+
+    Example:
+        >>> unflatten_dict({"a.b": 1, "a.c.d": 2})
+        {'a': {'b': 1, 'c': {'d': 2}}}
+
+    **Cost:** O(n*k) where k is average key depth.
+    """
+    result: dict = {}
+
+    for composite_key, value in d.items():
+        keys = composite_key.split(separator)
+        current = result
+
+        for part in keys[:-1]:
+
+            if part not in current:
+                current[part] = {}
+
+            current = current[part]
+
+        current[keys[-1]] = value
+
+    return result
+
+
+def frequencies(items: Iterable) -> dict:
+    """Counts occurrences of each element in an iterable.
+
+    Args:
+        items: The collection of hashable elements.
+
+    Returns:
+        A dictionary mapping each element to its count.
+
+    Example:
+        >>> frequencies(["a", "b", "a", "c", "a"])
+        {'a': 3, 'b': 1, 'c': 1}
+
+    **Cost:** O(n)
+    """
+    counts: dict = {}
+
+    for item in items:
+        counts[item] = counts.get(item, 0) + 1
+
+    return counts
+
+
+def sort_dicts_by_key(
+    items: list[dict],
+    key: str,
+    reverse: bool = False,
+) -> list[dict]:
+    """Sorts a list of dictionaries by a specific key.
+
+    Args:
+        items: The list of dictionaries to sort.
+        key: The dictionary key to sort by.
+        reverse: If True, sorts in descending order.
+
+    Returns:
+        A new sorted list of dictionaries.
+
+    Example:
+        >>> sort_dicts_by_key([{"n": 3}, {"n": 1}, {"n": 2}], "n")
+        [{'n': 1}, {'n': 2}, {'n': 3}]
+
+    **Cost:** O(n log n)
+    """
+    return sorted(items, key=lambda d: d.get(key), reverse=reverse)
+
+
+def conditional_sum(
+    values: List[Union[int, float]],
+    criteria: Callable[[Union[int, float]], bool],
+) -> float:
+    """Sums values that match a criteria function.
+
+    Description:
+        Iterates over the values and sums only those for which the
+        criteria function returns True. Equivalent to Excel SUMIF logic.
+
+    Args:
+        values: A list of numeric values.
+        criteria: A callable that takes a value and returns True/False.
+
+    Returns:
+        The sum of matching values.
+
+    Example:
+        >>> conditional_sum([1, 2, 3, 4, 5], lambda x: x > 3)
+        9
+        >>> conditional_sum([10, 20, 30], lambda x: x < 15)
+        10
+
+    **Cost:** O(n)
+    """
+    return sum(v for v in values if criteria(v))
+
+
+def conditional_count(
+    values: List[Any],
+    criteria: Callable[[Any], bool],
+) -> int:
+    """Counts values that match a criteria function.
+
+    Description:
+        Iterates over the values and counts those for which the
+        criteria function returns True. Equivalent to Excel COUNTIF logic.
+
+    Args:
+        values: A list of values.
+        criteria: A callable that takes a value and returns True/False.
+
+    Returns:
+        The count of matching values.
+
+    Example:
+        >>> conditional_count([1, 2, 3, 4, 5], lambda x: x > 3)
+        2
+        >>> conditional_count(["a", "b", "a"], lambda x: x == "a")
+        2
+
+    **Cost:** O(n)
+    """
+    return sum(1 for v in values if criteria(v))
+
+
+def conditional_average(
+    values: List[Union[int, float]],
+    criteria: Callable[[Union[int, float]], bool],
+) -> float:
+    """Averages values that match a criteria function.
+
+    Description:
+        Computes the arithmetic mean of values for which the criteria
+        function returns True. Equivalent to Excel AVERAGEIF logic.
+
+    Args:
+        values: A list of numeric values.
+        criteria: A callable that takes a value and returns True/False.
+
+    Returns:
+        The average of matching values.
+
+    Raises:
+        ValueError: If no values match the criteria.
+
+    Example:
+        >>> conditional_average([1, 2, 3, 4, 5], lambda x: x > 2)
+        4.0
+        >>> conditional_average([10, 20, 30], lambda x: x >= 20)
+        25.0
+
+    **Cost:** O(n)
+    """
+    matched = [v for v in values if criteria(v)]
+
+    if not matched:
+        raise ValueError("No values match the criteria.")
+
+    return sum(matched) / len(matched)
+
+
+def conditional_min(
+    values: List[Union[int, float]],
+    criteria: Callable[[Union[int, float]], bool],
+) -> Union[int, float]:
+    """Returns the minimum of values that match a criteria function.
+
+    Description:
+        Finds the smallest value for which the criteria function
+        returns True. Equivalent to Excel MINIFS logic.
+
+    Args:
+        values: A list of numeric values.
+        criteria: A callable that takes a value and returns True/False.
+
+    Returns:
+        The minimum matching value.
+
+    Raises:
+        ValueError: If no values match the criteria.
+
+    Example:
+        >>> conditional_min([1, 2, 3, 4, 5], lambda x: x > 2)
+        3
+        >>> conditional_min([10, 20, 30], lambda x: x >= 20)
+        20
+
+    **Cost:** O(n)
+    """
+    matched = [v for v in values if criteria(v)]
+
+    if not matched:
+        raise ValueError("No values match the criteria.")
+
+    return min(matched)
+
+
+def conditional_max(
+    values: List[Union[int, float]],
+    criteria: Callable[[Union[int, float]], bool],
+) -> Union[int, float]:
+    """Returns the maximum of values that match a criteria function.
+
+    Description:
+        Finds the largest value for which the criteria function
+        returns True. Equivalent to Excel MAXIFS logic.
+
+    Args:
+        values: A list of numeric values.
+        criteria: A callable that takes a value and returns True/False.
+
+    Returns:
+        The maximum matching value.
+
+    Raises:
+        ValueError: If no values match the criteria.
+
+    Example:
+        >>> conditional_max([1, 2, 3, 4, 5], lambda x: x <= 3)
+        3
+        >>> conditional_max([10, 20, 30], lambda x: x < 25)
+        20
+
+    **Cost:** O(n)
+    """
+    matched = [v for v in values if criteria(v)]
+
+    if not matched:
+        raise ValueError("No values match the criteria.")
+
+    return max(matched)
+
+
+def vlookup(
+    lookup_value: Any,
+    table: List[List[Any]],
+    col_index: int,
+    approximate: bool = False,
+) -> Any:
+    """Searches for a value in the first column and returns a value from another column.
+
+    Description:
+        Looks up a value in the first column of a table (list of rows) and
+        returns the corresponding value from the specified column index.
+        Equivalent to Excel VLOOKUP.
+
+    Args:
+        lookup_value: The value to search for in the first column.
+        table: A list of rows (lists), each with the same number of columns.
+        col_index: The 1-based column index to return (1 = first column).
+        approximate: If True, finds the closest match less than or equal
+            to the lookup value (table must be sorted ascending by first column).
+            If False, requires an exact match.
+
+    Returns:
+        The value from the matching row at the specified column.
+
+    Raises:
+        ValueError: If no match is found, col_index is out of range, or table is empty.
+        TypeError: If table is not a list of lists.
+
+    Example:
+        >>> table = [[1, "a"], [2, "b"], [3, "c"]]
+        >>> vlookup(2, table, 2)
+        'b'
+        >>> vlookup(2.5, [[1, "x"], [2, "y"], [3, "z"]], 2, approximate=True)
+        'y'
+
+    **Cost:** O(n) for exact match, O(n) for approximate match.
+    """
+    if not isinstance(table, list) or not all(isinstance(row, list) for row in table):
+        raise TypeError("Table must be a list of lists.")
+
+    if not table:
+        raise ValueError("Table cannot be empty.")
+
+    if col_index < 1 or col_index > len(table[0]):
+        raise ValueError(
+            f"col_index {col_index} is out of range. Table has {len(table[0])} columns."
+        )
+
+    if approximate:
+        best_row = None
+
+        for row in table:
+
+            if row[0] <= lookup_value:
+
+                if best_row is None or row[0] > best_row[0]:
+                    best_row = row
+
+        if best_row is None:
+            raise ValueError(f"No match found for {lookup_value!r}.")
+
+        return best_row[col_index - 1]
+
+    for row in table:
+
+        if row[0] == lookup_value:
+            return row[col_index - 1]
+
+    raise ValueError(f"No exact match found for {lookup_value!r}.")
+
+
+def hlookup(
+    lookup_value: Any,
+    table: List[List[Any]],
+    row_index: int,
+    approximate: bool = False,
+) -> Any:
+    """Searches for a value in the first row and returns a value from another row.
+
+    Description:
+        Looks up a value in the first row of a table (list of rows) and
+        returns the corresponding value from the specified row index.
+        Equivalent to Excel HLOOKUP.
+
+    Args:
+        lookup_value: The value to search for in the first row.
+        table: A list of rows (lists), each with the same number of columns.
+        row_index: The 1-based row index to return (1 = first row).
+        approximate: If True, finds the closest match less than or equal
+            to the lookup value (first row must be sorted ascending).
+            If False, requires an exact match.
+
+    Returns:
+        The value from the matching column at the specified row.
+
+    Raises:
+        ValueError: If no match is found, row_index is out of range, or table is empty.
+        TypeError: If table is not a list of lists.
+
+    Example:
+        >>> table = [["a", "b", "c"], [1, 2, 3], [4, 5, 6]]
+        >>> hlookup("b", table, 2)
+        2
+        >>> hlookup(2.5, [[1, 2, 3], [10, 20, 30]], 2, approximate=True)
+        20
+
+    **Cost:** O(m) where m is the number of columns.
+    """
+    if not isinstance(table, list) or not all(isinstance(row, list) for row in table):
+        raise TypeError("Table must be a list of lists.")
+
+    if not table or not table[0]:
+        raise ValueError("Table cannot be empty.")
+
+    if row_index < 1 or row_index > len(table):
+        raise ValueError(
+            f"row_index {row_index} is out of range. Table has {len(table)} rows."
+        )
+
+    first_row = table[0]
+
+    if approximate:
+        best_col = None
+
+        for col_idx, val in enumerate(first_row):
+
+            if val <= lookup_value:
+
+                if best_col is None or val > first_row[best_col]:
+                    best_col = col_idx
+
+        if best_col is None:
+            raise ValueError(f"No match found for {lookup_value!r}.")
+
+        return table[row_index - 1][best_col]
+
+    for col_idx, val in enumerate(first_row):
+
+        if val == lookup_value:
+            return table[row_index - 1][col_idx]
+
+    raise ValueError(f"No exact match found for {lookup_value!r}.")
+
+
+def choose(index: int, *values: Any) -> Any:
+    """Chooses a value from a list of values based on a 1-based index.
+
+    Description:
+        Returns the value at the given position (1-based). Equivalent
+        to Excel CHOOSE.
+
+    Args:
+        index: The 1-based position to select.
+        *values: The values to choose from.
+
+    Returns:
+        The value at the specified index.
+
+    Raises:
+        ValueError: If index is out of range or no values are provided.
+        TypeError: If index is not an integer.
+
+    Example:
+        >>> choose(2, "a", "b", "c")
+        'b'
+        >>> choose(1, 10, 20, 30)
+        10
+
+    **Cost:** O(1)
+    """
+    if not isinstance(index, int):
+        raise TypeError("index must be an integer.")
+
+    if not values:
+        raise ValueError("At least one value must be provided.")
+
+    if index < 1 or index > len(values):
+        raise ValueError(
+            f"index {index} is out of range. Must be between 1 and {len(values)}."
+        )
+
+    return values[index - 1]
+
+
+def sort_by(
+    data: List[Any],
+    sort_keys: List[Any],
+    reverse: bool = False,
+) -> List[Any]:
+    """Sorts data based on corresponding sort keys.
+
+    Description:
+        Sorts the data list using the values in sort_keys to determine
+        order. Both lists must be the same length. Equivalent to Excel
+        SORTBY.
+
+    Args:
+        data: The list of items to sort.
+        sort_keys: The list of values to sort by (same length as data).
+        reverse: If True, sorts in descending order.
+
+    Returns:
+        A new sorted list of data items.
+
+    Raises:
+        ValueError: If data and sort_keys have different lengths or are empty.
+
+    Example:
+        >>> sort_by(["c", "a", "b"], [3, 1, 2])
+        ['a', 'b', 'c']
+        >>> sort_by(["c", "a", "b"], [3, 1, 2], reverse=True)
+        ['c', 'b', 'a']
+
+    **Cost:** O(n log n)
+    """
+    if len(data) != len(sort_keys):
+        raise ValueError("data and sort_keys must have the same length.")
+
+    if not data:
+        raise ValueError("data cannot be empty.")
+
+    paired = sorted(zip(sort_keys, data), key=lambda pair: pair[0], reverse=reverse)
+    return [item for _, item in paired]
+
+
+def xlookup(
+    lookup_value: Any,
+    lookup_array: List[Any],
+    return_array: List[Any],
+    if_not_found: Any = None,
+    match_mode: int = 0,
+) -> Any:
+    """Searches a lookup array and returns the corresponding value from a return array.
+
+    Description:
+        A more flexible lookup than vlookup/hlookup. Searches lookup_array
+        for lookup_value and returns the corresponding element from
+        return_array. Equivalent to Excel XLOOKUP.
+
+    Args:
+        lookup_value: The value to search for.
+        lookup_array: The array to search in.
+        return_array: The array to return a value from (same length).
+        if_not_found: Value to return if no match is found (default None).
+        match_mode: 0 = exact match, -1 = exact or next smaller,
+            1 = exact or next larger.
+
+    Returns:
+        The matching value from return_array, or if_not_found.
+
+    Raises:
+        ValueError: If lookup_array and return_array have different lengths.
+
+    Example:
+        >>> xlookup("b", ["a", "b", "c"], [1, 2, 3])
+        2
+        >>> xlookup("z", ["a", "b", "c"], [1, 2, 3], "Not Found")
+        'Not Found'
+        >>> xlookup(25, [10, 20, 30], ["x", "y", "z"], match_mode=-1)
+        'y'
+
+    **Cost:** O(n)
+    """
+    if len(lookup_array) != len(return_array):
+        raise ValueError("lookup_array and return_array must have the same length.")
+
+    # Exact match
+    if match_mode == 0:
+
+        for i, val in enumerate(lookup_array):
+
+            if val == lookup_value:
+                return return_array[i]
+
+        return if_not_found
+
+    # Approximate: next smaller
+    if match_mode == -1:
+        best_idx = None
+
+        for i, val in enumerate(lookup_array):
+
+            if val <= lookup_value:
+
+                if best_idx is None or val > lookup_array[best_idx]:
+                    best_idx = i
+
+        if best_idx is not None:
+            return return_array[best_idx]
+
+        return if_not_found
+
+    # Approximate: next larger
+    if match_mode == 1:
+        best_idx = None
+
+        for i, val in enumerate(lookup_array):
+
+            if val >= lookup_value:
+
+                if best_idx is None or val < lookup_array[best_idx]:
+                    best_idx = i
+
+        if best_idx is not None:
+            return return_array[best_idx]
+
+        return if_not_found
+
+    return if_not_found
+
+
+def sequence(
+    rows: int = 1,
+    columns: int = 1,
+    start: float = 1,
+    step: float = 1,
+) -> list[list[float]]:
+    """Generates a 2-D array of sequential numbers.
+
+    Description:
+        Returns a rows×columns matrix filled with values starting at
+        *start* and incrementing by *step*. Equivalent to Excel SEQUENCE.
+
+    Args:
+        rows: Number of rows (>= 1).
+        columns: Number of columns (>= 1).
+        start: First value in the sequence.
+        step: Increment between consecutive values.
+
+    Returns:
+        list[list[float]]: A 2-D list of sequential values.
+
+    Raises:
+        ValueError: If rows or columns < 1.
+
+    Example:
+        >>> sequence(2, 3)
+        [[1, 2, 3], [4, 5, 6]]
+        >>> sequence(3, 1, 0, 5)
+        [[0], [5], [10]]
+
+    Complexity: O(rows × columns)
+    """
+    if rows < 1 or columns < 1:
+        raise ValueError("rows and columns must be >= 1.")
+
+    result = []
+    current = start
+
+    for _ in range(rows):
+        row = []
+
+        for _ in range(columns):
+            row.append(current)
+            current += step
+
+        result.append(row)
+
+    return result
+
+
+def index_2d(
+    array: list[list[Any]],
+    row_num: int,
+    col_num: int | None = None,
+) -> Any:
+    """Returns an element or row/column from a 2-D array.
+
+    Description:
+        Uses 1-based indexing. If col_num is omitted, returns the entire
+        row. If row_num is 0, returns the entire column.
+        Equivalent to Excel INDEX.
+
+    Args:
+        array: A 2-D list (list of lists).
+        row_num: 1-based row index (0 to get entire column).
+        col_num: 1-based column index (None to get entire row).
+
+    Returns:
+        Any: The element, row, or column.
+
+    Raises:
+        IndexError: If row_num or col_num is out of bounds.
+        TypeError: If array is not a list of lists.
+
+    Example:
+        >>> index_2d([[10, 20], [30, 40]], 2, 1)
+        30
+        >>> index_2d([[10, 20], [30, 40]], 1)
+        [10, 20]
+
+    Complexity: O(1) for element access, O(rows) for column
+    """
+    if not array or not isinstance(array[0], list):
+        raise TypeError("array must be a list of lists.")
+
+    num_rows = len(array)
+    num_cols = len(array[0]) if num_rows > 0 else 0
+
+    if col_num is None:
+        # Return entire row
+        if row_num < 1 or row_num > num_rows:
+            raise IndexError(f"row_num {row_num} out of range [1, {num_rows}].")
+
+        return array[row_num - 1]
+
+    if row_num == 0:
+        # Return entire column
+        if col_num < 1 or col_num > num_cols:
+            raise IndexError(f"col_num {col_num} out of range [1, {num_cols}].")
+
+        return [row[col_num - 1] for row in array]
+
+    if row_num < 1 or row_num > num_rows:
+        raise IndexError(f"row_num {row_num} out of range [1, {num_rows}].")
+
+    if col_num < 1 or col_num > num_cols:
+        raise IndexError(f"col_num {col_num} out of range [1, {num_cols}].")
+
+    return array[row_num - 1][col_num - 1]
+
+
+def xmatch(
+    lookup_value: Any,
+    lookup_array: list[Any],
+    match_mode: int = 0,
+    search_mode: int = 1,
+) -> int:
+    """Returns the 1-based position of a value in an array.
+
+    Description:
+        Searches lookup_array for lookup_value and returns its relative
+        position (1-based). Supports exact, next smaller, next larger,
+        and wildcard matching. Equivalent to Excel XMATCH.
+
+    Args:
+        lookup_value: The value to search for.
+        lookup_array: The array to search.
+        match_mode: 0=exact, -1=exact or next smaller, 1=exact or next
+                     larger, 2=wildcard (* and ?).
+        search_mode: 1=first-to-last, -1=last-to-first.
+
+    Returns:
+        int: 1-based position of the match.
+
+    Raises:
+        ValueError: If no match is found.
+
+    Example:
+        >>> xmatch(30, [10, 20, 30, 40])
+        3
+        >>> xmatch(25, [10, 20, 30, 40], match_mode=-1)
+        2
+
+    Complexity: O(n)
+    """
+    import fnmatch as _fnmatch
+
+    indices = range(len(lookup_array))
+
+    if search_mode == -1:
+        indices = reversed(indices)
+
+    if match_mode == 0:
+        # Exact match
+        for i in indices:
+
+            if lookup_array[i] == lookup_value:
+                return i + 1
+
+        raise ValueError(f"Value {lookup_value!r} not found (exact match).")
+
+    if match_mode == 2:
+        # Wildcard match
+        pattern = str(lookup_value)
+
+        for i in indices:
+
+            if _fnmatch.fnmatch(str(lookup_array[i]), pattern):
+                return i + 1
+
+        raise ValueError(f"No wildcard match for {lookup_value!r}.")
+
+    if match_mode == -1:
+        # Exact or next smaller
+        best_idx = None
+
+        for i in range(len(lookup_array)):
+            val = lookup_array[i]
+
+            if val == lookup_value:
+                return i + 1
+
+            if val < lookup_value:
+
+                if best_idx is None or val > lookup_array[best_idx]:
+                    best_idx = i
+
+        if best_idx is not None:
+            return best_idx + 1
+
+        raise ValueError(f"No match <= {lookup_value!r} found.")
+
+    if match_mode == 1:
+        # Exact or next larger
+        best_idx = None
+
+        for i in range(len(lookup_array)):
+            val = lookup_array[i]
+
+            if val == lookup_value:
+                return i + 1
+
+            if val > lookup_value:
+
+                if best_idx is None or val < lookup_array[best_idx]:
+                    best_idx = i
+
+        if best_idx is not None:
+            return best_idx + 1
+
+        raise ValueError(f"No match >= {lookup_value!r} found.")
+
+    raise ValueError(f"Invalid match_mode: {match_mode}.")
+
+
+def hstack(*arrays: list[list[Any]]) -> list[list[Any]]:
+    """Horizontally concatenates 2-D arrays side by side.
+
+    Description:
+        Joins multiple 2-D arrays by appending columns. All arrays must
+        have the same number of rows. Equivalent to Excel HSTACK.
+
+    Args:
+        *arrays: Two or more 2-D arrays.
+
+    Returns:
+        list[list[Any]]: Combined array.
+
+    Raises:
+        ValueError: If arrays have different row counts.
+
+    Example:
+        >>> hstack([[1, 2], [3, 4]], [[5], [6]])
+        [[1, 2, 5], [3, 4, 6]]
+
+    Complexity: O(rows × total_cols)
+    """
+    if not arrays:
+        return []
+
+    num_rows = len(arrays[0])
+
+    for arr in arrays[1:]:
+
+        if len(arr) != num_rows:
+            raise ValueError("All arrays must have the same number of rows.")
+
+    return [
+        [val for arr in arrays for val in arr[r]]
+        for r in range(num_rows)
+    ]
+
+
+def vstack(*arrays: list[list[Any]]) -> list[list[Any]]:
+    """Vertically stacks 2-D arrays on top of each other.
+
+    Description:
+        Joins multiple 2-D arrays by appending rows. All arrays must
+        have the same number of columns. Equivalent to Excel VSTACK.
+
+    Args:
+        *arrays: Two or more 2-D arrays.
+
+    Returns:
+        list[list[Any]]: Combined array.
+
+    Raises:
+        ValueError: If arrays have different column counts.
+
+    Example:
+        >>> vstack([[1, 2]], [[3, 4], [5, 6]])
+        [[1, 2], [3, 4], [5, 6]]
+
+    Complexity: O(total_rows × cols)
+    """
+    if not arrays:
+        return []
+
+    num_cols = len(arrays[0][0]) if arrays[0] else 0
+
+    result: list[list[Any]] = []
+
+    for arr in arrays:
+
+        for row in arr:
+
+            if len(row) != num_cols:
+                raise ValueError("All arrays must have the same number of columns.")
+
+            result.append(row)
+
+    return result
+
+
+def choose_cols(
+    array: list[list[Any]],
+    *col_nums: int,
+) -> list[list[Any]]:
+    """Selects specific columns from a 2-D array.
+
+    Description:
+        Returns a new array containing only the columns at the given
+        1-based positions. Negative indices count from the right.
+        Equivalent to Excel CHOOSECOLS.
+
+    Args:
+        array: A 2-D list.
+        *col_nums: 1-based column indices (negative = from right).
+
+    Returns:
+        list[list[Any]]: Array with selected columns only.
+
+    Raises:
+        IndexError: If any column index is out of bounds.
+
+    Example:
+        >>> choose_cols([[1, 2, 3], [4, 5, 6]], 1, 3)
+        [[1, 3], [4, 6]]
+        >>> choose_cols([[1, 2, 3]], -1)
+        [[3]]
+
+    Complexity: O(rows × selected_cols)
+    """
+    if not array:
+        return []
+
+    num_cols = len(array[0])
+    resolved = []
+
+    for c in col_nums:
+
+        if c > 0:
+            idx = c - 1
+        elif c < 0:
+            idx = num_cols + c
+        else:
+            raise IndexError("Column index must be non-zero.")
+
+        if idx < 0 or idx >= num_cols:
+            raise IndexError(f"Column {c} out of range for {num_cols} columns.")
+
+        resolved.append(idx)
+
+    return [[row[i] for i in resolved] for row in array]
+
+
+def choose_rows(
+    array: list[list[Any]],
+    *row_nums: int,
+) -> list[list[Any]]:
+    """Selects specific rows from a 2-D array.
+
+    Description:
+        Returns a new array containing only the rows at the given
+        1-based positions. Negative indices count from the bottom.
+        Equivalent to Excel CHOOSEROWS.
+
+    Args:
+        array: A 2-D list.
+        *row_nums: 1-based row indices (negative = from bottom).
+
+    Returns:
+        list[list[Any]]: Array with selected rows only.
+
+    Raises:
+        IndexError: If any row index is out of bounds.
+
+    Example:
+        >>> choose_rows([[1, 2], [3, 4], [5, 6]], 1, 3)
+        [[1, 2], [5, 6]]
+        >>> choose_rows([[1, 2], [3, 4]], -1)
+        [[3, 4]]
+
+    Complexity: O(selected_rows × cols)
+    """
+    if not array:
+        return []
+
+    num_rows = len(array)
+    result = []
+
+    for r in row_nums:
+
+        if r > 0:
+            idx = r - 1
+        elif r < 0:
+            idx = num_rows + r
+        else:
+            raise IndexError("Row index must be non-zero.")
+
+        if idx < 0 or idx >= num_rows:
+            raise IndexError(f"Row {r} out of range for {num_rows} rows.")
+
+        result.append(array[idx])
+
+    return result
+
+
+def wrap_rows(
+    vector: list[Any],
+    wrap_count: int,
+    pad_with: Any = None,
+) -> list[list[Any]]:
+    """Wraps a 1-D vector into a 2-D array by rows.
+
+    Description:
+        Splits a flat list into rows of *wrap_count* elements.
+        The last row is padded with *pad_with* if needed.
+        Equivalent to Excel WRAPROWS.
+
+    Args:
+        vector: Flat list of values.
+        wrap_count: Number of elements per row (>= 1).
+        pad_with: Value used to pad the last incomplete row.
+
+    Returns:
+        list[list[Any]]: A 2-D array.
+
+    Raises:
+        ValueError: If wrap_count < 1.
+
+    Example:
+        >>> wrap_rows([1, 2, 3, 4, 5], 2)
+        [[1, 2], [3, 4], [5, None]]
+        >>> wrap_rows([1, 2, 3, 4], 2)
+        [[1, 2], [3, 4]]
+
+    Complexity: O(n)
+    """
+    if wrap_count < 1:
+        raise ValueError("wrap_count must be >= 1.")
+
+    result = []
+
+    for i in range(0, len(vector), wrap_count):
+        chunk = vector[i:i + wrap_count]
+
+        while len(chunk) < wrap_count:
+            chunk.append(pad_with)
+
+        result.append(chunk)
+
+    return result
+
+
+def drop_from_array(
+    array: list[list[Any]],
+    rows: int = 0,
+    columns: int = 0,
+) -> list[list[Any]]:
+    """Drops rows and/or columns from a 2-D array.
+
+    Description:
+        If rows > 0, drops from the top; if rows < 0, drops from the
+        bottom. Same logic for columns (left/right).
+        Equivalent to Excel DROP.
+
+    Args:
+        array: A 2-D list.
+        rows: Number of rows to drop (positive=top, negative=bottom).
+        columns: Number of columns to drop (positive=left, negative=right).
+
+    Returns:
+        list[list[Any]]: The trimmed array.
+
+    Example:
+        >>> drop_from_array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], rows=1, columns=-1)
+        [[4, 5], [7, 8]]
+        >>> drop_from_array([[1, 2], [3, 4]], rows=-1)
+        [[1, 2]]
+
+    Complexity: O(rows × cols)
+    """
+    if not array:
+        return []
+
+    result = list(array)
+
+    if rows > 0:
+        result = result[rows:]
+    elif rows < 0:
+        result = result[:rows]
+
+    if columns > 0:
+        result = [row[columns:] for row in result]
+    elif columns < 0:
+        result = [row[:columns] for row in result]
+
+    return result
+
+
+def take_from_array(
+    array: list[list[Any]],
+    rows: int | None = None,
+    columns: int | None = None,
+) -> list[list[Any]]:
+    """Takes the first or last rows/columns from a 2-D array.
+
+    Description:
+        If rows > 0, takes from the top; if rows < 0, takes from the
+        bottom. Same logic for columns (left/right).
+        Equivalent to Excel TAKE.
+
+    Args:
+        array: A 2-D list.
+        rows: Number of rows to take (positive=top, negative=bottom).
+        columns: Number of columns to take (positive=left, negative=right).
+
+    Returns:
+        list[list[Any]]: The extracted sub-array.
+
+    Example:
+        >>> take_from_array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], rows=2, columns=-2)
+        [[2, 3], [5, 6]]
+        >>> take_from_array([[1, 2], [3, 4], [5, 6]], rows=-1)
+        [[5, 6]]
+
+    Complexity: O(rows × cols)
+    """
+    if not array:
+        return []
+
+    result = list(array)
+
+    if rows is not None:
+
+        if rows > 0:
+            result = result[:rows]
+        elif rows < 0:
+            result = result[rows:]
+
+    if columns is not None:
+
+        if columns > 0:
+            result = [row[:columns] for row in result]
+        elif columns < 0:
+            result = [row[columns:] for row in result]
+
+    return result
+
+
+def make_array(
+    rows: int,
+    columns: int,
+    fn: Callable[[int, int], Any],
+) -> list[list[Any]]:
+    """Generates a 2-D array using a function.
+
+    Description:
+        Creates a rows×columns matrix where each cell value is computed
+        by calling fn(row_index, col_index) with 0-based indices.
+        Equivalent to Excel MAKEARRAY.
+
+    Args:
+        rows: Number of rows (>= 1).
+        columns: Number of columns (>= 1).
+        fn: A callable that takes (row, col) and returns a value.
+
+    Returns:
+        list[list[Any]]: The generated array.
+
+    Raises:
+        ValueError: If rows or columns < 1.
+        TypeError: If fn is not callable.
+
+    Example:
+        >>> make_array(2, 3, lambda r, c: (r + 1) * (c + 1))
+        [[1, 2, 3], [2, 4, 6]]
+
+    Complexity: O(rows × columns)
+    """
+    if rows < 1 or columns < 1:
+        raise ValueError("rows and columns must be >= 1.")
+
+    if not callable(fn):
+        raise TypeError("fn must be callable.")
+
+    return [[fn(r, c) for c in range(columns)] for r in range(rows)]
+
+
+def tocol(
+    array: list, scan_by_column: bool = False,
+) -> list:
+    """Flatten a 2-D array into a single-column list of lists.
+
+    Description:
+        Converts a 2-D array to column format [[v1],[v2],...].
+        Equivalent to Excel TOCOL.
+
+    Args:
+        array: 2-D list.
+        scan_by_column: If True, scan column-first; otherwise row-first.
+
+    Returns:
+        list: List of single-element lists.
+
+    Raises:
+        TypeError: If array is not a list.
+
+    Example:
+        >>> tocol([[1, 2], [3, 4]])
+        [[1], [2], [3], [4]]
+        >>> tocol([[1, 2], [3, 4]], scan_by_column=True)
+        [[1], [3], [2], [4]]
+
+    Complexity: O(r × c)
+    """
+    if not isinstance(array, list):
+        raise TypeError("array must be a list.")
+
+    if scan_by_column:
+        cols = len(array[0]) if array else 0
+        return [
+            [array[r][c]]
+            for c in range(cols)
+            for r in range(len(array))
+        ]
+
+    return [[cell] for row in array for cell in row]
+
+
+def torow(
+    array: list, scan_by_column: bool = False,
+) -> list:
+    """Flatten a 2-D array into a single-row list.
+
+    Description:
+        Converts a 2-D array to row format [[v1, v2, ...]].
+        Equivalent to Excel TOROW.
+
+    Args:
+        array: 2-D list.
+        scan_by_column: If True, scan column-first; otherwise row-first.
+
+    Returns:
+        list: A list containing one list with all values.
+
+    Raises:
+        TypeError: If array is not a list.
+
+    Example:
+        >>> torow([[1, 2], [3, 4]])
+        [[1, 2, 3, 4]]
+        >>> torow([[1, 2], [3, 4]], scan_by_column=True)
+        [[1, 3, 2, 4]]
+
+    Complexity: O(r × c)
+    """
+    if not isinstance(array, list):
+        raise TypeError("array must be a list.")
+
+    if scan_by_column:
+        cols = len(array[0]) if array else 0
+        return [[
+            array[r][c]
+            for c in range(cols)
+            for r in range(len(array))
+        ]]
+
+    return [[cell for row in array for cell in row]]
+
+
+def expand_array(
+    array: list,
+    rows: int = None,
+    columns: int = None,
+    pad_with: Any = None,
+) -> list:
+    """Expand a 2-D array to target dimensions, padding new cells.
+
+    Description:
+        Pads an array with a fill value to reach the specified
+        number of rows and columns. Equivalent to Excel EXPAND.
+
+    Args:
+        array: 2-D list to expand.
+        rows: Target row count (default: keep current).
+        columns: Target column count (default: keep current).
+        pad_with: Value for new cells (default None).
+
+    Returns:
+        list: Expanded 2-D list.
+
+    Raises:
+        TypeError: If array is not a list.
+        ValueError: If target is smaller than source.
+
+    Example:
+        >>> expand_array([[1, 2], [3, 4]], 3, 4, 0)
+        [[1, 2, 0, 0], [3, 4, 0, 0], [0, 0, 0, 0]]
+
+    Complexity: O(rows × columns)
+    """
+    if not isinstance(array, list):
+        raise TypeError("array must be a list.")
+
+    cur_rows = len(array)
+    cur_cols = len(array[0]) if array else 0
+
+    if rows is None:
+        rows = cur_rows
+
+    if columns is None:
+        columns = cur_cols
+
+    if rows < cur_rows or columns < cur_cols:
+        raise ValueError(
+            f"Target ({rows}, {columns}) must be >= source "
+            f"({cur_rows}, {cur_cols})."
+        )
+
+    result = []
+
+    for r in range(rows):
+
+        if r < cur_rows:
+            row = list(array[r][:columns])
+            row.extend([pad_with] * (columns - len(row)))
+        else:
+            row = [pad_with] * columns
+
+        result.append(row)
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Criteria-based counting helpers
+# ---------------------------------------------------------------------------
+
+def _parse_criteria(criteria) -> callable:
+    """Return a predicate for an Excel-style criteria expression."""
+
+    if isinstance(criteria, str):
+
+        for op in (">=", "<=", "<>", ">", "<", "="):
+
+            if criteria.startswith(op):
+                raw = criteria[len(op):]
+
+                try:
+                    num = float(raw)
+                except (ValueError, TypeError):
+                    num = None
+
+                if num is not None:
+                    if op == ">=":
+                        return lambda v, n=num: isinstance(v, (int, float)) and v >= n
+                    if op == "<=":
+                        return lambda v, n=num: isinstance(v, (int, float)) and v <= n
+                    if op == "<>":
+                        return lambda v, n=num: not (isinstance(v, (int, float)) and v == n)
+                    if op == ">":
+                        return lambda v, n=num: isinstance(v, (int, float)) and v > n
+                    if op == "<":
+                        return lambda v, n=num: isinstance(v, (int, float)) and v < n
+                    if op == "=":
+                        return lambda v, n=num: isinstance(v, (int, float)) and v == n
+
+                if op == "=":
+                    return lambda v, r=raw: str(v) == r
+
+                if op == "<>":
+                    return lambda v, r=raw: str(v) != r
+
+                return lambda v: False
+
+        return lambda v, c=criteria: str(v) == c
+
+    return lambda v, c=criteria: v == c
+
+
+def count_numbers(*values) -> int:
+    """Count how many items are numeric (int or float, excluding bool).
+
+    Equivalent to the Excel ``COUNT`` function.
+
+    Args:
+        *values: Individual values or lists/tuples of values.
+
+    Returns:
+        Number of numeric items.
+
+    Example:
+        >>> count_numbers([1, "a", 2, None, 3.5])
+        3
+
+    Complexity: O(n)
+    """
+    total = 0
+
+    for val in values:
+
+        if isinstance(val, (list, tuple)):
+
+            for v in val:
+
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    total += 1
+
+        elif isinstance(val, (int, float)) and not isinstance(val, bool):
+            total += 1
+
+    return total
+
+
+def count_values(*values) -> int:
+    """Count non-empty, non-None items.
+
+    Equivalent to the Excel ``COUNTA`` function.
+
+    Args:
+        *values: Individual values or lists/tuples of values.
+
+    Returns:
+        Number of non-blank items.
+
+    Example:
+        >>> count_values([1, "", None, "hello", 0])
+        3
+
+    Complexity: O(n)
+    """
+    total = 0
+
+    for val in values:
+
+        if isinstance(val, (list, tuple)):
+
+            for v in val:
+
+                if v is not None and v != "":
+                    total += 1
+
+        elif val is not None and val != "":
+            total += 1
+
+    return total
+
+
+def count_blank(values: list) -> int:
+    """Count blank items (``None`` or ``\"\"``).
+
+    Equivalent to the Excel ``COUNTBLANK`` function.
+
+    Args:
+        values: List of values to inspect.
+
+    Returns:
+        Number of blank items.
+
+    Example:
+        >>> count_blank([1, "", None, "hello", 0])
+        2
+
+    Complexity: O(n)
+    """
+    return sum(1 for v in values if v is None or v == "")
+
+
+def count_if(values: list, criteria) -> int:
+    """Count items that meet an Excel-style criteria.
+
+    Equivalent to the Excel ``COUNTIF`` function.
+
+    Args:
+        values: List of values to evaluate.
+        criteria: Excel-style criteria (e.g. ``\">10\"``, ``\"<>0\"``, ``\"apple\"``).
+
+    Returns:
+        Number of matching items.
+
+    Example:
+        >>> count_if([1, 5, 10, 15, 20], ">8")
+        3
+        >>> count_if(["a", "b", "a", "c"], "a")
+        2
+
+    Complexity: O(n)
+    """
+    pred = _parse_criteria(criteria)
+    return sum(1 for v in values if pred(v))
+
+
+def count_ifs(values: list, *criteria_pairs) -> int:
+    """Count items where every criteria pair is satisfied.
+
+    Equivalent to the Excel ``COUNTIFS`` function.  Criteria pairs are
+    given as alternating ``(range, criteria)`` arguments.
+
+    Args:
+        values: Primary range whose length determines the row count.
+        *criteria_pairs: Alternating ``criteria_range, criteria`` arguments.
+            Must contain an even number of elements.
+
+    Returns:
+        Number of indices where **all** criteria are met.
+
+    Raises:
+        ValueError: If *criteria_pairs* length is odd or ranges differ in length.
+
+    Example:
+        >>> count_ifs(
+        ...     [1, 2, 3, 4, 5],
+        ...     [1, 2, 3, 4, 5], ">1",
+        ...     [1, 2, 3, 4, 5], "<5",
+        ... )
+        3
+
+    Complexity: O(n * k) where k is the number of criteria pairs.
+    """
+    if len(criteria_pairs) % 2 != 0:
+        raise ValueError("criteria_pairs must contain an even number of elements.")
+
+    pairs = []
+
+    for i in range(0, len(criteria_pairs), 2):
+        rng = criteria_pairs[i]
+        crit = criteria_pairs[i + 1]
+
+        if len(rng) != len(values):
+            raise ValueError("All criteria ranges must match the length of values.")
+
+        pairs.append((rng, _parse_criteria(crit)))
+
+    total = 0
+
+    for idx in range(len(values)):
+
+        if all(pred(rng[idx]) for rng, pred in pairs):
+            total += 1
+
+    return total
 

@@ -8,6 +8,10 @@ Description
 from typing import Any, Optional
 from datetime import datetime
 
+from formulite.fxPython.py_operations import choose as _core_choose
+from formulite.fxPython.py_logic import if_then_else as _core_iif
+from formulite.fxString.string_evaluations import is_numeric as _core_is_numeric
+
 __all__ = [
     "Choose",
     "IIf",
@@ -44,9 +48,10 @@ def Choose(index_num: int, *values: Any) -> Optional[Any]:
     Cost
         O(1)
     """
-    if index_num < 1 or index_num > len(values):
+    try:
+        return _core_choose(index_num, *values)
+    except (ValueError, IndexError):
         return None
-    return values[index_num - 1]
 
 
 def IIf(expression: bool, true_part: Any, false_part: Any) -> Any:
@@ -71,7 +76,7 @@ def IIf(expression: bool, true_part: Any, false_part: Any) -> Any:
     Cost
         O(1)
     """
-    return true_part if expression else false_part
+    return _core_iif(expression, true_part, false_part)
 
 
 def IsDate(expression: Any) -> bool:
@@ -172,12 +177,10 @@ def IsNumeric(expression: Any) -> bool:
     """
     if isinstance(expression, (int, float, complex)):
         return True
+
     if isinstance(expression, str):
-        try:
-            float(expression)
-            return True
-        except ValueError:
-            return False
+        return _core_is_numeric(expression)
+
     return False
 
 
