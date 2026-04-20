@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add MkDocs Material documentation site with auto-generated API reference via mkdocstrings
+- Add GitHub Pages deployment workflow (`.github/workflows/docs.yml`)
+- Add `docs` dependency group in `pyproject.toml` (mkdocs-material, mkdocstrings, gen-files, literate-nav, section-index)
+
 ---
 
 ## [0.2.1][0.2.1] — 2026-04-16

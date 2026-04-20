@@ -1,0 +1,99 @@
+site_name: FormuLite
+site_description: "A Python library of 3,000+ reusable functions organized like Excel formulas"
+site_url: https://jrodriguezgar.github.io/FormuLite/
+repo_url: https://github.com/jrodriguezgar/FormuLite
+repo_name: jrodriguezgar/FormuLite
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            heading_level: 2
+            members_order: alphabetical
+            show_signature_annotations: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      base_path: ["."]
+  - toc:
+      permalink: true
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Modules:
+      - modules/index.md
+      - fxDate: modules/fxdate.md
+      - fxNumeric: modules/fxnumeric.md
+      - fxString: modules/fxstring.md
+      - fxPython: modules/fxpython.md
+      - fxExcel: modules/fxexcel.md
+      - fxVBA: modules/fxvba.md
+  - AI Integration:
+      - ai-integration/index.md
+      - MCP Server: ai-integration/mcp.md
+      - "llms.txt": ai-integration/llms-txt.md
+  - API Reference: reference/
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jrodriguezgar/FormuLite
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/formulite/
