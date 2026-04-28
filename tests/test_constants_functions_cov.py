@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.constants_functions
+# Coverage tests for shortfx.fxNumeric.constants_functions
 
-from agentfx.fxNumeric import constants_functions as mod
+from shortfx.fxNumeric import constants_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

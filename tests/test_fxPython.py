@@ -1,7 +1,7 @@
-"""Tests for agentfx.fxPython modules."""
+"""Tests for shortfx.fxPython modules."""
 
 # -- py_convertions --
-from agentfx.fxPython.py_convertions import (
+from shortfx.fxPython.py_convertions import (
     list_to_tuple, tuple_to_list, list_to_set, set_to_list,
     dictionary_items_to_list_of_tuples, list_of_tuples_to_dict,
     string_to_list, list_to_string, dict_values_to_list,
@@ -37,7 +37,7 @@ class TestPyConvertions:
         assert tuple_to_set((1, 2, 2)) == {1, 2}
 
 # -- py_logic --
-from agentfx.fxPython.py_logic import (
+from shortfx.fxPython.py_logic import (
     if_then_else, is_blank, is_number, is_text,
     and_all, or_any, not_value, coalesce, xor_all,
     is_logical, is_error, switch_case, ifs,
@@ -84,7 +84,7 @@ class TestPyLogic:
         assert r == "yes"
 
 # -- py_operations --
-from agentfx.fxPython.py_operations import (
+from shortfx.fxPython.py_operations import (
     merge_json_strings, add_to_tuple, choose,
     list_intersection, flatten_list, unique_list,
     combine_dictionaries, chunk, find, frequencies, group_by,

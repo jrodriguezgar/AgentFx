@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-Please report vulnerabilities via [GitHub Security Advisories](https://github.com/jrodriguezgar/AgentFx/security/advisories/new).
+Please report vulnerabilities via [GitHub Security Advisories](https://github.com/jrodriguezgar/shortfx/security/advisories/new).
 
 Do **not** open public issues for security vulnerabilities.
 
@@ -28,7 +28,7 @@ Do **not** open public issues for security vulnerabilities.
 
 ## Security Design Principles
 
-AgentFx follows these security guidelines:
+shortfx follows these security guidelines:
 
 - **No `eval()`/`exec()`** — expression evaluation uses AST-based parsing
 - **No external network calls** — core library is fully offline

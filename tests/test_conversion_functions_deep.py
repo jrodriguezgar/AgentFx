@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxNumeric.conversion_functions
+# Deep coverage tests for shortfx.fxNumeric.conversion_functions
 
-import agentfx.fxNumeric.conversion_functions as mod
+import shortfx.fxNumeric.conversion_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

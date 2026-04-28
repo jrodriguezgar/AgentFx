@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxDate.date_sys
+# Deep coverage tests for shortfx.fxDate.date_sys
 
-import agentfx.fxDate.date_sys as mod
+import shortfx.fxDate.date_sys as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

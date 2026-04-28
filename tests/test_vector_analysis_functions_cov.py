@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.vector_analysis_functions
+# Coverage tests for shortfx.fxNumeric.vector_analysis_functions
 
-from agentfx.fxNumeric import vector_analysis_functions as mod
+from shortfx.fxNumeric import vector_analysis_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

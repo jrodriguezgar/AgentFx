@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     abel_transform_numerical,
     discrete_cosine_transform,
     discrete_sine_transform,
@@ -13,7 +13,7 @@ from agentfx.fxNumeric import (
     inverse_hartley_transform,
     mellin_transform_numerical,
 )
-from agentfx.fxNumeric.statistics_functions import auto_correlation
+from shortfx.fxNumeric.statistics_functions import auto_correlation
 
 
 class TestAutoCorrelation:
@@ -32,7 +32,7 @@ class TestAutoCorrelation:
 class TestDFT:
 
     def test_constant_signal(self):
-        from agentfx.fxNumeric.transform_functions import dft
+        from shortfx.fxNumeric.transform_functions import dft
         result = dft([1, 1, 1, 1])
         assert result[0][0] == pytest.approx(4.0)
 
@@ -40,7 +40,7 @@ class TestDFT:
             assert abs(result[k][0]) < 1e-10
 
     def test_roundtrip(self):
-        from agentfx.fxNumeric.transform_functions import dft, idft
+        from shortfx.fxNumeric.transform_functions import dft, idft
         signal = [1, 2, 3, 4]
         recovered = idft(dft(signal))
         assert recovered == pytest.approx(signal, abs=1e-10)
@@ -48,13 +48,13 @@ class TestDFT:
 class TestLaplaceTransform:
 
     def test_unit_step(self):
-        from agentfx.fxNumeric.transform_functions import laplace_transform_numerical
+        from shortfx.fxNumeric.transform_functions import laplace_transform_numerical
         # L{1} = 1/s
         result = laplace_transform_numerical(lambda t: 1, 1.0)
         assert result == pytest.approx(1.0, rel=0.05)
 
     def test_inverse(self):
-        from agentfx.fxNumeric.transform_functions import inverse_laplace_gaver_stehfest
+        from shortfx.fxNumeric.transform_functions import inverse_laplace_gaver_stehfest
         # L^{-1}{1/s} = 1
         result = inverse_laplace_gaver_stehfest(lambda s: 1 / s, 1.0)
         assert result == pytest.approx(1.0, rel=0.01)
@@ -62,14 +62,14 @@ class TestLaplaceTransform:
 class TestConvolution:
 
     def test_basic(self):
-        from agentfx.fxNumeric.transform_functions import convolution
+        from shortfx.fxNumeric.transform_functions import convolution
         result = convolution([1, 2, 3], [1, 1])
         assert result == pytest.approx([1, 3, 5, 3])
 
 class TestCrossCorrelation:
 
     def test_autocorrelation_peak(self):
-        from agentfx.fxNumeric.transform_functions import auto_correlation
+        from shortfx.fxNumeric.transform_functions import auto_correlation
         signal = [1, 0, 1]
         result = auto_correlation(signal)
         # Peak at center
@@ -78,7 +78,7 @@ class TestCrossCorrelation:
 class TestZTransform:
 
     def test_basic(self):
-        from agentfx.fxNumeric.transform_functions import z_transform_eval
+        from shortfx.fxNumeric.transform_functions import z_transform_eval
         # x = [1, 1, 1], z = 2: X(z) = 1 + z^{-1} + z^{-2} = 1 + 0.5 + 0.25
         re, im = z_transform_eval([1, 1, 1], 2.0, 0.0)
         assert re == pytest.approx(1.75)

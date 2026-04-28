@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxVBA.system_functions
+# Coverage tests for shortfx.fxVBA.system_functions
 
-from agentfx.fxVBA import system_functions as mod
+from shortfx.fxVBA import system_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

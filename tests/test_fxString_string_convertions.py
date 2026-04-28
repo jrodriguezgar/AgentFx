@@ -3,7 +3,7 @@
 
 import pytest
 
-from agentfx.fxString.string_convertions import (
+from shortfx.fxString.string_convertions import (
     base64_decode,
     base64_encode,
     hex_color_to_rgb,
@@ -13,8 +13,8 @@ from agentfx.fxString.string_convertions import (
     text_to_nato_phonetic,
     text_to_phonetic_ipa,
 )
-from agentfx.fxString.string_evaluations import is_balanced_brackets
-from agentfx.fxString.string_operations import extract_domain_from_url
+from shortfx.fxString.string_evaluations import is_balanced_brackets
+from shortfx.fxString.string_operations import extract_domain_from_url
 
 
 class TestIsBalancedBrackets:
@@ -117,7 +117,7 @@ class TestBase64:
         assert base64_decode("SGVsbG8gV29ybGQ=") == "Hello World"
 
     def test_roundtrip(self):
-        original = "AgentFx rocks!"
+        original = "shortfx rocks!"
         assert base64_decode(base64_encode(original)) == original
 
     def test_decode_invalid(self):

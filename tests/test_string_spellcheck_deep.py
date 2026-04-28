@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxString.string_spellcheck
+# Deep coverage tests for shortfx.fxString.string_spellcheck
 
-import agentfx.fxString.string_spellcheck as mod
+import shortfx.fxString.string_spellcheck as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxPython.py_logic
+# Coverage tests for shortfx.fxPython.py_logic
 
-from agentfx.fxPython import py_logic as mod
+from shortfx.fxPython import py_logic as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

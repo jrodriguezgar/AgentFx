@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxString.string_similarity
+# Deep coverage tests for shortfx.fxString.string_similarity
 
-import agentfx.fxString.string_similarity as mod
+import shortfx.fxString.string_similarity as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

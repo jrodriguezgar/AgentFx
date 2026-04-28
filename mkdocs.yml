@@ -1,8 +1,8 @@
-site_name: AgentFx
+site_name: shortfx
 site_description: "A Python library of 3,000+ reusable functions organized like Excel formulas"
-site_url: https://jrodriguezgar.github.io/AgentFx/
-repo_url: https://github.com/jrodriguezgar/AgentFx
-repo_name: jrodriguezgar/AgentFx
+site_url: https://jrodriguezgar.github.io/shortfx/
+repo_url: https://github.com/jrodriguezgar/shortfx
+repo_name: jrodriguezgar/shortfx
 edit_uri: edit/main/docs/
 
 theme:
@@ -97,6 +97,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jrodriguezgar/AgentFx
+      link: https://github.com/jrodriguezgar/shortfx
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/agentfx/
+      link: https://pypi.org/project/shortfx/

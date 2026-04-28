@@ -16,7 +16,7 @@
 ## Checklist
 
 - [ ] Function has Google-style docstring (`Args`, `Returns`, `Raises`, `Example`, `Complexity`)
-- [ ] Input validation uses `agentfx/_validators.py` helpers
+- [ ] Input validation uses `shortfx/_validators.py` helpers
 - [ ] No external runtime dependencies added to core
 - [ ] No `eval()`, `exec()`, or `subprocess` in function code
 - [ ] No name collision with existing functions in the same `fx*` package

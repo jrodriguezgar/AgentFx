@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxVBA.conversion_functions
+# Coverage tests for shortfx.fxVBA.conversion_functions
 
-from agentfx.fxVBA import conversion_functions as mod
+from shortfx.fxVBA import conversion_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

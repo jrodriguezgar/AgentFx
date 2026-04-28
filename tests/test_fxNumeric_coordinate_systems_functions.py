@@ -2,7 +2,7 @@
 
 import math
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     bipolar_to_cartesian,
     cartesian_to_cylindrical,
     cartesian_to_parabolic_cylindrical,

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     adjugate_matrix,
     cantor_pairing,
     cantor_unpairing,
@@ -31,7 +31,7 @@ from agentfx.fxNumeric import (
     tetrahedral_number,
     triangular_number,
 )
-from agentfx.fxNumeric.arithmetic_functions import (
+from shortfx.fxNumeric.arithmetic_functions import (
     absolute_value,
     chebyshev_nodes,
     combinations,
@@ -52,12 +52,12 @@ from agentfx.fxNumeric.arithmetic_functions import (
 class TestNumericalDerivative:
 
     def test_sin_at_zero(self):
-        from agentfx.fxNumeric.arithmetic_functions import numerical_derivative
+        from shortfx.fxNumeric.arithmetic_functions import numerical_derivative
 
         assert round(numerical_derivative(math.sin, 0), 6) == 1.0
 
     def test_quadratic(self):
-        from agentfx.fxNumeric.arithmetic_functions import numerical_derivative
+        from shortfx.fxNumeric.arithmetic_functions import numerical_derivative
 
         f = lambda x: x ** 2
         assert numerical_derivative(f, 3) == pytest.approx(6.0, abs=1e-5)
@@ -65,19 +65,19 @@ class TestNumericalDerivative:
 class TestIntegration:
 
     def test_trapezoidal_sin(self):
-        from agentfx.fxNumeric.arithmetic_functions import trapezoidal_integrate
+        from shortfx.fxNumeric.arithmetic_functions import trapezoidal_integrate
 
         result = trapezoidal_integrate(math.sin, 0, math.pi, 10000)
         assert result == pytest.approx(2.0, abs=1e-5)
 
     def test_simpsons_sin(self):
-        from agentfx.fxNumeric.arithmetic_functions import simpsons_integrate
+        from shortfx.fxNumeric.arithmetic_functions import simpsons_integrate
 
         result = simpsons_integrate(math.sin, 0, math.pi, 100)
         assert result == pytest.approx(2.0, abs=1e-7)
 
     def test_simpsons_odd_n_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import simpsons_integrate
+        from shortfx.fxNumeric.arithmetic_functions import simpsons_integrate
 
         with pytest.raises(ValueError):
             simpsons_integrate(math.sin, 0, 1, 99)
@@ -85,25 +85,25 @@ class TestIntegration:
 class TestPolynomial:
 
     def test_evaluate_quadratic(self):
-        from agentfx.fxNumeric.arithmetic_functions import polynomial_evaluate
+        from shortfx.fxNumeric.arithmetic_functions import polynomial_evaluate
 
         assert polynomial_evaluate([1, -3, 2], 2) == 0
 
     def test_roots_quadratic_real(self):
-        from agentfx.fxNumeric.arithmetic_functions import polynomial_roots_quadratic
+        from shortfx.fxNumeric.arithmetic_functions import polynomial_roots_quadratic
 
         r1, r2 = polynomial_roots_quadratic(1, -3, 2)
         assert {r1, r2} == {1.0, 2.0}
 
     def test_roots_quadratic_complex(self):
-        from agentfx.fxNumeric.arithmetic_functions import polynomial_roots_quadratic
+        from shortfx.fxNumeric.arithmetic_functions import polynomial_roots_quadratic
 
         r1, r2 = polynomial_roots_quadratic(1, 0, 1)
         assert r1 == pytest.approx(1j)
         assert r2 == pytest.approx(-1j)
 
     def test_roots_cubic(self):
-        from agentfx.fxNumeric.arithmetic_functions import polynomial_roots_cubic
+        from shortfx.fxNumeric.arithmetic_functions import polynomial_roots_cubic
 
         roots = polynomial_roots_cubic(1, -6, 11, -6)
         real_roots = sorted([r.real if isinstance(r, complex) else r for r in roots])
@@ -112,14 +112,14 @@ class TestPolynomial:
 class TestContinuedFraction:
 
     def test_pi_approx(self):
-        from agentfx.fxNumeric.arithmetic_functions import continued_fraction
+        from shortfx.fxNumeric.arithmetic_functions import continued_fraction
 
         assert continued_fraction(355, 113) == [3, 7, 16]
 
 class TestRungeKutta4:
 
     def test_exponential_ode(self):
-        from agentfx.fxNumeric.arithmetic_functions import runge_kutta_4_step
+        from shortfx.fxNumeric.arithmetic_functions import runge_kutta_4_step
 
         t1, y1 = runge_kutta_4_step(lambda t, y: y, 0, 1.0, 0.1)
         assert y1 == pytest.approx(math.exp(0.1), abs=1e-6)
@@ -130,21 +130,21 @@ class TestRungeKutta4:
 class TestMatrixTranspose:
 
     def test_2x3(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_transpose
+        from shortfx.fxNumeric.arithmetic_functions import matrix_transpose
         assert matrix_transpose([[1, 2, 3], [4, 5, 6]]) == [[1, 4], [2, 5], [3, 6]]
 
     def test_1x1(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_transpose
+        from shortfx.fxNumeric.arithmetic_functions import matrix_transpose
         assert matrix_transpose([[42]]) == [[42]]
 
     def test_empty_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_transpose
+        from shortfx.fxNumeric.arithmetic_functions import matrix_transpose
 
         with pytest.raises(ValueError):
             matrix_transpose([])
 
     def test_jagged_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_transpose
+        from shortfx.fxNumeric.arithmetic_functions import matrix_transpose
 
         with pytest.raises(ValueError):
             matrix_transpose([[1, 2], [3]])
@@ -322,26 +322,26 @@ class TestLookAndSay:
 class TestDotProduct:
 
     def test_basic(self):
-        from agentfx.fxNumeric.arithmetic_functions import dot_product
+        from shortfx.fxNumeric.arithmetic_functions import dot_product
         assert dot_product([1, 2, 3], [4, 5, 6]) == 32
 
     def test_orthogonal(self):
-        from agentfx.fxNumeric.arithmetic_functions import dot_product
+        from shortfx.fxNumeric.arithmetic_functions import dot_product
         assert dot_product([1, 0], [0, 1]) == 0
 
     def test_different_lengths_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import dot_product
+        from shortfx.fxNumeric.arithmetic_functions import dot_product
         with pytest.raises(ValueError):
             dot_product([1, 2], [3])
 
 class TestCrossProduct:
 
     def test_unit_vectors(self):
-        from agentfx.fxNumeric.arithmetic_functions import cross_product
+        from shortfx.fxNumeric.arithmetic_functions import cross_product
         assert cross_product([1, 0, 0], [0, 1, 0]) == [0, 0, 1]
 
     def test_anti_commutative(self):
-        from agentfx.fxNumeric.arithmetic_functions import cross_product
+        from shortfx.fxNumeric.arithmetic_functions import cross_product
         a = [1, 2, 3]
         b = [4, 5, 6]
         ab = cross_product(a, b)
@@ -349,37 +349,37 @@ class TestCrossProduct:
         assert ab == [-x for x in ba]
 
     def test_wrong_dimension_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import cross_product
+        from shortfx.fxNumeric.arithmetic_functions import cross_product
         with pytest.raises(ValueError):
             cross_product([1, 2], [3, 4])
 
 class TestVectorMagnitude:
 
     def test_345(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_magnitude
+        from shortfx.fxNumeric.arithmetic_functions import vector_magnitude
         assert vector_magnitude([3, 4]) == pytest.approx(5.0)
 
     def test_unit(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_magnitude
+        from shortfx.fxNumeric.arithmetic_functions import vector_magnitude
         assert vector_magnitude([1, 0, 0]) == pytest.approx(1.0)
 
     def test_empty_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_magnitude
+        from shortfx.fxNumeric.arithmetic_functions import vector_magnitude
         with pytest.raises(ValueError):
             vector_magnitude([])
 
 class TestMatrixTrace:
 
     def test_2x2(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_trace
+        from shortfx.fxNumeric.arithmetic_functions import matrix_trace
         assert matrix_trace([[1, 2], [3, 4]]) == 5
 
     def test_3x3(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_trace
+        from shortfx.fxNumeric.arithmetic_functions import matrix_trace
         assert matrix_trace([[1, 0, 0], [0, 2, 0], [0, 0, 3]]) == 6
 
     def test_non_square_raises(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_trace
+        from shortfx.fxNumeric.arithmetic_functions import matrix_trace
         with pytest.raises(ValueError):
             matrix_trace([[1, 2, 3], [4, 5, 6]])
 
@@ -389,13 +389,13 @@ class TestMatrixTrace:
 class TestVectorNormalize:
 
     def test_basic(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_normalize
+        from shortfx.fxNumeric.arithmetic_functions import vector_normalize
         result = vector_normalize([3, 4])
         assert round(result[0], 4) == 0.6
         assert round(result[1], 4) == 0.8
 
     def test_zero_vector(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_normalize
+        from shortfx.fxNumeric.arithmetic_functions import vector_normalize
 
         with pytest.raises(ValueError):
             vector_normalize([0, 0, 0])
@@ -403,24 +403,24 @@ class TestVectorNormalize:
 class TestVectorAngle:
 
     def test_orthogonal(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_angle
+        from shortfx.fxNumeric.arithmetic_functions import vector_angle
         result = vector_angle([1, 0], [0, 1])
         assert round(result, 4) == round(math.pi / 2, 4)
 
     def test_parallel(self):
-        from agentfx.fxNumeric.arithmetic_functions import vector_angle
+        from shortfx.fxNumeric.arithmetic_functions import vector_angle
         result = vector_angle([1, 0], [2, 0])
         assert round(result, 4) == 0.0
 
 class TestMatrixAdd:
 
     def test_basic(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_add
+        from shortfx.fxNumeric.arithmetic_functions import matrix_add
         result = matrix_add([[1, 2], [3, 4]], [[5, 6], [7, 8]])
         assert result == [[6, 8], [10, 12]]
 
     def test_different_dims(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_add
+        from shortfx.fxNumeric.arithmetic_functions import matrix_add
 
         with pytest.raises(ValueError):
             matrix_add([[1, 2]], [[1, 2], [3, 4]])
@@ -428,7 +428,7 @@ class TestMatrixAdd:
 class TestMatrixScalarMultiply:
 
     def test_basic(self):
-        from agentfx.fxNumeric.arithmetic_functions import matrix_scalar_multiply
+        from shortfx.fxNumeric.arithmetic_functions import matrix_scalar_multiply
         result = matrix_scalar_multiply([[1, 2], [3, 4]], 3)
         assert result == [[3, 6], [9, 12]]
 

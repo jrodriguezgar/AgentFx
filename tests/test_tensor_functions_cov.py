@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.tensor_functions
+# Coverage tests for shortfx.fxNumeric.tensor_functions
 import math
 
-from agentfx.fxNumeric import tensor_functions as mod
+from shortfx.fxNumeric import tensor_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

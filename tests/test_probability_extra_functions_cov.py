@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.probability_extra_functions
+# Coverage tests for shortfx.fxNumeric.probability_extra_functions
 
-from agentfx.fxNumeric import probability_extra_functions as mod
+from shortfx.fxNumeric import probability_extra_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

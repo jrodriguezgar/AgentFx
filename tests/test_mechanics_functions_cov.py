@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.mechanics_functions
+# Coverage tests for shortfx.fxNumeric.mechanics_functions
 import math
 
-from agentfx.fxNumeric import mechanics_functions as mod
+from shortfx.fxNumeric import mechanics_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

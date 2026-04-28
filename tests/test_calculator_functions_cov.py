@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.calculator_functions
+# Coverage tests for shortfx.fxNumeric.calculator_functions
 
-from agentfx.fxNumeric import calculator_functions as mod
+from shortfx.fxNumeric import calculator_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

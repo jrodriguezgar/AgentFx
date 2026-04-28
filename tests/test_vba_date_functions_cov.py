@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxVBA.date_functions
+# Coverage tests for shortfx.fxVBA.date_functions
 from datetime import date
 
-from agentfx.fxVBA import date_functions as mod
+from shortfx.fxVBA import date_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

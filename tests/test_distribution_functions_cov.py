@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.distribution_functions
+# Coverage tests for shortfx.fxNumeric.distribution_functions
 
-from agentfx.fxNumeric import distribution_functions as mod
+from shortfx.fxNumeric import distribution_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

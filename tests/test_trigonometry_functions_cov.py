@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.trigonometry_functions
+# Coverage tests for shortfx.fxNumeric.trigonometry_functions
 import math
 
-from agentfx.fxNumeric import trigonometry_functions as mod
+from shortfx.fxNumeric import trigonometry_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

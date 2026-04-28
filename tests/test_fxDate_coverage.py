@@ -3,7 +3,7 @@ import pytest
 from datetime import date, datetime, time
 
 # date_convertions
-from agentfx.fxDate.date_convertions import (
+from shortfx.fxDate.date_convertions import (
     date_to_excel_serial, excel_serial_to_date,
     seconds_to_hms, datetime_to_date,
     datetime_to_timestamp, timestamp_to_datetime,
@@ -75,7 +75,7 @@ class TestDateConvertions:
         assert isinstance(r, (int, float))
 
 # date_operations
-from agentfx.fxDate.date_operations import (
+from shortfx.fxDate.date_operations import (
     day_of_year, days_in_month, days_remaining_in_year,
     next_business_day, previous_business_day,
     get_nth_weekday_of_month, clamp_date, date_range, fiscal_quarter,
@@ -128,7 +128,7 @@ class TestDateOperations:
         assert isinstance(r, int)
 
 # date_evaluations  
-from agentfx.fxDate.date_evaluations import (
+from shortfx.fxDate.date_evaluations import (
     is_weekday, is_future, is_past, is_today,
     is_same_day, is_same_month, is_same_year,
     is_first_day_of_month, is_last_day_of_month,
@@ -188,7 +188,7 @@ class TestDateEvaluations:
         assert century_of_date(date(2026, 1, 1)) == 21
 
 # date_sys
-from agentfx.fxDate.date_sys import (
+from shortfx.fxDate.date_sys import (
     current_time, current_datetime, current_year,
     current_month, current_day, current_quarter, current_season,
     current_week_number, current_weekday_name,

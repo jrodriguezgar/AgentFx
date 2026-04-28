@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.random_functions
+# Coverage tests for shortfx.fxNumeric.random_functions
 
-from agentfx.fxNumeric import random_functions as mod
+from shortfx.fxNumeric import random_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

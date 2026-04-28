@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.inequalities_functions
+# Coverage tests for shortfx.fxNumeric.inequalities_functions
 
-from agentfx.fxNumeric import inequalities_functions as mod
+from shortfx.fxNumeric import inequalities_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

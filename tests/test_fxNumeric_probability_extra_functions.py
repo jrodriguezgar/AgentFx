@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     bernoulli_mean,
     bernoulli_pmf,
     bernoulli_variance,

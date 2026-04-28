@@ -1,9 +1,9 @@
-# Examples using AgentFx functions
+# Examples using shortfx functions
 
-from agentfx.fxExcel.math_formulas import SUMIF
-from agentfx.fxExcel.statistic_formulas import AVERAGE
-from agentfx.fxExcel.text_formulas import CONCAT, LEFT, RIGHT
-from agentfx.fxExcel.lookup_formulas import VLOOKUP
+from shortfx.fxExcel.math_formulas import SUMIF
+from shortfx.fxExcel.statistic_formulas import AVERAGE
+from shortfx.fxExcel.text_formulas import CONCAT, LEFT, RIGHT
+from shortfx.fxExcel.lookup_formulas import VLOOKUP
 
 # Ejemplos de funciones matemáticas
 numbers = [1, 2, 3, 4, 5]

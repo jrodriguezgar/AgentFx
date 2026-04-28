@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxPython.py_tools
+# Deep coverage tests for shortfx.fxPython.py_tools
 
-import agentfx.fxPython.py_tools as mod
+import shortfx.fxPython.py_tools as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

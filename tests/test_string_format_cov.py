@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxString.string_format
+# Coverage tests for shortfx.fxString.string_format
 from datetime import datetime
 
-from agentfx.fxString import string_format as mod
+from shortfx.fxString import string_format as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

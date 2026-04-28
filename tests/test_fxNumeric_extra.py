@@ -1,8 +1,8 @@
-"""Tests for agentfx.fxNumeric low-coverage modules."""
+"""Tests for shortfx.fxNumeric low-coverage modules."""
 import pytest
 
 # -- rounding_functions --
-from agentfx.fxNumeric.rounding_functions import (
+from shortfx.fxNumeric.rounding_functions import (
     round_to_n_decimals, round_up, round_down, round_half_even,
     truncate_float, round_to_nearest_multiple,
     ceiling_math, floor_math, even, odd,
@@ -31,7 +31,7 @@ class TestRounding:
         assert odd(4) == 5 and odd(5) == 5
 
 # -- random_functions --
-from agentfx.fxNumeric.random_functions import (
+from shortfx.fxNumeric.random_functions import (
     random_int, random_float, random_choice, random_bool,
     random_uuid, random_array,
 )
@@ -55,7 +55,7 @@ class TestRandom:
         assert len(r) == 5
 
 # -- format_functions --
-from agentfx.fxNumeric.format_functions import (
+from shortfx.fxNumeric.format_functions import (
     format_as_percentage, format_as_scientific_notation,
     format_with_leading_zeros, percent_change,
 )
@@ -75,7 +75,7 @@ class TestNumericFormat:
 
 
 # -- interpolation_functions --
-from agentfx.fxNumeric.interpolation_functions import (
+from shortfx.fxNumeric.interpolation_functions import (
     linear_interpolation, lagrange_interpolation,
     map_range, clip_number,
 )

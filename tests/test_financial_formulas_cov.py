@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxExcel.financial_formulas
+# Coverage tests for shortfx.fxExcel.financial_formulas
 from datetime import date, datetime
 
-from agentfx.fxExcel import financial_formulas as mod
+from shortfx.fxExcel import financial_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

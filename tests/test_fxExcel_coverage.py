@@ -1,7 +1,7 @@
 """Coverage tests for fxExcel modules."""
 import pytest
 
-from agentfx.fxExcel.lookup_formulas import (
+from shortfx.fxExcel.lookup_formulas import (
     VLOOKUP, HLOOKUP, INDEX, MATCH, CHOOSE,
 )
 
@@ -19,7 +19,7 @@ class TestLookupFormulas:
     def test_choose(self):
         assert CHOOSE(2, "a", "b", "c") == "b"
 
-from agentfx.fxExcel.text_formulas import (
+from shortfx.fxExcel.text_formulas import (
     CONCATENATE, LEFT, RIGHT, MID, LEN, LOWER, UPPER,
     PROPER, TRIM, SUBSTITUTE, REPT, FIND, SEARCH,
     VALUE, EXACT, REPLACE as EXCEL_REPLACE, CLEAN,
@@ -67,7 +67,7 @@ class TestTextFormulas:
     def test_code(self):
         assert CODE("A") == 65
 
-from agentfx.fxExcel.math_formulas import (
+from shortfx.fxExcel.math_formulas import (
     SUM, ABS as EXCEL_ABS,
     ROUND as EXCEL_ROUND, ROUNDUP, ROUNDDOWN, INT as EXCEL_INT,
     MOD, POWER, SQRT, LOG as EXCEL_LOG, LN, EXP as EXCEL_EXP,
@@ -138,7 +138,7 @@ class TestMathFormulas:
         import math
         assert RADIANS(180) == pytest.approx(math.pi)
 
-from agentfx.fxExcel.information_formulas import (
+from shortfx.fxExcel.information_formulas import (
     ISNUMBER, ISTEXT, ISBLANK, ISLOGICAL, ISERROR, ISNA,
     TYPE as EXCEL_TYPE, N,
 )
@@ -163,7 +163,7 @@ class TestInformationFormulas:
     def test_n(self):
         assert N(42) == 42
 
-from agentfx.fxExcel.logic_formulas import (
+from shortfx.fxExcel.logic_formulas import (
     IF, AND, OR, NOT, IFERROR, XOR, SWITCH, IFS,
 )
 
@@ -188,7 +188,7 @@ class TestLogicFormulas:
         r = IFS(False, "a", True, "b")
         assert r == "b"
 
-from agentfx.fxExcel.database_formulas import (
+from shortfx.fxExcel.database_formulas import (
     DSUM, DAVERAGE, DCOUNT, DMAX, DMIN,
 )
 

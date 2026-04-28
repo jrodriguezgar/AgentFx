@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.polynomial_functions
+# Coverage tests for shortfx.fxNumeric.polynomial_functions
 
-from agentfx.fxNumeric import polynomial_functions as mod
+from shortfx.fxNumeric import polynomial_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

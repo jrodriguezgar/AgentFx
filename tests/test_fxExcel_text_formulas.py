@@ -1,7 +1,7 @@
 """Tests for fxExcel.text_formulas."""
 
 
-from agentfx.fxExcel.text_formulas import (
+from shortfx.fxExcel.text_formulas import (
     CONCAT,
     LEFT,
     MID,

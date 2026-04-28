@@ -1,11 +1,11 @@
-"""Tests for agentfx.fxVBA - VBA/Access-compatible functions."""
+"""Tests for shortfx.fxVBA - VBA/Access-compatible functions."""
 import math
 import os
 from datetime import datetime
 import pytest
 
 # -- Array Functions --
-from agentfx.fxVBA.array_functions import Split, Join_, Filter_, LBound, UBound, Array_
+from shortfx.fxVBA.array_functions import Split, Join_, Filter_, LBound, UBound, Array_
 
 class TestSplit:
     def test_default(self):
@@ -37,7 +37,7 @@ class TestBounds:
         assert Array_(1, 2, 3) == [1, 2, 3]
 
 # -- Conversion Functions --
-from agentfx.fxVBA.conversion_functions import (
+from shortfx.fxVBA.conversion_functions import (
     CBool, CByte, CCur, CDbl, CInt, CLng, CSng, CStr, CVar, Val,
 )
 
@@ -68,7 +68,7 @@ class TestConversions:
         assert Val("123abc") == pytest.approx(123.0)
 
 # -- Date Functions --
-from agentfx.fxVBA.date_functions import (
+from shortfx.fxVBA.date_functions import (
     DateAdd, DateDiff, DateSerial, Day, Hour, Minute,
     Month, MonthName, Second, TimeSerial, WeekDay, Year,
 )
@@ -103,7 +103,7 @@ class TestDateFunctions:
         assert Year(datetime(2026, 4, 13)) == 2026
 
 # -- Financial Functions --
-from agentfx.fxVBA.financial_functions import DDB, FV, IPmt, Pmt, PPmt, PV, SLN, SYD, NPer
+from shortfx.fxVBA.financial_functions import DDB, FV, IPmt, Pmt, PPmt, PV, SLN, SYD, NPer
 
 class TestFinancial:
     def test_pmt(self):
@@ -126,7 +126,7 @@ class TestFinancial:
         assert NPer(0.08/12, -200, 10000) > 0
 
 # -- Format Functions --
-from agentfx.fxVBA.format_functions import FormatCurrency, FormatNumber, FormatPercent
+from shortfx.fxVBA.format_functions import FormatCurrency, FormatNumber, FormatPercent
 
 class TestFormat:
     def test_currency(self):
@@ -138,7 +138,7 @@ class TestFormat:
         assert "%" in FormatPercent(0.25)
 
 # -- Logic Functions --
-from agentfx.fxVBA.logic_functions import (
+from shortfx.fxVBA.logic_functions import (
     Choose, IIf, IsDate, IsError, IsNull, IsNumeric, Switch,
     IsArray, IsEmpty, IsObject, IsMissing,
 )
@@ -176,7 +176,7 @@ class TestLogic:
         assert IsMissing(None) is True
 
 # -- Math Functions --
-from agentfx.fxVBA.math_functions import (
+from shortfx.fxVBA.math_functions import (
     Abs_, Atn, Cos, Exp, Fix, Int_, Log, Round_, Sgn, Sin, Sqr, Tan,
 )
 
@@ -211,7 +211,7 @@ class TestMath:
         assert Tan(0) == pytest.approx(0.0)
 
 # -- String Functions --
-from agentfx.fxVBA.string_functions import (
+from shortfx.fxVBA.string_functions import (
     Asc, Chr_, InStr, InStrRev, LCase, Left, Len_, LTrim,
     Mid, Replace, Right, RTrim, Space, StrComp, StrReverse, Trim, UCase,
 )
@@ -258,7 +258,7 @@ class TestString:
         assert UCase("hello") == "HELLO"
 
 # -- Misc Functions --
-from agentfx.fxVBA.misc_functions import Hex_, Oct_, RGB, CurrentUser
+from shortfx.fxVBA.misc_functions import Hex_, Oct_, RGB, CurrentUser
 
 class TestMisc:
     def test_hex(self):
@@ -273,7 +273,7 @@ class TestMisc:
             CurrentUser()
 
 # -- System Functions --
-from agentfx.fxVBA.system_functions import CurDir, Environ, Nz, TypeName, VarType, Partition
+from shortfx.fxVBA.system_functions import CurDir, Environ, Nz, TypeName, VarType, Partition
 
 class TestSystem:
     def test_curdir(self):

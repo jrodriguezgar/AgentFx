@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.geometry_functions
+# Coverage tests for shortfx.fxNumeric.geometry_functions
 
-from agentfx.fxNumeric import geometry_functions as mod
+from shortfx.fxNumeric import geometry_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric.calculator_functions import evaluate_expression, list_available_constants, list_available_functions
+from shortfx.fxNumeric.calculator_functions import evaluate_expression, list_available_constants, list_available_functions
 
 
 class TestEvaluateExpression:

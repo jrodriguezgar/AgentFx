@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxNumeric.rounding_functions
+# Deep coverage tests for shortfx.fxNumeric.rounding_functions
 
-import agentfx.fxNumeric.rounding_functions as mod
+import shortfx.fxNumeric.rounding_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

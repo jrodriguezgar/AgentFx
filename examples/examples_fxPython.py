@@ -1,6 +1,6 @@
 
 # Examples of fxPython module usage
-from agentfx.fxPython import py_operations, py_tools, py_itertools
+from shortfx.fxPython import py_operations, py_tools, py_itertools
 
 
 # --- Example 1: Scientific expression evaluator ---

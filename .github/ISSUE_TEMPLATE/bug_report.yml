@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in AgentFx
+description: Report a bug in shortfx
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -11,8 +11,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: AgentFx version
-      description: "Output of `python -c \"import agentfx; print(agentfx.__version__)\"`"
+      label: shortfx version
+      description: "Output of `python -c \"import shortfx; print(shortfx.__version__)\"`"
       placeholder: "0.1.0"
     validations:
       required: true

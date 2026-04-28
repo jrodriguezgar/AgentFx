@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_spanish
+# Coverage tests for shortfx.fxString.string_spanish
 
-from agentfx.fxString import string_spanish as mod
+from shortfx.fxString import string_spanish as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

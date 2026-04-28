@@ -4,10 +4,10 @@ from typing import List, Tuple, Dict, Any
 
 # Importar las clases de los módulos (asegúrate de que los archivos estén en el mismo directorio)
 try:
-    from agentfx.fxString.string_spellcheck import UniversalSpellChecker
-    from agentfx.fxString.string_similarity import WordSimilarity
+    from shortfx.fxString.string_spellcheck import UniversalSpellChecker
+    from shortfx.fxString.string_similarity import WordSimilarity
 except ImportError as e:
-    print(f"Error al importar módulos. Asegúrate de instalar las dependencias: pip install agentfx")
+    print(f"Error al importar módulos. Asegúrate de instalar las dependencias: pip install shortfx")
     print(f"Detalle del error: {e}")
     print("Por favor, verifica la instalación de las dependencias también.")
     exit()

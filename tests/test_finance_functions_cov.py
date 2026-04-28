@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.finance_functions
+# Coverage tests for shortfx.fxNumeric.finance_functions
 
-from agentfx.fxNumeric import finance_functions as mod
+from shortfx.fxNumeric import finance_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

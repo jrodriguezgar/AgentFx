@@ -1,11 +1,11 @@
-"""Example: Using the AgentFx MCP server programmatically.
+"""Example: Using the shortfx MCP server programmatically.
 
 This script demonstrates how an AI agent or client application can connect
-to the AgentFx MCP server and use its tools to discover and execute
+to the shortfx MCP server and use its tools to discover and execute
 800+ mathematical, text, date, financial, and statistical functions.
 
 Requirements:
-    pip install agentfx[mcp]
+    pip install shortfx[mcp]
 
 Usage:
     python example_mcp_client.py
@@ -19,12 +19,12 @@ from mcp.client.stdio import stdio_client
 
 
 async def main() -> None:
-    """Connect to the AgentFx MCP server and demonstrate all 4 tools."""
+    """Connect to the shortfx MCP server and demonstrate all 4 tools."""
 
-    # ── 1. Connect to the AgentFx MCP server via stdio ─────────────
+    # ── 1. Connect to the shortfx MCP server via stdio ─────────────
     server_params = StdioServerParameters(
         command="python",
-        args=["-m", "agentfx.mcp"],
+        args=["-m", "shortfx.mcp"],
     )
 
     async with stdio_client(server_params) as (read, write):
@@ -43,7 +43,7 @@ async def main() -> None:
             # ── 3. Search for functions by keyword ───────────────────
             print("=== Search: 'round' ===")
             result = await session.call_tool(
-                "search_agentfx_tools",
+                "search_shortfx_tools",
                 arguments={"query": "round"},
             )
             matches = json.loads(result.content[0].text)
@@ -57,7 +57,7 @@ async def main() -> None:
             # ── 4. List functions by module ───────────────────────────
             print("=== List: fxDate module ===")
             result = await session.call_tool(
-                "list_agentfx_tools",
+                "list_shortfx_tools",
                 arguments={"module": "fxDate"},
             )
             date_tools = json.loads(result.content[0].text)
@@ -71,7 +71,7 @@ async def main() -> None:
             # ── 5. Get details of a specific function ────────────────
             print("=== Details: fxExcel.math_formulas.ABS ===")
             result = await session.call_tool(
-                "get_agentfx_tool_details",
+                "get_shortfx_tool_details",
                 arguments={"tool_name": "fxExcel.math_formulas.ABS"},
             )
             details = json.loads(result.content[0].text)
@@ -83,7 +83,7 @@ async def main() -> None:
 
             # Math: absolute value
             result = await session.call_tool(
-                "call_agentfx",
+                "call_shortfx",
                 arguments={
                     "tool_name": "fxExcel.math_formulas.ABS",
                     "arguments": json.dumps({"number": -42.5}),
@@ -93,7 +93,7 @@ async def main() -> None:
 
             # Numeric: square root
             result = await session.call_tool(
-                "call_agentfx",
+                "call_shortfx",
                 arguments={
                     "tool_name": "fxNumeric.arithmetic_functions.square_root",
                     "arguments": json.dumps({"x": 144}),
@@ -103,17 +103,17 @@ async def main() -> None:
 
             # String: reverse
             result = await session.call_tool(
-                "call_agentfx",
+                "call_shortfx",
                 arguments={
                     "tool_name": "fxString.string_operations.reverse_string",
-                    "arguments": json.dumps({"input_string": "AgentFx"}),
+                    "arguments": json.dumps({"input_string": "shortfx"}),
                 },
             )
-            print(f"reverse_string('AgentFx') = {json.loads(result.content[0].text)['result']}")
+            print(f"reverse_string('shortfx') = {json.loads(result.content[0].text)['result']}")
 
             # Finance: future value
             result = await session.call_tool(
-                "call_agentfx",
+                "call_shortfx",
                 arguments={
                     "tool_name": "fxNumeric.finance_functions.future_value",
                     "arguments": json.dumps({
@@ -128,7 +128,7 @@ async def main() -> None:
 
             # Date: validate date
             result = await session.call_tool(
-                "call_agentfx",
+                "call_shortfx",
                 arguments={
                     "tool_name": "fxDate.date_operations.is_valid_date",
                     "arguments": json.dumps({"date_input": "2025-02-30"}),
@@ -138,7 +138,7 @@ async def main() -> None:
 
             # VBA: Left function
             result = await session.call_tool(
-                "call_agentfx",
+                "call_shortfx",
                 arguments={
                     "tool_name": "fxVBA.string_functions.Left",
                     "arguments": json.dumps({"string": "Hello World", "length": 5}),

@@ -1,7 +1,7 @@
-# Deep coverage tests for agentfx.fxDate.date_operations
+# Deep coverage tests for shortfx.fxDate.date_operations
 from datetime import date, datetime
 
-import agentfx.fxDate.date_operations as mod
+import shortfx.fxDate.date_operations as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

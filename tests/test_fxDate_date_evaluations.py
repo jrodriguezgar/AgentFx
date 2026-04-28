@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 import pytest
 
-from agentfx.fxDate.date_evaluations import (
+from shortfx.fxDate.date_evaluations import (
     astronomical_season,
     bimester_of_date,
     century_of_date,
@@ -45,32 +45,32 @@ from agentfx.fxDate.date_evaluations import (
     week_parity,
     weeks_between_dates,
 )
-from agentfx.fxDate.date_operations import business_days_until
+from shortfx.fxDate.date_operations import business_days_until
 
 
 class TestIsDstTransitionDay:
 
     def test_transition_day(self):
-        from agentfx.fxDate.date_evaluations import is_dst_transition_day
+        from shortfx.fxDate.date_evaluations import is_dst_transition_day
 
         assert is_dst_transition_day(date(2026, 3, 29), "Europe/Madrid") is True
 
     def test_normal_day(self):
-        from agentfx.fxDate.date_evaluations import is_dst_transition_day
+        from shortfx.fxDate.date_evaluations import is_dst_transition_day
 
         assert is_dst_transition_day(date(2026, 6, 15), "Europe/Madrid") is False
 
 class TestMoonPhase:
 
     def test_returns_tuple(self):
-        from agentfx.fxDate.date_evaluations import moon_phase
+        from shortfx.fxDate.date_evaluations import moon_phase
 
         phase, name = moon_phase(date(2026, 4, 8))
         assert 0.0 <= phase <= 1.0
         assert isinstance(name, str)
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import moon_phase
+        from shortfx.fxDate.date_evaluations import moon_phase
 
         with pytest.raises(TypeError):
             moon_phase("2026-04-08")
@@ -81,15 +81,15 @@ class TestMoonPhase:
 class TestIsAnniversary:
 
     def test_same_day(self):
-        from agentfx.fxDate.date_evaluations import is_anniversary
+        from shortfx.fxDate.date_evaluations import is_anniversary
         assert is_anniversary(date(1990, 7, 4), date(2026, 7, 4)) is True
 
     def test_different_day(self):
-        from agentfx.fxDate.date_evaluations import is_anniversary
+        from shortfx.fxDate.date_evaluations import is_anniversary
         assert is_anniversary(date(1990, 7, 4), date(2026, 7, 5)) is False
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import is_anniversary
+        from shortfx.fxDate.date_evaluations import is_anniversary
 
         with pytest.raises(TypeError):
             is_anniversary("2020-01-01", date(2026, 1, 1))
@@ -97,41 +97,41 @@ class TestIsAnniversary:
 class TestIsLastDayOfMonth:
 
     def test_leap_feb_29(self):
-        from agentfx.fxDate.date_evaluations import is_last_day_of_month
+        from shortfx.fxDate.date_evaluations import is_last_day_of_month
         assert is_last_day_of_month(date(2024, 2, 29)) is True
 
     def test_non_leap_feb_28(self):
-        from agentfx.fxDate.date_evaluations import is_last_day_of_month
+        from shortfx.fxDate.date_evaluations import is_last_day_of_month
         assert is_last_day_of_month(date(2023, 2, 28)) is True
 
     def test_leap_feb_28(self):
-        from agentfx.fxDate.date_evaluations import is_last_day_of_month
+        from shortfx.fxDate.date_evaluations import is_last_day_of_month
         assert is_last_day_of_month(date(2024, 2, 28)) is False
 
     def test_dec_31(self):
-        from agentfx.fxDate.date_evaluations import is_last_day_of_month
+        from shortfx.fxDate.date_evaluations import is_last_day_of_month
         assert is_last_day_of_month(date(2026, 12, 31)) is True
 
 class TestIsDst:
 
     def test_us_summer(self):
-        from agentfx.fxDate.date_evaluations import is_dst
+        from shortfx.fxDate.date_evaluations import is_dst
         assert is_dst(datetime(2026, 7, 15, 12, 0), "US/Eastern") is True
 
     def test_us_winter(self):
-        from agentfx.fxDate.date_evaluations import is_dst
+        from shortfx.fxDate.date_evaluations import is_dst
         assert is_dst(datetime(2026, 1, 15, 12, 0), "US/Eastern") is False
 
     def test_utc_always_false(self):
-        from agentfx.fxDate.date_evaluations import is_dst
+        from shortfx.fxDate.date_evaluations import is_dst
         assert is_dst(datetime(2026, 7, 15, 12, 0), "UTC") is False
 
     def test_europe_summer(self):
-        from agentfx.fxDate.date_evaluations import is_dst
+        from shortfx.fxDate.date_evaluations import is_dst
         assert is_dst(datetime(2026, 6, 15, 12, 0), "Europe/Madrid") is True
 
     def test_unsupported_raises(self):
-        from agentfx.fxDate.date_evaluations import is_dst
+        from shortfx.fxDate.date_evaluations import is_dst
 
         with pytest.raises(ValueError):
             is_dst(datetime(2026, 7, 15), "Asia/Tokyo")
@@ -139,17 +139,17 @@ class TestIsDst:
 class TestIsoDayName:
 
     def test_monday(self):
-        from agentfx.fxDate.date_evaluations import iso_day_name
+        from shortfx.fxDate.date_evaluations import iso_day_name
 
         assert iso_day_name(date(2025, 6, 9)) == "Monday"
 
     def test_sunday(self):
-        from agentfx.fxDate.date_evaluations import iso_day_name
+        from shortfx.fxDate.date_evaluations import iso_day_name
 
         assert iso_day_name(date(2025, 6, 8)) == "Sunday"
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import iso_day_name
+        from shortfx.fxDate.date_evaluations import iso_day_name
 
         with pytest.raises(TypeError):
             iso_day_name("2025-06-09")
@@ -157,17 +157,17 @@ class TestIsoDayName:
 class TestDaysInYear:
 
     def test_leap(self):
-        from agentfx.fxDate.date_evaluations import days_in_year
+        from shortfx.fxDate.date_evaluations import days_in_year
 
         assert days_in_year(2024) == 366
 
     def test_common(self):
-        from agentfx.fxDate.date_evaluations import days_in_year
+        from shortfx.fxDate.date_evaluations import days_in_year
 
         assert days_in_year(2025) == 365
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import days_in_year
+        from shortfx.fxDate.date_evaluations import days_in_year
 
         with pytest.raises(TypeError):
             days_in_year(2025.0)
@@ -175,24 +175,24 @@ class TestDaysInYear:
 class TestNthWeekdayOfMonth:
 
     def test_mlk_day(self):
-        from agentfx.fxDate.date_evaluations import nth_weekday_of_month
+        from shortfx.fxDate.date_evaluations import nth_weekday_of_month
 
         # 3rd Monday of January 2025
         assert nth_weekday_of_month(2025, 1, 1, 3) == date(2025, 1, 20)
 
     def test_first_friday(self):
-        from agentfx.fxDate.date_evaluations import nth_weekday_of_month
+        from shortfx.fxDate.date_evaluations import nth_weekday_of_month
 
         assert nth_weekday_of_month(2025, 6, 5, 1) == date(2025, 6, 6)
 
     def test_nonexistent(self):
-        from agentfx.fxDate.date_evaluations import nth_weekday_of_month
+        from shortfx.fxDate.date_evaluations import nth_weekday_of_month
 
         with pytest.raises(ValueError):
             nth_weekday_of_month(2025, 2, 1, 5)  # 5th Monday of Feb
 
     def test_invalid_weekday(self):
-        from agentfx.fxDate.date_evaluations import nth_weekday_of_month
+        from shortfx.fxDate.date_evaluations import nth_weekday_of_month
 
         with pytest.raises(ValueError):
             nth_weekday_of_month(2025, 1, 0, 1)
@@ -200,23 +200,23 @@ class TestNthWeekdayOfMonth:
 class TestAgeAtDate:
 
     def test_before_birthday(self):
-        from agentfx.fxDate.date_evaluations import age_at_date
+        from shortfx.fxDate.date_evaluations import age_at_date
 
         assert age_at_date(date(1990, 6, 15), date(2025, 6, 14)) == 34
 
     def test_on_birthday(self):
-        from agentfx.fxDate.date_evaluations import age_at_date
+        from shortfx.fxDate.date_evaluations import age_at_date
 
         assert age_at_date(date(1990, 6, 15), date(2025, 6, 15)) == 35
 
     def test_future_birth(self):
-        from agentfx.fxDate.date_evaluations import age_at_date
+        from shortfx.fxDate.date_evaluations import age_at_date
 
         with pytest.raises(ValueError):
             age_at_date(date(2030, 1, 1), date(2025, 1, 1))
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import age_at_date
+        from shortfx.fxDate.date_evaluations import age_at_date
 
         with pytest.raises(TypeError):
             age_at_date("1990-06-15")
@@ -224,18 +224,18 @@ class TestAgeAtDate:
 class TestWorkdaysInMonth:
 
     def test_june_2025(self):
-        from agentfx.fxDate.date_evaluations import workdays_in_month
+        from shortfx.fxDate.date_evaluations import workdays_in_month
 
         assert workdays_in_month(2025, 6) == 21
 
     def test_invalid_month(self):
-        from agentfx.fxDate.date_evaluations import workdays_in_month
+        from shortfx.fxDate.date_evaluations import workdays_in_month
 
         with pytest.raises(ValueError):
             workdays_in_month(2025, 13)
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import workdays_in_month
+        from shortfx.fxDate.date_evaluations import workdays_in_month
 
         with pytest.raises(TypeError):
             workdays_in_month(2025, 6.0)
@@ -243,23 +243,23 @@ class TestWorkdaysInMonth:
 class TestSemesterOfYear:
 
     def test_first(self):
-        from agentfx.fxDate.date_evaluations import semester_of_year
+        from shortfx.fxDate.date_evaluations import semester_of_year
 
         assert semester_of_year(date(2025, 3, 15)) == 1
 
     def test_second(self):
-        from agentfx.fxDate.date_evaluations import semester_of_year
+        from shortfx.fxDate.date_evaluations import semester_of_year
 
         assert semester_of_year(date(2025, 9, 15)) == 2
 
     def test_boundary(self):
-        from agentfx.fxDate.date_evaluations import semester_of_year
+        from shortfx.fxDate.date_evaluations import semester_of_year
 
         assert semester_of_year(date(2025, 6, 30)) == 1
         assert semester_of_year(date(2025, 7, 1)) == 2
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import semester_of_year
+        from shortfx.fxDate.date_evaluations import semester_of_year
 
         with pytest.raises(TypeError):
             semester_of_year("2025-03-15")
@@ -720,14 +720,14 @@ class TestSiderealTime:
 
     def test_sidereal_time_j2000(self):
         from datetime import date
-        from agentfx.fxDate.date_evaluations import sidereal_time
+        from shortfx.fxDate.date_evaluations import sidereal_time
 
         result = sidereal_time(date(2000, 1, 1), 0.0)
         assert 6.0 < result < 7.0
 
     def test_sidereal_time_with_longitude(self):
         from datetime import date
-        from agentfx.fxDate.date_evaluations import sidereal_time
+        from shortfx.fxDate.date_evaluations import sidereal_time
 
         lst_greenwich = sidereal_time(date(2026, 4, 9), 0.0)
         lst_madrid = sidereal_time(date(2026, 4, 9), -3.7)
@@ -736,21 +736,21 @@ class TestSiderealTime:
         assert abs(diff - expected_diff) < 0.01
 
     def test_sidereal_time_type_error(self):
-        from agentfx.fxDate.date_evaluations import sidereal_time
+        from shortfx.fxDate.date_evaluations import sidereal_time
 
         with pytest.raises(TypeError):
             sidereal_time("2026-04-09")
 
     def test_sidereal_time_longitude_error(self):
         from datetime import date
-        from agentfx.fxDate.date_evaluations import sidereal_time
+        from shortfx.fxDate.date_evaluations import sidereal_time
 
         with pytest.raises(ValueError):
             sidereal_time(date(2026, 1, 1), 200.0)
 
     def test_sidereal_time_range(self):
         from datetime import date
-        from agentfx.fxDate.date_evaluations import sidereal_time
+        from shortfx.fxDate.date_evaluations import sidereal_time
 
         result = sidereal_time(date(2026, 6, 21), 45.0)
         assert 0.0 <= result < 24.0
@@ -853,59 +853,59 @@ class TestIsIsoLongYear:
 class TestIsWeekday:
 
     def test_monday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
         assert is_weekday(date(2026, 4, 6)) is True  # Monday
 
     def test_saturday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
         assert is_weekday(date(2026, 4, 4)) is False  # Saturday
 
     def test_sunday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
         assert is_weekday(date(2026, 4, 5)) is False  # Sunday
 
     def test_friday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
         assert is_weekday(date(2026, 4, 10)) is True  # Friday
 
     def test_datetime_input(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
         assert is_weekday(datetime(2026, 4, 6, 10, 30)) is True
 
 class TestZodiacSign:
 
     def test_leo(self):
-        from agentfx.fxDate.date_evaluations import zodiac_sign
+        from shortfx.fxDate.date_evaluations import zodiac_sign
         assert zodiac_sign(date(2024, 8, 15)) == "Leo"
 
     def test_capricorn_dec(self):
-        from agentfx.fxDate.date_evaluations import zodiac_sign
+        from shortfx.fxDate.date_evaluations import zodiac_sign
         assert zodiac_sign(date(2024, 12, 25)) == "Capricorn"
 
     def test_capricorn_jan(self):
-        from agentfx.fxDate.date_evaluations import zodiac_sign
+        from shortfx.fxDate.date_evaluations import zodiac_sign
         assert zodiac_sign(date(2024, 1, 5)) == "Capricorn"
 
     def test_aries(self):
-        from agentfx.fxDate.date_evaluations import zodiac_sign
+        from shortfx.fxDate.date_evaluations import zodiac_sign
         assert zodiac_sign(date(2024, 4, 10)) == "Aries"
 
 class TestChineseZodiac:
 
     def test_dragon(self):
-        from agentfx.fxDate.date_evaluations import chinese_zodiac
+        from shortfx.fxDate.date_evaluations import chinese_zodiac
         assert chinese_zodiac(2024) == "Dragon"
 
     def test_rat(self):
-        from agentfx.fxDate.date_evaluations import chinese_zodiac
+        from shortfx.fxDate.date_evaluations import chinese_zodiac
         assert chinese_zodiac(2020) == "Rat"
 
     def test_snake(self):
-        from agentfx.fxDate.date_evaluations import chinese_zodiac
+        from shortfx.fxDate.date_evaluations import chinese_zodiac
         assert chinese_zodiac(2025) == "Snake"
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import chinese_zodiac
+        from shortfx.fxDate.date_evaluations import chinese_zodiac
         with pytest.raises(TypeError):
             chinese_zodiac(2024.5)
 
@@ -1042,22 +1042,22 @@ class TestGenerationName:
 class TestIsWeekdayV2:
 
     def test_monday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
 
         assert is_weekday(date(2025, 6, 9)) is True  # Monday
 
     def test_sunday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
 
         assert is_weekday(date(2025, 6, 8)) is False  # Sunday
 
     def test_saturday(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
 
         assert is_weekday(date(2025, 6, 7)) is False  # Saturday
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import is_weekday
+        from shortfx.fxDate.date_evaluations import is_weekday
 
         with pytest.raises(TypeError):
             is_weekday("2025-01-01")
@@ -1065,24 +1065,24 @@ class TestIsWeekdayV2:
 class TestDaysUntilNextBirthday:
 
     def test_basic(self):
-        from agentfx.fxDate.date_evaluations import days_until_next_birthday
+        from shortfx.fxDate.date_evaluations import days_until_next_birthday
 
         assert days_until_next_birthday(date(1990, 6, 15), date(2025, 6, 10)) == 5
 
     def test_birthday_today(self):
-        from agentfx.fxDate.date_evaluations import days_until_next_birthday
+        from shortfx.fxDate.date_evaluations import days_until_next_birthday
 
         assert days_until_next_birthday(date(1990, 6, 15), date(2025, 6, 15)) == 0
 
     def test_birthday_passed(self):
-        from agentfx.fxDate.date_evaluations import days_until_next_birthday
+        from shortfx.fxDate.date_evaluations import days_until_next_birthday
 
         result = days_until_next_birthday(date(1990, 6, 15), date(2025, 6, 20))
 
         assert result > 300  # next year
 
     def test_type_error(self):
-        from agentfx.fxDate.date_evaluations import days_until_next_birthday
+        from shortfx.fxDate.date_evaluations import days_until_next_birthday
 
         with pytest.raises(TypeError):
             days_until_next_birthday("1990-06-15")

@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.statistics_functions
+# Coverage tests for shortfx.fxNumeric.statistics_functions
 
-from agentfx.fxNumeric import statistics_functions as mod
+from shortfx.fxNumeric import statistics_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

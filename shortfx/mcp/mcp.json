@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "shortfx": {
+      "command": "python",
+      "args": ["-m", "shortfx.mcp"],
+      "env": {}
+    }
+  }
+}

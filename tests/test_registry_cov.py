@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.registry
+# Coverage tests for shortfx.registry
 
-from agentfx import registry as mod
+from shortfx import registry as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

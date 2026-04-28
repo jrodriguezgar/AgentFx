@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.transform_functions
+# Coverage tests for shortfx.fxNumeric.transform_functions
 
-from agentfx.fxNumeric import transform_functions as mod
+from shortfx.fxNumeric import transform_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

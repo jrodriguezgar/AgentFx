@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.coordinate_systems_functions
+# Coverage tests for shortfx.fxNumeric.coordinate_systems_functions
 import math
 
-from agentfx.fxNumeric import coordinate_systems_functions as mod
+from shortfx.fxNumeric import coordinate_systems_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

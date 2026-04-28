@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.rounding_functions
+# Coverage tests for shortfx.fxNumeric.rounding_functions
 from decimal import Decimal
 
-from agentfx.fxNumeric import rounding_functions as mod
+from shortfx.fxNumeric import rounding_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

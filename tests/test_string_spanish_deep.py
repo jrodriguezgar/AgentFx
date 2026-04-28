@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxString.string_spanish
+# Deep coverage tests for shortfx.fxString.string_spanish
 
-import agentfx.fxString.string_spanish as mod
+import shortfx.fxString.string_spanish as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

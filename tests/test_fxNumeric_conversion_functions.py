@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     acres_to_hectares,
     btu_to_joules,
     calories_to_joules,
@@ -36,8 +36,8 @@ from agentfx.fxNumeric import (
     troy_ounces_to_grams,
     watts_to_horsepower,
 )
-from agentfx.fxNumeric.arithmetic_functions import adaptive_simpson
-from agentfx.fxNumeric.conversion_functions import (
+from shortfx.fxNumeric.arithmetic_functions import adaptive_simpson
+from shortfx.fxNumeric.conversion_functions import (
     adiabatic_index_pressure,
     adiabatic_temperature,
     angular_momentum,
@@ -138,19 +138,19 @@ from agentfx.fxNumeric.conversion_functions import (
     wind_chill,
     work_done,
 )
-from agentfx.fxNumeric.number_theory_functions import digit_factorial_sum, is_fibonacci_number
-from agentfx.fxNumeric.statistics_functions import softplus
+from shortfx.fxNumeric.number_theory_functions import digit_factorial_sum, is_fibonacci_number
+from shortfx.fxNumeric.statistics_functions import softplus
 
 
 class TestDFT:
 
     def test_magnitude(self):
-        from agentfx.fxNumeric.conversion_functions import dft_magnitude
+        from shortfx.fxNumeric.conversion_functions import dft_magnitude
 
         assert round(dft_magnitude([1, 0, -1, 0], 1), 6) == 2.0
 
     def test_phase(self):
-        from agentfx.fxNumeric.conversion_functions import dft_phase
+        from shortfx.fxNumeric.conversion_functions import dft_phase
 
         # DC component (k=0) of constant signal should have phase ~0
         assert dft_phase([1, 1, 1, 1], 0) == pytest.approx(0.0, abs=1e-6)
@@ -158,49 +158,49 @@ class TestDFT:
 class TestSignalRms:
 
     def test_unit_signal(self):
-        from agentfx.fxNumeric.conversion_functions import signal_rms
+        from shortfx.fxNumeric.conversion_functions import signal_rms
 
         assert signal_rms([1, -1, 1, -1]) == pytest.approx(1.0)
 
 class TestSignalSnr:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import signal_snr_db
+        from shortfx.fxNumeric.conversion_functions import signal_snr_db
 
         assert round(signal_snr_db(100, 1), 2) == 20.0
 
 class TestNyquist:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import nyquist_frequency
+        from shortfx.fxNumeric.conversion_functions import nyquist_frequency
 
         assert nyquist_frequency(44100) == 22050.0
 
 class TestDecibelSum:
 
     def test_equal_levels(self):
-        from agentfx.fxNumeric.conversion_functions import decibel_sum
+        from shortfx.fxNumeric.conversion_functions import decibel_sum
 
         assert round(decibel_sum(90, 90), 2) == 93.01
 
 class TestStress:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import stress
+        from shortfx.fxNumeric.conversion_functions import stress
 
         assert stress(1000, 0.01) == 100000.0
 
 class TestStrain:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import strain
+        from shortfx.fxNumeric.conversion_functions import strain
 
         assert strain(0.005, 1.0) == 0.005
 
 class TestBendingMoment:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import bending_moment
+        from shortfx.fxNumeric.conversion_functions import bending_moment
 
         assert bending_moment(100, 2.5) == 250.0
 
@@ -210,23 +210,23 @@ class TestBendingMoment:
 class TestTemperatureConvert:
 
     def test_c_to_f(self):
-        from agentfx.fxNumeric.conversion_functions import temperature_convert
+        from shortfx.fxNumeric.conversion_functions import temperature_convert
         assert temperature_convert(100, "C", "F") == 212.0
 
     def test_f_to_c(self):
-        from agentfx.fxNumeric.conversion_functions import temperature_convert
+        from shortfx.fxNumeric.conversion_functions import temperature_convert
         assert temperature_convert(32, "F", "C") == 0.0
 
     def test_c_to_k(self):
-        from agentfx.fxNumeric.conversion_functions import temperature_convert
+        from shortfx.fxNumeric.conversion_functions import temperature_convert
         assert temperature_convert(0, "C", "K") == 273.15
 
     def test_same_unit(self):
-        from agentfx.fxNumeric.conversion_functions import temperature_convert
+        from shortfx.fxNumeric.conversion_functions import temperature_convert
         assert temperature_convert(50, "C", "C") == 50.0
 
     def test_invalid_unit(self):
-        from agentfx.fxNumeric.conversion_functions import temperature_convert
+        from shortfx.fxNumeric.conversion_functions import temperature_convert
 
         with pytest.raises(ValueError):
             temperature_convert(0, "C", "X")
@@ -234,29 +234,29 @@ class TestTemperatureConvert:
 class TestAngleConvert:
 
     def test_deg_to_rad(self):
-        from agentfx.fxNumeric.conversion_functions import angle_convert
+        from shortfx.fxNumeric.conversion_functions import angle_convert
         assert angle_convert(180, "deg", "rad") == math.pi
 
     def test_grad_to_deg(self):
-        from agentfx.fxNumeric.conversion_functions import angle_convert
+        from shortfx.fxNumeric.conversion_functions import angle_convert
         assert angle_convert(200, "grad", "deg") == 180.0
 
     def test_same_unit(self):
-        from agentfx.fxNumeric.conversion_functions import angle_convert
+        from shortfx.fxNumeric.conversion_functions import angle_convert
         assert angle_convert(90, "deg", "deg") == 90.0
 
 class TestCoordinateDmsToDecimal:
 
     def test_north(self):
-        from agentfx.fxNumeric.conversion_functions import coordinate_dms_to_decimal
+        from shortfx.fxNumeric.conversion_functions import coordinate_dms_to_decimal
         assert round(coordinate_dms_to_decimal(40, 26, 46, "N"), 4) == 40.4461
 
     def test_west(self):
-        from agentfx.fxNumeric.conversion_functions import coordinate_dms_to_decimal
+        from shortfx.fxNumeric.conversion_functions import coordinate_dms_to_decimal
         assert round(coordinate_dms_to_decimal(79, 58, 56, "W"), 4) == -79.9822
 
     def test_invalid_direction(self):
-        from agentfx.fxNumeric.conversion_functions import coordinate_dms_to_decimal
+        from shortfx.fxNumeric.conversion_functions import coordinate_dms_to_decimal
 
         with pytest.raises(ValueError):
             coordinate_dms_to_decimal(40, 26, 46, "X")
@@ -264,7 +264,7 @@ class TestCoordinateDmsToDecimal:
 class TestCoordinateDecimalToDms:
 
     def test_positive_lat(self):
-        from agentfx.fxNumeric.conversion_functions import coordinate_decimal_to_dms
+        from shortfx.fxNumeric.conversion_functions import coordinate_decimal_to_dms
 
         deg, mins, secs, direction = coordinate_decimal_to_dms(40.4461)
         assert deg == 40
@@ -272,14 +272,14 @@ class TestCoordinateDecimalToDms:
         assert direction == "N"
 
     def test_negative_lon(self):
-        from agentfx.fxNumeric.conversion_functions import coordinate_decimal_to_dms
+        from shortfx.fxNumeric.conversion_functions import coordinate_decimal_to_dms
 
         deg, mins, secs, direction = coordinate_decimal_to_dms(-79.9822, is_longitude=True)
         assert deg == 79
         assert direction == "W"
 
     def test_out_of_range(self):
-        from agentfx.fxNumeric.conversion_functions import coordinate_decimal_to_dms
+        from shortfx.fxNumeric.conversion_functions import coordinate_decimal_to_dms
 
         with pytest.raises(ValueError):
             coordinate_decimal_to_dms(100, is_longitude=False)
@@ -290,12 +290,12 @@ class TestCoordinateDecimalToDms:
 class TestCoulombForce:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import coulomb_force
+        from shortfx.fxNumeric.conversion_functions import coulomb_force
 
         assert round(coulomb_force(1e-6, 2e-6, 0.05), 2) == 7.19
 
     def test_zero_distance(self):
-        from agentfx.fxNumeric.conversion_functions import coulomb_force
+        from shortfx.fxNumeric.conversion_functions import coulomb_force
 
         with pytest.raises(ValueError):
             coulomb_force(1e-6, 2e-6, 0)
@@ -303,12 +303,12 @@ class TestCoulombForce:
 class TestSchwarzschildRadius:
 
     def test_sun(self):
-        from agentfx.fxNumeric.conversion_functions import schwarzschild_radius
+        from shortfx.fxNumeric.conversion_functions import schwarzschild_radius
 
         assert round(schwarzschild_radius(1.989e30), 0) == 2954.0
 
     def test_negative_mass(self):
-        from agentfx.fxNumeric.conversion_functions import schwarzschild_radius
+        from shortfx.fxNumeric.conversion_functions import schwarzschild_radius
 
         with pytest.raises(ValueError):
             schwarzschild_radius(-1)
@@ -316,12 +316,12 @@ class TestSchwarzschildRadius:
 class TestDopplerShift:
 
     def test_receding(self):
-        from agentfx.fxNumeric.conversion_functions import doppler_shift
+        from shortfx.fxNumeric.conversion_functions import doppler_shift
 
         assert round(doppler_shift(440, 30), 2) == 404.61
 
     def test_approaching(self):
-        from agentfx.fxNumeric.conversion_functions import doppler_shift
+        from shortfx.fxNumeric.conversion_functions import doppler_shift
 
         result = doppler_shift(440, -30)
 
@@ -330,12 +330,12 @@ class TestDopplerShift:
 class TestStefanBoltzmannPower:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import stefan_boltzmann_power
+        from shortfx.fxNumeric.conversion_functions import stefan_boltzmann_power
 
         assert round(stefan_boltzmann_power(1.0, 1.0, 300), 1) == 459.3
 
     def test_invalid_emissivity(self):
-        from agentfx.fxNumeric.conversion_functions import stefan_boltzmann_power
+        from shortfx.fxNumeric.conversion_functions import stefan_boltzmann_power
 
         with pytest.raises(ValueError):
             stefan_boltzmann_power(1.5, 1.0, 300)
@@ -343,29 +343,29 @@ class TestStefanBoltzmannPower:
 class TestSpringPotentialEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import spring_potential_energy
+        from shortfx.fxNumeric.conversion_functions import spring_potential_energy
 
         assert spring_potential_energy(200, 0.1) == 1.0
 
     def test_zero_displacement(self):
-        from agentfx.fxNumeric.conversion_functions import spring_potential_energy
+        from shortfx.fxNumeric.conversion_functions import spring_potential_energy
 
         assert spring_potential_energy(200, 0) == 0.0
 
 class TestLorentzFactor:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import lorentz_factor
+        from shortfx.fxNumeric.conversion_functions import lorentz_factor
 
         assert round(lorentz_factor(2.0e8), 4) == 1.3424
 
     def test_zero_velocity(self):
-        from agentfx.fxNumeric.conversion_functions import lorentz_factor
+        from shortfx.fxNumeric.conversion_functions import lorentz_factor
 
         assert lorentz_factor(0) == 1.0
 
     def test_exceeds_c(self):
-        from agentfx.fxNumeric.conversion_functions import lorentz_factor
+        from shortfx.fxNumeric.conversion_functions import lorentz_factor
 
         with pytest.raises(ValueError):
             lorentz_factor(3e8)
@@ -373,12 +373,12 @@ class TestLorentzFactor:
 class TestMagneticForceOnWire:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import magnetic_force_on_wire
+        from shortfx.fxNumeric.conversion_functions import magnetic_force_on_wire
 
         assert round(magnetic_force_on_wire(5, 0.2, 0.3), 1) == 0.3
 
     def test_type_error(self):
-        from agentfx.fxNumeric.conversion_functions import magnetic_force_on_wire
+        from shortfx.fxNumeric.conversion_functions import magnetic_force_on_wire
 
         with pytest.raises(TypeError):
             magnetic_force_on_wire("a", 0.2, 0.3)
@@ -386,12 +386,12 @@ class TestMagneticForceOnWire:
 class TestInductorEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import inductor_energy
+        from shortfx.fxNumeric.conversion_functions import inductor_energy
 
         assert inductor_energy(0.01, 5) == 0.125
 
     def test_negative_inductance(self):
-        from agentfx.fxNumeric.conversion_functions import inductor_energy
+        from shortfx.fxNumeric.conversion_functions import inductor_energy
 
         with pytest.raises(ValueError):
             inductor_energy(-0.01, 5)
@@ -402,24 +402,24 @@ class TestInductorEnergy:
 class TestDragForce:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import drag_force
+        from shortfx.fxNumeric.conversion_functions import drag_force
 
         assert drag_force(0.47, 1.225, 10, 0.01) == pytest.approx(0.287875)
 
     def test_zero_velocity(self):
-        from agentfx.fxNumeric.conversion_functions import drag_force
+        from shortfx.fxNumeric.conversion_functions import drag_force
 
         assert drag_force(0.47, 1.225, 0, 0.01) == 0.0
 
 class TestKineticEnergyRelativistic:
 
     def test_zero_velocity(self):
-        from agentfx.fxNumeric.conversion_functions import kinetic_energy_relativistic
+        from shortfx.fxNumeric.conversion_functions import kinetic_energy_relativistic
 
         assert kinetic_energy_relativistic(1.0, 0) == pytest.approx(0.0)
 
     def test_exceeds_c(self):
-        from agentfx.fxNumeric.conversion_functions import kinetic_energy_relativistic
+        from shortfx.fxNumeric.conversion_functions import kinetic_energy_relativistic
 
         with pytest.raises(ValueError):
             kinetic_energy_relativistic(1.0, 3e8)
@@ -427,12 +427,12 @@ class TestKineticEnergyRelativistic:
 class TestElectricFieldPoint:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import electric_field_point
+        from shortfx.fxNumeric.conversion_functions import electric_field_point
 
         assert round(electric_field_point(1e-6, 0.1), 2) == 898755.18
 
     def test_zero_distance(self):
-        from agentfx.fxNumeric.conversion_functions import electric_field_point
+        from shortfx.fxNumeric.conversion_functions import electric_field_point
 
         with pytest.raises(ValueError):
             electric_field_point(1e-6, 0)
@@ -440,12 +440,12 @@ class TestElectricFieldPoint:
 class TestMagneticFlux:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import magnetic_flux
+        from shortfx.fxNumeric.conversion_functions import magnetic_flux
 
         assert magnetic_flux(0.5, 0.02) == pytest.approx(0.01)
 
     def test_type_error(self):
-        from agentfx.fxNumeric.conversion_functions import magnetic_flux
+        from shortfx.fxNumeric.conversion_functions import magnetic_flux
 
         with pytest.raises(TypeError):
             magnetic_flux("a", 0.02)
@@ -453,12 +453,12 @@ class TestMagneticFlux:
 class TestResistorsParallelPair:
 
     def test_equal(self):
-        from agentfx.fxNumeric.conversion_functions import resistors_parallel_pair
+        from shortfx.fxNumeric.conversion_functions import resistors_parallel_pair
 
         assert resistors_parallel_pair(100, 100) == 50.0
 
     def test_negative(self):
-        from agentfx.fxNumeric.conversion_functions import resistors_parallel_pair
+        from shortfx.fxNumeric.conversion_functions import resistors_parallel_pair
 
         with pytest.raises(ValueError):
             resistors_parallel_pair(-100, 100)
@@ -466,12 +466,12 @@ class TestResistorsParallelPair:
 class TestRcTimeConstant:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import rc_time_constant
+        from shortfx.fxNumeric.conversion_functions import rc_time_constant
 
         assert rc_time_constant(1000, 0.001) == 1.0
 
     def test_zero_r(self):
-        from agentfx.fxNumeric.conversion_functions import rc_time_constant
+        from shortfx.fxNumeric.conversion_functions import rc_time_constant
 
         with pytest.raises(ValueError):
             rc_time_constant(0, 0.001)
@@ -479,12 +479,12 @@ class TestRcTimeConstant:
 class TestThermalResistance:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import thermal_resistance
+        from shortfx.fxNumeric.conversion_functions import thermal_resistance
 
         assert thermal_resistance(0.1, 200, 0.01) == 0.05
 
     def test_zero_conductivity(self):
-        from agentfx.fxNumeric.conversion_functions import thermal_resistance
+        from shortfx.fxNumeric.conversion_functions import thermal_resistance
 
         with pytest.raises(ValueError):
             thermal_resistance(0.1, 0, 0.01)
@@ -492,12 +492,12 @@ class TestThermalResistance:
 class TestHeatTransferConduction:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import heat_transfer_conduction
+        from shortfx.fxNumeric.conversion_functions import heat_transfer_conduction
 
         assert heat_transfer_conduction(200, 0.01, 50, 0.1) == 1000.0
 
     def test_zero_thickness(self):
-        from agentfx.fxNumeric.conversion_functions import heat_transfer_conduction
+        from shortfx.fxNumeric.conversion_functions import heat_transfer_conduction
 
         with pytest.raises(ValueError):
             heat_transfer_conduction(200, 0.01, 50, 0)
@@ -1328,7 +1328,7 @@ class TestColourSpaceConversions:
     """RGB ↔ HSV, RGB ↔ CMYK, luminance, contrast."""
 
     def test_rgb_to_hsv_red(self):
-        from agentfx.fxNumeric.conversion_functions import rgb_to_hsv
+        from shortfx.fxNumeric.conversion_functions import rgb_to_hsv
 
         h, s, v = rgb_to_hsv(255, 0, 0)
         assert h == 0.0
@@ -1336,18 +1336,18 @@ class TestColourSpaceConversions:
         assert v == 1.0
 
     def test_rgb_to_hsv_type_error(self):
-        from agentfx.fxNumeric.conversion_functions import rgb_to_hsv
+        from shortfx.fxNumeric.conversion_functions import rgb_to_hsv
 
         with pytest.raises(TypeError):
             rgb_to_hsv(255.0, 0, 0)
 
     def test_hsv_to_rgb_red(self):
-        from agentfx.fxNumeric.conversion_functions import hsv_to_rgb
+        from shortfx.fxNumeric.conversion_functions import hsv_to_rgb
 
         assert hsv_to_rgb(0.0, 1.0, 1.0) == (255, 0, 0)
 
     def test_rgb_hsv_roundtrip(self):
-        from agentfx.fxNumeric.conversion_functions import rgb_to_hsv, hsv_to_rgb
+        from shortfx.fxNumeric.conversion_functions import rgb_to_hsv, hsv_to_rgb
 
         h, s, v = rgb_to_hsv(100, 150, 200)
         r, g, b = hsv_to_rgb(h, s, v)
@@ -1356,22 +1356,22 @@ class TestColourSpaceConversions:
         assert abs(b - 200) <= 1
 
     def test_rgb_to_cmyk_red(self):
-        from agentfx.fxNumeric.conversion_functions import rgb_to_cmyk
+        from shortfx.fxNumeric.conversion_functions import rgb_to_cmyk
 
         assert rgb_to_cmyk(255, 0, 0) == (0.0, 1.0, 1.0, 0.0)
 
     def test_rgb_to_cmyk_black(self):
-        from agentfx.fxNumeric.conversion_functions import rgb_to_cmyk
+        from shortfx.fxNumeric.conversion_functions import rgb_to_cmyk
 
         assert rgb_to_cmyk(0, 0, 0) == (0.0, 0.0, 0.0, 1.0)
 
     def test_cmyk_to_rgb_red(self):
-        from agentfx.fxNumeric.conversion_functions import cmyk_to_rgb
+        from shortfx.fxNumeric.conversion_functions import cmyk_to_rgb
 
         assert cmyk_to_rgb(0.0, 1.0, 1.0, 0.0) == (255, 0, 0)
 
     def test_rgb_cmyk_roundtrip(self):
-        from agentfx.fxNumeric.conversion_functions import rgb_to_cmyk, cmyk_to_rgb
+        from shortfx.fxNumeric.conversion_functions import rgb_to_cmyk, cmyk_to_rgb
 
         c, m, y, k = rgb_to_cmyk(128, 64, 32)
         r, g, b = cmyk_to_rgb(c, m, y, k)
@@ -1380,22 +1380,22 @@ class TestColourSpaceConversions:
         assert abs(b - 32) <= 1
 
     def test_color_luminance_white(self):
-        from agentfx.fxNumeric.conversion_functions import color_luminance
+        from shortfx.fxNumeric.conversion_functions import color_luminance
 
         assert round(color_luminance(255, 255, 255), 1) == 1.0
 
     def test_color_luminance_black(self):
-        from agentfx.fxNumeric.conversion_functions import color_luminance
+        from shortfx.fxNumeric.conversion_functions import color_luminance
 
         assert color_luminance(0, 0, 0) == 0.0
 
     def test_color_contrast_ratio_bw(self):
-        from agentfx.fxNumeric.conversion_functions import color_contrast_ratio
+        from shortfx.fxNumeric.conversion_functions import color_contrast_ratio
 
         assert color_contrast_ratio(0, 0, 0, 255, 255, 255) == 21.0
 
     def test_color_contrast_ratio_same(self):
-        from agentfx.fxNumeric.conversion_functions import color_contrast_ratio
+        from shortfx.fxNumeric.conversion_functions import color_contrast_ratio
 
         assert color_contrast_ratio(128, 128, 128, 128, 128, 128) == 1.0
 
@@ -2004,36 +2004,36 @@ class TestKnudsenNumber:
 class TestPressureConvert:
 
     def test_atm_to_psi(self):
-        from agentfx.fxNumeric.conversion_functions import pressure_convert
+        from shortfx.fxNumeric.conversion_functions import pressure_convert
         result = pressure_convert(1, "atm", "psi")
         assert round(result, 4) == 14.6959
 
     def test_identity(self):
-        from agentfx.fxNumeric.conversion_functions import pressure_convert
+        from shortfx.fxNumeric.conversion_functions import pressure_convert
         result = pressure_convert(100, "pa", "pa")
         assert result == 100.0
 
 class TestEnergyConvert:
 
     def test_kwh_to_j(self):
-        from agentfx.fxNumeric.conversion_functions import energy_convert
+        from shortfx.fxNumeric.conversion_functions import energy_convert
         result = energy_convert(1, "kwh", "j")
         assert round(result) == 3_600_000
 
     def test_cal_to_j(self):
-        from agentfx.fxNumeric.conversion_functions import energy_convert
+        from shortfx.fxNumeric.conversion_functions import energy_convert
         result = energy_convert(1, "cal", "j")
         assert abs(result - 4.184) < 1e-6
 
 class TestSpeedConvert:
 
     def test_kmh_to_mph(self):
-        from agentfx.fxNumeric.conversion_functions import speed_convert
+        from shortfx.fxNumeric.conversion_functions import speed_convert
         result = speed_convert(100, "km/h", "mph")
         assert round(result, 4) == 62.1371
 
     def test_mach_to_ms(self):
-        from agentfx.fxNumeric.conversion_functions import speed_convert
+        from shortfx.fxNumeric.conversion_functions import speed_convert
         result = speed_convert(1, "mach", "m/s")
         assert result == 343.0
 
@@ -2045,89 +2045,89 @@ class TestSpeedConvert:
 class TestOhmsLaw:
 
     def test_solve_current(self):
-        from agentfx.fxNumeric.conversion_functions import ohms_law
+        from shortfx.fxNumeric.conversion_functions import ohms_law
         assert ohms_law(voltage=12, resistance=4) == 3.0
 
     def test_solve_voltage(self):
-        from agentfx.fxNumeric.conversion_functions import ohms_law
+        from shortfx.fxNumeric.conversion_functions import ohms_law
         assert ohms_law(current=3, resistance=4) == 12
 
     def test_solve_resistance(self):
-        from agentfx.fxNumeric.conversion_functions import ohms_law
+        from shortfx.fxNumeric.conversion_functions import ohms_law
         assert ohms_law(voltage=12, current=3) == 4.0
 
     def test_too_few(self):
-        from agentfx.fxNumeric.conversion_functions import ohms_law
+        from shortfx.fxNumeric.conversion_functions import ohms_law
         with pytest.raises(ValueError):
             ohms_law(voltage=12)
 
 class TestCoulombsLaw:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import coulombs_law
+        from shortfx.fxNumeric.conversion_functions import coulombs_law
         assert round(coulombs_law(1e-6, 2e-6, 0.05), 2) == 7.19
 
     def test_zero_distance(self):
-        from agentfx.fxNumeric.conversion_functions import coulombs_law
+        from shortfx.fxNumeric.conversion_functions import coulombs_law
         with pytest.raises(ValueError):
             coulombs_law(1e-6, 1e-6, 0)
 
 class TestGravitationalForce:
 
     def test_earth_surface(self):
-        from agentfx.fxNumeric.conversion_functions import gravitational_force
+        from shortfx.fxNumeric.conversion_functions import gravitational_force
         result = round(gravitational_force(5.972e24, 80, 6.371e6), 1)
         assert result == 785.6
 
     def test_zero_distance(self):
-        from agentfx.fxNumeric.conversion_functions import gravitational_force
+        from shortfx.fxNumeric.conversion_functions import gravitational_force
         with pytest.raises(ValueError):
             gravitational_force(1, 1, 0)
 
 class TestKineticEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import kinetic_energy
+        from shortfx.fxNumeric.conversion_functions import kinetic_energy
         assert kinetic_energy(10, 3) == 45.0
 
     def test_zero_velocity(self):
-        from agentfx.fxNumeric.conversion_functions import kinetic_energy
+        from shortfx.fxNumeric.conversion_functions import kinetic_energy
         assert kinetic_energy(10, 0) == 0.0
 
     def test_negative_mass(self):
-        from agentfx.fxNumeric.conversion_functions import kinetic_energy
+        from shortfx.fxNumeric.conversion_functions import kinetic_energy
         with pytest.raises(ValueError):
             kinetic_energy(-1, 5)
 
 class TestPotentialEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import potential_energy
+        from shortfx.fxNumeric.conversion_functions import potential_energy
         assert round(potential_energy(10, 5), 4) == 490.3325
 
     def test_zero_height(self):
-        from agentfx.fxNumeric.conversion_functions import potential_energy
+        from shortfx.fxNumeric.conversion_functions import potential_energy
         assert potential_energy(10, 0) == 0.0
 
 class TestEscapeVelocity:
 
     def test_earth(self):
-        from agentfx.fxNumeric.conversion_functions import escape_velocity
+        from shortfx.fxNumeric.conversion_functions import escape_velocity
         assert round(escape_velocity(5.972e24, 6.371e6), 0) == 11186.0
 
     def test_zero_radius(self):
-        from agentfx.fxNumeric.conversion_functions import escape_velocity
+        from shortfx.fxNumeric.conversion_functions import escape_velocity
         with pytest.raises(ValueError):
             escape_velocity(1e24, 0)
 
 class TestSnellsLaw:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import snells_law
+        from shortfx.fxNumeric.conversion_functions import snells_law
         assert round(snells_law(1.0, math.radians(30), 1.5), 6) == 0.339837
 
     def test_total_internal_reflection(self):
-        from agentfx.fxNumeric.conversion_functions import snells_law
+        from shortfx.fxNumeric.conversion_functions import snells_law
         with pytest.raises(ValueError):
             snells_law(1.5, math.radians(80), 1.0)
 
@@ -2391,12 +2391,12 @@ class TestPowerPhysics:
 class TestSpecificHeatEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import specific_heat_energy
+        from shortfx.fxNumeric.conversion_functions import specific_heat_energy
 
         assert specific_heat_energy(1, 4186, 10) == 41860.0
 
     def test_negative_mass(self):
-        from agentfx.fxNumeric.conversion_functions import specific_heat_energy
+        from shortfx.fxNumeric.conversion_functions import specific_heat_energy
 
         with pytest.raises(ValueError):
             specific_heat_energy(-1, 4186, 10)
@@ -2404,12 +2404,12 @@ class TestSpecificHeatEnergy:
 class TestBuoyantForce:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import buoyant_force
+        from shortfx.fxNumeric.conversion_functions import buoyant_force
 
         assert round(buoyant_force(1000, 0.01), 2) == 98.07
 
     def test_type_error(self):
-        from agentfx.fxNumeric.conversion_functions import buoyant_force
+        from shortfx.fxNumeric.conversion_functions import buoyant_force
 
         with pytest.raises(TypeError):
             buoyant_force("a", 0.01)
@@ -2417,12 +2417,12 @@ class TestBuoyantForce:
 class TestFrictionForce:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import friction_force
+        from shortfx.fxNumeric.conversion_functions import friction_force
 
         assert friction_force(100, 0.5) == 50.0
 
     def test_negative_coefficient(self):
-        from agentfx.fxNumeric.conversion_functions import friction_force
+        from shortfx.fxNumeric.conversion_functions import friction_force
 
         with pytest.raises(ValueError):
             friction_force(100, -0.5)
@@ -2430,12 +2430,12 @@ class TestFrictionForce:
 class TestPhotonEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import photon_energy
+        from shortfx.fxNumeric.conversion_functions import photon_energy
 
         assert photon_energy(5e14) == pytest.approx(3.313035075e-19)
 
     def test_negative_frequency(self):
-        from agentfx.fxNumeric.conversion_functions import photon_energy
+        from shortfx.fxNumeric.conversion_functions import photon_energy
 
         with pytest.raises(ValueError):
             photon_energy(-1)
@@ -2443,12 +2443,12 @@ class TestPhotonEnergy:
 class TestDeBroglieWavelength:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import de_broglie_wavelength
+        from shortfx.fxNumeric.conversion_functions import de_broglie_wavelength
 
         assert de_broglie_wavelength(9.109e-31, 1e6) == pytest.approx(7.274e-10, rel=1e-3)
 
     def test_zero_mass(self):
-        from agentfx.fxNumeric.conversion_functions import de_broglie_wavelength
+        from shortfx.fxNumeric.conversion_functions import de_broglie_wavelength
 
         with pytest.raises(ValueError):
             de_broglie_wavelength(0, 1e6)
@@ -2456,12 +2456,12 @@ class TestDeBroglieWavelength:
 class TestFocalLength:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import focal_length
+        from shortfx.fxNumeric.conversion_functions import focal_length
 
         assert round(focal_length(0.3, 0.6), 1) == 0.2
 
     def test_zero_distance(self):
-        from agentfx.fxNumeric.conversion_functions import focal_length
+        from shortfx.fxNumeric.conversion_functions import focal_length
 
         with pytest.raises(ValueError):
             focal_length(0, 0.6)
@@ -2469,12 +2469,12 @@ class TestFocalLength:
 class TestLensMagnification:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import lens_magnification
+        from shortfx.fxNumeric.conversion_functions import lens_magnification
 
         assert lens_magnification(0.6, 0.3) == -2.0
 
     def test_zero_object(self):
-        from agentfx.fxNumeric.conversion_functions import lens_magnification
+        from shortfx.fxNumeric.conversion_functions import lens_magnification
 
         with pytest.raises(ValueError):
             lens_magnification(0.6, 0)
@@ -2482,17 +2482,17 @@ class TestLensMagnification:
 class TestHalfLifeRemaining:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import half_life_remaining
+        from shortfx.fxNumeric.conversion_functions import half_life_remaining
 
         assert half_life_remaining(100, 5, 10) == 25.0
 
     def test_zero_time(self):
-        from agentfx.fxNumeric.conversion_functions import half_life_remaining
+        from shortfx.fxNumeric.conversion_functions import half_life_remaining
 
         assert half_life_remaining(100, 5, 0) == 100.0
 
     def test_negative_time(self):
-        from agentfx.fxNumeric.conversion_functions import half_life_remaining
+        from shortfx.fxNumeric.conversion_functions import half_life_remaining
 
         with pytest.raises(ValueError):
             half_life_remaining(100, 5, -1)
@@ -2500,12 +2500,12 @@ class TestHalfLifeRemaining:
 class TestCapacitorEnergy:
 
     def test_basic(self):
-        from agentfx.fxNumeric.conversion_functions import capacitor_energy
+        from shortfx.fxNumeric.conversion_functions import capacitor_energy
 
         assert capacitor_energy(0.001, 10) == 0.05
 
     def test_negative_capacitance(self):
-        from agentfx.fxNumeric.conversion_functions import capacitor_energy
+        from shortfx.fxNumeric.conversion_functions import capacitor_energy
 
         with pytest.raises(ValueError):
             capacitor_energy(-0.001, 10)

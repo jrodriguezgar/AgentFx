@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxNumeric.trigonometry_functions
+# Deep coverage tests for shortfx.fxNumeric.trigonometry_functions
 
-import agentfx.fxNumeric.trigonometry_functions as mod
+import shortfx.fxNumeric.trigonometry_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

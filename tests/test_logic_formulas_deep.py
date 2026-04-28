@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxExcel.logic_formulas
+# Deep coverage tests for shortfx.fxExcel.logic_formulas
 
-import agentfx.fxExcel.logic_formulas as mod
+import shortfx.fxExcel.logic_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

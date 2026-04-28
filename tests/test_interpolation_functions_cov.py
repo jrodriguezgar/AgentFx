@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.interpolation_functions
+# Coverage tests for shortfx.fxNumeric.interpolation_functions
 
-from agentfx.fxNumeric import interpolation_functions as mod
+from shortfx.fxNumeric import interpolation_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

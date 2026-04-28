@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxDate.date_evaluations
+# Coverage tests for shortfx.fxDate.date_evaluations
 from datetime import date, datetime
 
-from agentfx.fxDate import date_evaluations as mod
+from shortfx.fxDate import date_evaluations as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

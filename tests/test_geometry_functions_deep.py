@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxNumeric.geometry_functions
+# Deep coverage tests for shortfx.fxNumeric.geometry_functions
 
-import agentfx.fxNumeric.geometry_functions as mod
+import shortfx.fxNumeric.geometry_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

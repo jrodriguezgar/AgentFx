@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.number_theory_functions
+# Coverage tests for shortfx.fxNumeric.number_theory_functions
 
-from agentfx.fxNumeric import number_theory_functions as mod
+from shortfx.fxNumeric import number_theory_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -4,8 +4,8 @@ import re
 
 import pytest
 
-from agentfx.fxString.string_evaluations import is_valid_issn, is_valid_swift_bic
-from agentfx.fxString.string_operations import (
+from shortfx.fxString.string_evaluations import is_valid_issn, is_valid_swift_bic
+from shortfx.fxString.string_operations import (
     camel_to_snake,
     chunk_string,
     collapse_whitespace,
@@ -116,13 +116,13 @@ class TestGeneratePassword:
     """Cryptographic password generation."""
 
     def test_generate_password_length(self):
-        from agentfx.fxString.string_operations import generate_password
+        from shortfx.fxString.string_operations import generate_password
 
         pwd = generate_password(20)
         assert len(pwd) == 20
 
     def test_generate_password_has_all_categories(self):
-        from agentfx.fxString.string_operations import generate_password
+        from shortfx.fxString.string_operations import generate_password
 
         pwd = generate_password(16)
         assert any(c.isupper() for c in pwd)
@@ -131,27 +131,27 @@ class TestGeneratePassword:
         assert any(not c.isalnum() for c in pwd)
 
     def test_generate_password_no_special(self):
-        from agentfx.fxString.string_operations import generate_password
+        from shortfx.fxString.string_operations import generate_password
 
         pwd = generate_password(12, special=False)
         assert len(pwd) == 12
         assert all(c.isalnum() for c in pwd)
 
     def test_generate_password_digits_only(self):
-        from agentfx.fxString.string_operations import generate_password
+        from shortfx.fxString.string_operations import generate_password
 
         pwd = generate_password(8, uppercase=False, lowercase=False, digits=True, special=False)
         assert len(pwd) == 8
         assert pwd.isdigit()
 
     def test_generate_password_too_short(self):
-        from agentfx.fxString.string_operations import generate_password
+        from shortfx.fxString.string_operations import generate_password
 
         with pytest.raises(ValueError):
             generate_password(2)
 
     def test_generate_password_no_category(self):
-        from agentfx.fxString.string_operations import generate_password
+        from shortfx.fxString.string_operations import generate_password
 
         with pytest.raises(ValueError):
             generate_password(8, uppercase=False, lowercase=False, digits=False, special=False)

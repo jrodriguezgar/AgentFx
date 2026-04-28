@@ -1,8 +1,8 @@
-# Coverage tests for agentfx.fxNumeric.conversion_functions
+# Coverage tests for shortfx.fxNumeric.conversion_functions
 from decimal import Decimal
 import math
 
-from agentfx.fxNumeric import conversion_functions as mod
+from shortfx.fxNumeric import conversion_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

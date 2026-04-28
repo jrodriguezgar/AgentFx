@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxExcel.logic_formulas
+# Coverage tests for shortfx.fxExcel.logic_formulas
 
-from agentfx.fxExcel import logic_formulas as mod
+from shortfx.fxExcel import logic_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

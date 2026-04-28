@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_caseconv
+# Coverage tests for shortfx.fxString.string_caseconv
 
-from agentfx.fxString import string_caseconv as mod
+from shortfx.fxString import string_caseconv as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

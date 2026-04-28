@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     abel_polynomial,
     anger_j,
     bell_number,
@@ -56,7 +56,7 @@ from agentfx.fxNumeric import (
     wallis_product,
     weierstrass_p,
 )
-from agentfx.fxNumeric import special_functions as sf
+from shortfx.fxNumeric import special_functions as sf
 
 
 class TestCatalanNumber:
@@ -138,22 +138,22 @@ class TestBernsteinPolynomial:
     """Bernstein basis polynomial."""
 
     def test_bernstein_basic(self):
-        from agentfx.fxNumeric.special_functions import bernstein_polynomial
+        from shortfx.fxNumeric.special_functions import bernstein_polynomial
 
         assert bernstein_polynomial(3, 1, 0.5) == 0.375
 
     def test_bernstein_boundary_zero(self):
-        from agentfx.fxNumeric.special_functions import bernstein_polynomial
+        from shortfx.fxNumeric.special_functions import bernstein_polynomial
 
         assert bernstein_polynomial(5, 0, 0.0) == 1.0
 
     def test_bernstein_boundary_one(self):
-        from agentfx.fxNumeric.special_functions import bernstein_polynomial
+        from shortfx.fxNumeric.special_functions import bernstein_polynomial
 
         assert bernstein_polynomial(5, 5, 1.0) == 1.0
 
     def test_bernstein_partition_of_unity(self):
-        from agentfx.fxNumeric.special_functions import bernstein_polynomial
+        from shortfx.fxNumeric.special_functions import bernstein_polynomial
 
         n = 4
         t = 0.3
@@ -161,7 +161,7 @@ class TestBernsteinPolynomial:
         assert abs(total - 1.0) < 1e-10
 
     def test_bernstein_invalid_k(self):
-        from agentfx.fxNumeric.special_functions import bernstein_polynomial
+        from shortfx.fxNumeric.special_functions import bernstein_polynomial
 
         with pytest.raises(ValueError):
             bernstein_polynomial(3, 5, 0.5)
@@ -572,23 +572,23 @@ class TestErrorFunctions:
 class TestLegendrePolynomial:
 
     def test_p0(self):
-        from agentfx.fxNumeric.special_functions import legendre_polynomial
+        from shortfx.fxNumeric.special_functions import legendre_polynomial
         assert legendre_polynomial(0, 0.5) == 1.0
 
     def test_p1(self):
-        from agentfx.fxNumeric.special_functions import legendre_polynomial
+        from shortfx.fxNumeric.special_functions import legendre_polynomial
         assert legendre_polynomial(1, 0.5) == 0.5
 
     def test_p2(self):
-        from agentfx.fxNumeric.special_functions import legendre_polynomial
+        from shortfx.fxNumeric.special_functions import legendre_polynomial
         assert legendre_polynomial(2, 0.5) == pytest.approx(-0.125)
 
     def test_p3(self):
-        from agentfx.fxNumeric.special_functions import legendre_polynomial
+        from shortfx.fxNumeric.special_functions import legendre_polynomial
         assert legendre_polynomial(3, 0.0) == pytest.approx(0.0, abs=1e-10)
 
     def test_negative_n_raises(self):
-        from agentfx.fxNumeric.special_functions import legendre_polynomial
+        from shortfx.fxNumeric.special_functions import legendre_polynomial
 
         with pytest.raises(ValueError):
             legendre_polynomial(-1, 0.5)
@@ -596,15 +596,15 @@ class TestLegendrePolynomial:
 class TestAssociatedLegendre:
 
     def test_p10(self):
-        from agentfx.fxNumeric.special_functions import associated_legendre
+        from shortfx.fxNumeric.special_functions import associated_legendre
         assert associated_legendre(1, 0, 0.5) == pytest.approx(0.5)
 
     def test_p11(self):
-        from agentfx.fxNumeric.special_functions import associated_legendre
+        from shortfx.fxNumeric.special_functions import associated_legendre
         assert associated_legendre(1, 1, 0.5) == pytest.approx(-math.sqrt(0.75))
 
     def test_m_greater_than_n_raises(self):
-        from agentfx.fxNumeric.special_functions import associated_legendre
+        from shortfx.fxNumeric.special_functions import associated_legendre
 
         with pytest.raises(ValueError):
             associated_legendre(1, 2, 0.5)
@@ -612,136 +612,136 @@ class TestAssociatedLegendre:
 class TestHermitePolynomial:
 
     def test_h0(self):
-        from agentfx.fxNumeric.special_functions import hermite_polynomial
+        from shortfx.fxNumeric.special_functions import hermite_polynomial
         assert hermite_polynomial(0, 1.0) == 1.0
 
     def test_h1(self):
-        from agentfx.fxNumeric.special_functions import hermite_polynomial
+        from shortfx.fxNumeric.special_functions import hermite_polynomial
         assert hermite_polynomial(1, 2.0) == 4.0
 
     def test_h3(self):
-        from agentfx.fxNumeric.special_functions import hermite_polynomial
+        from shortfx.fxNumeric.special_functions import hermite_polynomial
         # H_3(2) = 8*8 - 12*2 = 40
         assert hermite_polynomial(3, 2.0) == pytest.approx(40.0)
 
 class TestLaguerrePolynomial:
 
     def test_l0(self):
-        from agentfx.fxNumeric.special_functions import laguerre_polynomial
+        from shortfx.fxNumeric.special_functions import laguerre_polynomial
         assert laguerre_polynomial(0, 1.0) == 1.0
 
     def test_l1(self):
-        from agentfx.fxNumeric.special_functions import laguerre_polynomial
+        from shortfx.fxNumeric.special_functions import laguerre_polynomial
         assert laguerre_polynomial(1, 1.0) == pytest.approx(0.0)
 
     def test_l2(self):
-        from agentfx.fxNumeric.special_functions import laguerre_polynomial
+        from shortfx.fxNumeric.special_functions import laguerre_polynomial
         # L_2(x) = (x^2 - 4x + 2)/2 => L_2(1) = -0.5
         assert laguerre_polynomial(2, 1.0) == pytest.approx(-0.5)
 
 class TestChebyshevPolynomials:
 
     def test_t0(self):
-        from agentfx.fxNumeric.special_functions import chebyshev_polynomial_first
+        from shortfx.fxNumeric.special_functions import chebyshev_polynomial_first
         assert chebyshev_polynomial_first(0, 0.5) == 1.0
 
     def test_t2(self):
-        from agentfx.fxNumeric.special_functions import chebyshev_polynomial_first
+        from shortfx.fxNumeric.special_functions import chebyshev_polynomial_first
         # T_2(x) = 2x^2 - 1
         assert chebyshev_polynomial_first(2, 0.5) == pytest.approx(-0.5)
 
     def test_u0(self):
-        from agentfx.fxNumeric.special_functions import chebyshev_polynomial_second
+        from shortfx.fxNumeric.special_functions import chebyshev_polynomial_second
         assert chebyshev_polynomial_second(0, 0.5) == 1.0
 
     def test_u2(self):
-        from agentfx.fxNumeric.special_functions import chebyshev_polynomial_second
+        from shortfx.fxNumeric.special_functions import chebyshev_polynomial_second
         # U_2(x) = 4x^2 - 1
         assert chebyshev_polynomial_second(2, 0.5) == pytest.approx(0.0)
 
 class TestBernoulliNumbers:
 
     def test_b0(self):
-        from agentfx.fxNumeric.special_functions import bernoulli_number
+        from shortfx.fxNumeric.special_functions import bernoulli_number
         assert bernoulli_number(0) == pytest.approx(1.0)
 
     def test_b1(self):
-        from agentfx.fxNumeric.special_functions import bernoulli_number
+        from shortfx.fxNumeric.special_functions import bernoulli_number
         assert bernoulli_number(1) == pytest.approx(-0.5)
 
     def test_b2(self):
-        from agentfx.fxNumeric.special_functions import bernoulli_number
+        from shortfx.fxNumeric.special_functions import bernoulli_number
         assert bernoulli_number(2) == pytest.approx(1.0 / 6.0)
 
     def test_odd_zero(self):
-        from agentfx.fxNumeric.special_functions import bernoulli_number
+        from shortfx.fxNumeric.special_functions import bernoulli_number
         assert bernoulli_number(3) == 0.0
         assert bernoulli_number(5) == 0.0
 
 class TestEulerNumbers:
 
     def test_e0(self):
-        from agentfx.fxNumeric.special_functions import euler_number
+        from shortfx.fxNumeric.special_functions import euler_number
         assert euler_number(0) == 1
 
     def test_e2(self):
-        from agentfx.fxNumeric.special_functions import euler_number
+        from shortfx.fxNumeric.special_functions import euler_number
         assert euler_number(2) == -1
 
     def test_e4(self):
-        from agentfx.fxNumeric.special_functions import euler_number
+        from shortfx.fxNumeric.special_functions import euler_number
         assert euler_number(4) == 5
 
     def test_odd_zero(self):
-        from agentfx.fxNumeric.special_functions import euler_number
+        from shortfx.fxNumeric.special_functions import euler_number
         assert euler_number(1) == 0
         assert euler_number(3) == 0
 
 class TestDigamma:
 
     def test_at_1(self):
-        from agentfx.fxNumeric.special_functions import digamma
+        from shortfx.fxNumeric.special_functions import digamma
         # psi(1) = -gamma (Euler-Mascheroni constant)
         assert digamma(1.0) == pytest.approx(-0.5772156649, rel=1e-5)
 
     def test_at_2(self):
-        from agentfx.fxNumeric.special_functions import digamma
+        from shortfx.fxNumeric.special_functions import digamma
         # psi(2) = 1 - gamma
         assert digamma(2.0) == pytest.approx(1.0 - 0.5772156649, rel=1e-5)
 
 class TestRiemannZeta:
 
     def test_zeta_2(self):
-        from agentfx.fxNumeric.special_functions import riemann_zeta
+        from shortfx.fxNumeric.special_functions import riemann_zeta
         assert riemann_zeta(2) == pytest.approx(math.pi ** 2 / 6, rel=1e-6)
 
     def test_zeta_4(self):
-        from agentfx.fxNumeric.special_functions import riemann_zeta
+        from shortfx.fxNumeric.special_functions import riemann_zeta
         assert riemann_zeta(4) == pytest.approx(math.pi ** 4 / 90, rel=1e-5)
 
 class TestEllipticIntegrals:
 
     def test_k_zero(self):
-        from agentfx.fxNumeric.special_functions import elliptic_k
+        from shortfx.fxNumeric.special_functions import elliptic_k
         assert elliptic_k(0) == pytest.approx(math.pi / 2)
 
     def test_e_zero(self):
-        from agentfx.fxNumeric.special_functions import elliptic_e
+        from shortfx.fxNumeric.special_functions import elliptic_e
         assert elliptic_e(0) == pytest.approx(math.pi / 2)
 
     def test_e_one(self):
-        from agentfx.fxNumeric.special_functions import elliptic_e
+        from shortfx.fxNumeric.special_functions import elliptic_e
         assert elliptic_e(1) == pytest.approx(1.0)
 
     def test_f_complete(self):
-        from agentfx.fxNumeric.special_functions import elliptic_f, elliptic_k
+        from shortfx.fxNumeric.special_functions import elliptic_f, elliptic_k
         # F(pi/2, k) == K(k)
         assert elliptic_f(math.pi / 2, 0.5) == pytest.approx(elliptic_k(0.5), rel=1e-3)
 
 class TestHypergeometric:
 
     def test_2f1_basic(self):
-        from agentfx.fxNumeric.special_functions import hypergeometric_2f1
+        from shortfx.fxNumeric.special_functions import hypergeometric_2f1
         # 2F1(1,1;2;0.5) = -ln(0.5)/0.5 = ln(2)/0.5? Actually = -ln(1-x)/x
         # 2F1(1,1;2;x) = -ln(1-x)/x
         assert hypergeometric_2f1(1, 1, 2, 0.5) == pytest.approx(
@@ -749,36 +749,36 @@ class TestHypergeometric:
         )
 
     def test_1f1_exp(self):
-        from agentfx.fxNumeric.special_functions import hypergeometric_1f1
+        from shortfx.fxNumeric.special_functions import hypergeometric_1f1
         # 1F1(1;1;1) = e
         assert hypergeometric_1f1(1, 1, 1) == pytest.approx(math.e, rel=1e-6)
 
 class TestAiryFunctions:
 
     def test_ai_zero(self):
-        from agentfx.fxNumeric.special_functions import airy_ai
+        from shortfx.fxNumeric.special_functions import airy_ai
         assert airy_ai(0) == pytest.approx(0.355028, rel=1e-3)
 
     def test_bi_zero(self):
-        from agentfx.fxNumeric.special_functions import airy_bi
+        from shortfx.fxNumeric.special_functions import airy_bi
         assert airy_bi(0) == pytest.approx(0.614927, rel=1e-3)
 
 class TestSphericalBessel:
 
     def test_j0(self):
-        from agentfx.fxNumeric.special_functions import spherical_bessel_j
+        from shortfx.fxNumeric.special_functions import spherical_bessel_j
         # j_0(x) = sin(x)/x
         assert spherical_bessel_j(0, 1.0) == pytest.approx(math.sin(1.0), rel=1e-10)
 
     def test_y0(self):
-        from agentfx.fxNumeric.special_functions import spherical_bessel_y
+        from shortfx.fxNumeric.special_functions import spherical_bessel_y
         # y_0(x) = -cos(x)/x
         assert spherical_bessel_y(0, 1.0) == pytest.approx(-math.cos(1.0), rel=1e-10)
 
 class TestSphericalHarmonic:
 
     def test_y00(self):
-        from agentfx.fxNumeric.special_functions import spherical_harmonic_real
+        from shortfx.fxNumeric.special_functions import spherical_harmonic_real
         # Y_0^0 = 1/sqrt(4pi)
         assert spherical_harmonic_real(0, 0, 0, 0) == pytest.approx(
             1.0 / math.sqrt(4 * math.pi), rel=1e-6

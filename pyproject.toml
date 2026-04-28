@@ -1,6 +1,6 @@
 [project]
-name = "agentfx"
-version = "0.3.0"
+name = "shortfx"
+version = "0.3.1"
 description = "3000+ deterministic Python functions for AI agents — MCP server, JSON Schema, zero deps"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,10 +37,10 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/jrodriguezgar/AgentFx"
-Repository = "https://github.com/jrodriguezgar/AgentFx"
-Issues = "https://github.com/jrodriguezgar/AgentFx/issues"
-Changelog = "https://github.com/jrodriguezgar/AgentFx/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/jrodriguezgar/shortfx"
+Repository = "https://github.com/jrodriguezgar/shortfx"
+Issues = "https://github.com/jrodriguezgar/shortfx/issues"
+Changelog = "https://github.com/jrodriguezgar/shortfx/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 mcp = ["mcp[cli]>=1.0.0"]
@@ -66,7 +66,7 @@ all = [
 ]
 
 [project.scripts]
-agentfx-mcp = "agentfx.mcp.server:main"
+shortfx-mcp = "shortfx.mcp.server:main"
 
 [dependency-groups]
 dev = [
@@ -90,17 +90,17 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["agentfx"]
+packages = ["shortfx"]
 
 [tool.coverage.run]
-source = ["agentfx"]
+source = ["shortfx"]
 omit = [
-    "agentfx/mcp/*",
-    "agentfx/mcp_server.py",
-    "agentfx/__main__.py",
-    "agentfx/semantic_search.py",
-    "agentfx/fxExcel/statistic_formulas.py",
-    "agentfx/fxExcel/engineering_formulas.py",
+    "shortfx/mcp/*",
+    "shortfx/mcp_server.py",
+    "shortfx/__main__.py",
+    "shortfx/semantic_search.py",
+    "shortfx/fxExcel/statistic_formulas.py",
+    "shortfx/fxExcel/engineering_formulas.py",
 ]
 
 [tool.coverage.report]

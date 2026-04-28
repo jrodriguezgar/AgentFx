@@ -1,7 +1,7 @@
 """Coverage tests for fxString modules."""
 import pytest
 
-from agentfx.fxString.string_operations import (
+from shortfx.fxString.string_operations import (
     reverse_string, count_occurrences, pad_start, pad_end,
     truncate_string, collapse_whitespace,
     repeat_string, replace_string,
@@ -138,7 +138,7 @@ class TestStringOperations:
         r = rot13("hello")
         assert isinstance(r, str)
 
-from agentfx.fxString.string_format import (
+from shortfx.fxString.string_format import (
     format_number, format_as_currency, format_as_percent,
     format_file_size,
     capitalize_string, mask_data, normalize_text,
@@ -205,7 +205,7 @@ class TestStringFormat:
         r = pluralize_count(3, "cat")
         assert isinstance(r, str)
 
-from agentfx.fxString.string_similarity import (
+from shortfx.fxString.string_similarity import (
     string_lcs_score, generate_ngrams,
 )
 
@@ -219,7 +219,7 @@ class TestStringSimilarity:
         r = generate_ngrams("hello", 2)
         assert isinstance(r, list)
 
-from agentfx.fxString.string_evaluations import (
+from shortfx.fxString.string_evaluations import (
     is_numeric as str_is_numeric, is_aZ, is_aZ09,
     is_palindrome, is_anagram, is_email_format,
     is_url_format, is_ipv4, is_ipv6,
@@ -284,7 +284,7 @@ class TestStringEvaluations:
     def test_has_numbers(self):
         assert has_numbers("abc123") is True
 
-from agentfx.fxString.string_caseconv import (
+from shortfx.fxString.string_caseconv import (
     to_camel_case, to_constant_case, to_kebab_case,
     to_pascal_case, to_slug, to_snake_case, to_title_case,
 )
@@ -307,7 +307,7 @@ class TestStringCaseConv:
     def test_title(self):
         assert to_title_case("hello world") == "Hello World"
 
-from agentfx.fxString.string_encoding import (
+from shortfx.fxString.string_encoding import (
     encode_base64, decode_base64, encode_url, decode_url,
     encode_html_entities, decode_html_entities,
     caesar_cipher as enc_caesar, vigenere_cipher,
@@ -331,7 +331,7 @@ class TestStringEncoding:
         r = vigenere_cipher("hello", "key")
         assert isinstance(r, str)
 
-from agentfx.fxString.string_hashing import fingerprint, hash_string
+from shortfx.fxString.string_hashing import fingerprint, hash_string
 
 class TestStringHashing:
     def test_hash_string(self):
@@ -341,7 +341,7 @@ class TestStringHashing:
         r = fingerprint("hello world test")
         assert isinstance(r, str)
 
-from agentfx.fxString.string_regex import (
+from shortfx.fxString.string_regex import (
     regex_match,
 )
 
@@ -350,7 +350,7 @@ class TestStringRegex:
         r = regex_match(r"\d+", "abc123")
         assert r is not None
 
-from agentfx.fxString.string_compression import compress_string, decompress_string
+from shortfx.fxString.string_compression import compress_string, decompress_string
 
 class TestStringCompression:
     def test_roundtrip(self):
@@ -358,7 +358,7 @@ class TestStringCompression:
         compressed = compress_string(original)
         assert decompress_string(compressed) == original
 
-from agentfx.fxString.string_convertions import (
+from shortfx.fxString.string_convertions import (
     integer_to_roman, roman_to_integer, text_to_binary, binary_to_text,
     base64_encode, base64_decode, text_to_hex, hex_to_text,
     text_to_morse, morse_to_text,
@@ -395,7 +395,7 @@ class TestStringConversions:
     def test_ordinal_suffix(self):
         assert ordinal_suffix(1) in ("st", "1st")
 
-from agentfx.fxString.string_validations import contains_digit, same_letters
+from shortfx.fxString.string_validations import contains_digit, same_letters
 
 class TestStringValidations:
     def test_contains_digit(self):

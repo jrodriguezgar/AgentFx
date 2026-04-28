@@ -1,8 +1,8 @@
-# GitHub Copilot Instructions - AgentFx
+# GitHub Copilot Instructions - shortfx
 
 ## Project Description
 
-AgentFx is a Python library that encapsulates complex programming logic into 3000+ reusable functions, organized like Excel formulas. It also serves as a **deterministic toolset for AI agents** via `llms.txt` and a built-in MCP server, enabling LLMs to discover and invoke functions for reliable, reproducible calculations.
+shortfx is a Python library that encapsulates complex programming logic into 3000+ reusable functions, organized like Excel formulas. It also serves as a **deterministic toolset for AI agents** via `llms.txt` and a built-in MCP server, enabling LLMs to discover and invoke functions for reliable, reproducible calculations.
 
 ---
 
@@ -45,10 +45,10 @@ Flat module hierarchy: 6 top-level `fx*` packages → submodule files → public
 
 ### Base Classes / Interfaces
 
-- `_loader.auto_export()` (`agentfx/_loader.py`): Central import machinery — all `fx*` packages depend on it
-- `_validators` (`agentfx/_validators.py`): Shared input validation (`ensure_type`, `ensure_numeric`, `ensure_positive`, etc.)
-- `registry` (`agentfx/registry.py`): Tool discovery, schema generation, and invocation dispatcher
-- `SemanticToolSearch` (`agentfx/semantic_search.py`): Vector-based function discovery via fastembed embeddings
+- `_loader.auto_export()` (`shortfx/_loader.py`): Central import machinery — all `fx*` packages depend on it
+- `_validators` (`shortfx/_validators.py`): Shared input validation (`ensure_type`, `ensure_numeric`, `ensure_positive`, etc.)
+- `registry` (`shortfx/registry.py`): Tool discovery, schema generation, and invocation dispatcher
+- `SemanticToolSearch` (`shortfx/semantic_search.py`): Vector-based function discovery via fastembed embeddings
 
 ---
 
@@ -69,12 +69,12 @@ Flat module hierarchy: 6 top-level `fx*` packages → submodule files → public
 
 | Function | Location | Purpose |
 | -------- | -------- | ------- |
-| `auto_export()` | `agentfx/_loader.py` | Dynamic re-export of submodule callables |
-| `get_tool_schemas()` | `agentfx/registry.py` | Build JSON Schemas for all functions |
-| `invoke_tool()` | `agentfx/registry.py` | Execute any function by qualified name |
-| `search_tools()` | `agentfx/registry.py` | Keyword/semantic search across the function catalogue |
-| `call_agentfx()` | `agentfx/mcp/server.py` | MCP tool: execute any function with JSON args |
-| `search_agentfx_tools()` | `agentfx/mcp/server.py` | MCP tool: natural-language function discovery |
+| `auto_export()` | `shortfx/_loader.py` | Dynamic re-export of submodule callables |
+| `get_tool_schemas()` | `shortfx/registry.py` | Build JSON Schemas for all functions |
+| `invoke_tool()` | `shortfx/registry.py` | Execute any function by qualified name |
+| `search_tools()` | `shortfx/registry.py` | Keyword/semantic search across the function catalogue |
+| `call_shortfx()` | `shortfx/mcp/server.py` | MCP tool: execute any function with JSON args |
+| `search_shortfx_tools()` | `shortfx/mcp/server.py` | MCP tool: natural-language function discovery |
 
 ---
 
@@ -83,7 +83,7 @@ Flat module hierarchy: 6 top-level `fx*` packages → submodule files → public
 ### Configuration Files
 
 - `pyproject.toml`: Project metadata, dependencies, build config, entry points
-- `agentfx/mcp/mcp.json`: MCP client configuration template
+- `shortfx/mcp/mcp.json`: MCP client configuration template
 
 ### Priority Resolution
 
@@ -107,7 +107,7 @@ Flat module hierarchy: 6 top-level `fx*` packages → submodule files → public
 
 ### Project-Specific
 
-- Use shared validators from `agentfx/_validators.py` (`ensure_type`, `ensure_numeric`, `ensure_positive`) — do not write ad-hoc `isinstance` checks
+- Use shared validators from `shortfx/_validators.py` (`ensure_type`, `ensure_numeric`, `ensure_positive`) — do not write ad-hoc `isinstance` checks
 - All functions must raise `TypeError` / `ValueError` with descriptive messages for invalid inputs
 - MCP server catches all exceptions and returns structured error JSON — never let exceptions crash the server
 
@@ -115,7 +115,7 @@ Flat module hierarchy: 6 top-level `fx*` packages → submodule files → public
 
 ## Best Practices for Copilot
 
-1. **When creating a new function**: Place it in the correct `fx*/<category>_functions.py` file. Use `_validators` for input checks. Follow the docstring format (Google style with `Args`, `Returns`, `Raises`, `Example`, `Complexity`). **Before committing the name**, search ALL other submodules in the same `fx*` package for an existing function with the same name — `auto_export()` will silently shadow it. Quick check: `grep -rn "^def func_name(" agentfx/fxPackage/`
+1. **When creating a new function**: Place it in the correct `fx*/<category>_functions.py` file. Use `_validators` for input checks. Follow the docstring format (Google style with `Args`, `Returns`, `Raises`, `Example`, `Complexity`). **Before committing the name**, search ALL other submodules in the same `fx*` package for an existing function with the same name — `auto_export()` will silently shadow it. Quick check: `grep -rn "^def func_name(" shortfx/fxPackage/`
 2. **When creating a new file in an existing module**: Add the file name to the module's `__init__.py` `_SUBMODULES` list — `auto_export()` handles the rest
 3. **When adding a new module**: Create `fx<Name>/` with `__init__.py` calling `auto_export()`, add submodule files, and update `README.md`
 4. **When updating docs**: Always update `CHANGELOG.md`, module `README.md`, and `llms.txt` in the same step as code changes
@@ -128,9 +128,9 @@ Flat module hierarchy: 6 top-level `fx*` packages → submodule files → public
 ### Adding a Function
 
 ```python
-# agentfx/fxNumeric/arithmetic_functions.py
+# shortfx/fxNumeric/arithmetic_functions.py
 
-from agentfx._validators import ensure_numeric
+from shortfx._validators import ensure_numeric
 
 
 def cube_root(x: float) -> float:
@@ -158,8 +158,8 @@ def cube_root(x: float) -> float:
 ### Registering a New File
 
 ```python
-# agentfx/fxNumeric/__init__.py
-from agentfx._loader import auto_export
+# shortfx/fxNumeric/__init__.py
+from shortfx._loader import auto_export
 
 _SUBMODULES = [
     "arithmetic_functions",
@@ -184,14 +184,14 @@ auto_export(__name__, _SUBMODULES, globals())
 When generating code, ensure:
 
 - [ ] Function has full Google-style docstring with `Args`, `Returns`, `Raises`, `Example`, `Complexity`
-- [ ] Input validation uses `agentfx/_validators.py` helpers
+- [ ] Input validation uses `shortfx/_validators.py` helpers
 - [ ] No external runtime dependencies added to core
 - [ ] No secrets or credentials hardcoded in source
 - [ ] Tests added/updated under `tests/`
 - [ ] `CHANGELOG.md` updated under `## [Unreleased]`
 - [ ] Module `README.md` and `llms.txt` updated if public API changed
 - [ ] No `eval()`, `exec()`, or `subprocess` in function code
-- [ ] No name collision with existing functions in the same `fx*` package (shadowing check via `grep -rn "^def <name>(" agentfx/fx*/`)
+- [ ] No name collision with existing functions in the same `fx*` package (shadowing check via `grep -rn "^def <name>(" shortfx/fx*/`)
 
 ## Response Quality
 

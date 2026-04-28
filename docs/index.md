@@ -3,12 +3,12 @@ hide:
   - navigation
 ---
 
-# AgentFx
+# shortfx
 
 > _"Write less, do more."_
 > _"The deterministic toolset your AI agents can trust."_
 
-**AgentFx** is a Python library that encapsulates complex programming logic into **3,000+ reusable functions**, organized like Excel formulas. It also serves as a **deterministic toolset for AI agents** via `llms.txt` and a built-in MCP server.
+**shortfx** is a Python library that encapsulates complex programming logic into **3,000+ reusable functions**, organized like Excel formulas. It also serves as a **deterministic toolset for AI agents** via `llms.txt` and a built-in MCP server.
 
 ---
 
@@ -64,7 +64,7 @@ hide:
 ## Quick Example
 
 ```python
-from agentfx import fxDate, fxExcel, fxNumeric
+from shortfx import fxDate, fxExcel, fxNumeric
 
 # Date arithmetic
 from datetime import datetime

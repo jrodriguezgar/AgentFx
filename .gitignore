@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════
-# AgentFx .gitignore — consolidated
+# ShortFx .gitignore — consolidated
 # ═══════════════════════════════════════════════════════════════════════
 
 # ── Python bytecode & extensions ─────────────────────────────────────
@@ -174,5 +174,5 @@ how_to_use_it.py
 project_structure.txt
 ToDo/
 notebooks/
-agentfx/fxString/quality_functions.md
+shortfx/fxString/quality_functions.md
 /_*.py

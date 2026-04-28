@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxDate.date_convertions
+# Coverage tests for shortfx.fxDate.date_convertions
 from datetime import date, datetime, time
 
-from agentfx.fxDate import date_convertions as mod
+from shortfx.fxDate import date_convertions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

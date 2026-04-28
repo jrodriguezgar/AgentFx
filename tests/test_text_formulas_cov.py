@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxExcel.text_formulas
+# Coverage tests for shortfx.fxExcel.text_formulas
 
-from agentfx.fxExcel import text_formulas as mod
+from shortfx.fxExcel import text_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

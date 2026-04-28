@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxNumeric.series_functions
+# Deep coverage tests for shortfx.fxNumeric.series_functions
 
-import agentfx.fxNumeric.series_functions as mod
+import shortfx.fxNumeric.series_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

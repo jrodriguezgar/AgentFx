@@ -1,7 +1,7 @@
-# Deep coverage tests for agentfx.fxPython.py_itertools
+# Deep coverage tests for shortfx.fxPython.py_itertools
 from datetime import date
 
-import agentfx.fxPython.py_itertools as mod
+import shortfx.fxPython.py_itertools as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

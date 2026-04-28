@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxVBA.misc_functions
+# Coverage tests for shortfx.fxVBA.misc_functions
 
-from agentfx.fxVBA import misc_functions as mod
+from shortfx.fxVBA import misc_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

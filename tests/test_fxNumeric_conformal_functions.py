@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     cayley_transform,
     exponential_map,
     inverse_cayley_transform,

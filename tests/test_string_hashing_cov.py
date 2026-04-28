@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_hashing
+# Coverage tests for shortfx.fxString.string_hashing
 
-from agentfx.fxString import string_hashing as mod
+from shortfx.fxString import string_hashing as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

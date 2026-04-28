@@ -2,7 +2,7 @@
 
 import math
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     christoffel_symbols_diagonal,
     geodesic_equation_rhs,
     kronecker_delta,

@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.numerical_methods_functions
+# Coverage tests for shortfx.fxNumeric.numerical_methods_functions
 
-from agentfx.fxNumeric import numerical_methods_functions as mod
+from shortfx.fxNumeric import numerical_methods_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

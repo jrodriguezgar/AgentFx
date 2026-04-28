@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_evaluations
+# Coverage tests for shortfx.fxString.string_evaluations
 
-from agentfx.fxString import string_evaluations as mod
+from shortfx.fxString import string_evaluations as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

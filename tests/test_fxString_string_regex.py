@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_regex
+# Coverage tests for shortfx.fxString.string_regex
 
-from agentfx.fxString import string_regex as mod
+from shortfx.fxString import string_regex as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

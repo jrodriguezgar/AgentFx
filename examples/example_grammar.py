@@ -1,6 +1,6 @@
 # --- Example of how to use UniversalSpellChecker ---
 
-from agentfx.fxString.string_spellcheck import UniversalSpellChecker
+from shortfx.fxString.string_spellcheck import UniversalSpellChecker
 
 # 1. Use case: Correcting specific names from a predefined list.
 print("--- Using UniversalSpellChecker with custom vocabulary ---")

@@ -3,33 +3,33 @@
 
 import pytest
 
-from agentfx.fxString.string_operations import caesar_cipher
+from shortfx.fxString.string_operations import caesar_cipher
 
 
 class TestCaesarCipher:
 
     def test_encrypt_basic(self):
-        from agentfx.fxString.string_encoding import caesar_cipher
+        from shortfx.fxString.string_encoding import caesar_cipher
 
         assert caesar_cipher("Hello World", 3) == "Khoor Zruog"
 
     def test_decrypt_basic(self):
-        from agentfx.fxString.string_encoding import caesar_cipher
+        from shortfx.fxString.string_encoding import caesar_cipher
 
         assert caesar_cipher("Khoor Zruog", 3, decrypt=True) == "Hello World"
 
     def test_shift_zero(self):
-        from agentfx.fxString.string_encoding import caesar_cipher
+        from shortfx.fxString.string_encoding import caesar_cipher
 
         assert caesar_cipher("abc", 0) == "abc"
 
     def test_non_alpha_preserved(self):
-        from agentfx.fxString.string_encoding import caesar_cipher
+        from shortfx.fxString.string_encoding import caesar_cipher
 
         assert caesar_cipher("123!@#", 5) == "123!@#"
 
     def test_type_error(self):
-        from agentfx.fxString.string_encoding import caesar_cipher
+        from shortfx.fxString.string_encoding import caesar_cipher
 
         with pytest.raises(TypeError):
             caesar_cipher(123, 3)
@@ -37,17 +37,17 @@ class TestCaesarCipher:
 class TestVigenereCipher:
 
     def test_encrypt(self):
-        from agentfx.fxString.string_encoding import vigenere_cipher
+        from shortfx.fxString.string_encoding import vigenere_cipher
 
         assert vigenere_cipher("Hello World", "KEY") == "Rijvs Uyvjn"
 
     def test_decrypt(self):
-        from agentfx.fxString.string_encoding import vigenere_cipher
+        from shortfx.fxString.string_encoding import vigenere_cipher
 
         assert vigenere_cipher("Rijvs Uyvjn", "KEY", decrypt=True) == "Hello World"
 
     def test_roundtrip(self):
-        from agentfx.fxString.string_encoding import vigenere_cipher
+        from shortfx.fxString.string_encoding import vigenere_cipher
 
         original = "Attack at dawn!"
         encrypted = vigenere_cipher(original, "SECRET")
@@ -55,7 +55,7 @@ class TestVigenereCipher:
         assert decrypted == original
 
     def test_invalid_key(self):
-        from agentfx.fxString.string_encoding import vigenere_cipher
+        from shortfx.fxString.string_encoding import vigenere_cipher
 
         with pytest.raises(ValueError):
             vigenere_cipher("text", "123")

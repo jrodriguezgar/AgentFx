@@ -1,7 +1,7 @@
-# AgentFx - Function Catalogue for LLMs
+# shortfx - Function Catalogue for LLMs
 
-> AgentFx is a Python library with 3000+ reusable functions organized like Excel formulas.
-> PyPI package: `agentfx` (`pip install agentfx`). Import as `import agentfx`.
+> shortfx is a Python library with 3000+ reusable functions organized like Excel formulas.
+> PyPI package: `shortfx` (`pip install shortfx`). Import as `import shortfx`.
 > This file helps LLMs discover function signatures and descriptions without calling a server.
 
 ## How to Use

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric.constants_functions import (
+from shortfx.fxNumeric.constants_functions import (
     E,
     PI,
     get_constant,

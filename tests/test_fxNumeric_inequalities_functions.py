@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     am_gm_inequality,
     am_hm_inequality,
     bernoulli_inequality,

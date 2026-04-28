@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_similarity
+# Coverage tests for shortfx.fxString.string_similarity
 
-from agentfx.fxString import string_similarity as mod
+from shortfx.fxString import string_similarity as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

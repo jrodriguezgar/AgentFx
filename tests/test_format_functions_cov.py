@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.format_functions
+# Coverage tests for shortfx.fxNumeric.format_functions
 
-from agentfx.fxNumeric import format_functions as mod
+from shortfx.fxNumeric import format_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

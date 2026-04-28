@@ -1,7 +1,7 @@
 """Tests for fxExcel.statistic_formulas."""
 
 
-from agentfx.fxExcel.statistic_formulas import AVERAGE
+from shortfx.fxExcel.statistic_formulas import AVERAGE
 
 
 def test_average():

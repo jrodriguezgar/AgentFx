@@ -1,6 +1,6 @@
-"""Tests for agentfx.registry."""
+"""Tests for shortfx.registry."""
 import pytest
-from agentfx.registry import get_tool_schemas, invoke_tool, search_tools
+from shortfx.registry import get_tool_schemas, invoke_tool, search_tools
 
 class TestGetToolSchemas:
     def test_returns_list(self):

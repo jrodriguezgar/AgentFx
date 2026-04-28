@@ -3,7 +3,7 @@
 
 import pytest
 
-from agentfx.fxString.string_format import format_file_size
+from shortfx.fxString.string_format import format_file_size
 
 
 class TestFormatFileSize:

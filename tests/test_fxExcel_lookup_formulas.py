@@ -3,7 +3,7 @@
 
 import pytest
 
-from agentfx.fxExcel.lookup_formulas import HLOOKUP, VLOOKUP
+from shortfx.fxExcel.lookup_formulas import HLOOKUP, VLOOKUP
 
 test_table = [
     ["Name", "Age", "City"],

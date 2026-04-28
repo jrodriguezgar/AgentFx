@@ -1,7 +1,7 @@
-# Deep coverage tests for agentfx.fxExcel.financial_formulas
+# Deep coverage tests for shortfx.fxExcel.financial_formulas
 from datetime import date, datetime
 
-import agentfx.fxExcel.financial_formulas as mod
+import shortfx.fxExcel.financial_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

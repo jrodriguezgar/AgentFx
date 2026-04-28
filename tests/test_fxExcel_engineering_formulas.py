@@ -3,7 +3,7 @@
 
 import pytest
 
-from agentfx.fxExcel.engineering_formulas import (
+from shortfx.fxExcel.engineering_formulas import (
     BIN2DEC,
     BIN2HEX,
     BIN2OCT,
@@ -17,7 +17,7 @@ from agentfx.fxExcel.engineering_formulas import (
     OCT2DEC,
     OCT2HEX,
 )
-from agentfx.fxNumeric.statistics_functions import quantile
+from shortfx.fxNumeric.statistics_functions import quantile
 
 
 class TestQuantile:

@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxPython.py_convertions
+# Coverage tests for shortfx.fxPython.py_convertions
 
-from agentfx.fxPython import py_convertions as mod
+from shortfx.fxPython import py_convertions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

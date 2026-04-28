@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.curves_functions
+# Coverage tests for shortfx.fxNumeric.curves_functions
 import math
 
-from agentfx.fxNumeric import curves_functions as mod
+from shortfx.fxNumeric import curves_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

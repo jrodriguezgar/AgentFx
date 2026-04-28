@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.conformal_functions
+# Coverage tests for shortfx.fxNumeric.conformal_functions
 
-from agentfx.fxNumeric import conformal_functions as mod
+from shortfx.fxNumeric import conformal_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -1,6 +1,6 @@
 # fxNumeric — Numeric & Mathematical Operations
 
-The largest module in AgentFx with 1,602 functions covering finance, statistics, geometry, transforms, series, number theory, and more.
+The largest module in shortfx with 1,602 functions covering finance, statistics, geometry, transforms, series, number theory, and more.
 
 ## Submodules
 
@@ -39,7 +39,7 @@ The largest module in AgentFx with 1,602 functions covering finance, statistics,
 ## Quick Examples
 
 ```python
-from agentfx.fxNumeric import finance_functions, statistics_functions, geometry_functions
+from shortfx.fxNumeric import finance_functions, statistics_functions, geometry_functions
 
 # Future Value
 fv = finance_functions.future_value(rate=0.05, nper=10, pmt=-100, pv=-1000)

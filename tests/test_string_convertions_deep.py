@@ -1,6 +1,6 @@
-# Deep coverage tests for agentfx.fxString.string_convertions
+# Deep coverage tests for shortfx.fxString.string_convertions
 
-import agentfx.fxString.string_convertions as mod
+import shortfx.fxString.string_convertions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

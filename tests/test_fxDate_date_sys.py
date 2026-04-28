@@ -1,7 +1,7 @@
 """Tests for fxDate.date_sys."""
 
 
-from agentfx.fxDate.date_sys import seconds_since_midnight
+from shortfx.fxDate.date_sys import seconds_since_midnight
 
 
 class TestSecondsSinceMidnight:

@@ -4,14 +4,14 @@
 
 ## Purpose
 
-Instead of requiring a running MCP server, `llms.txt` provides a **static index** of all AgentFx functions with their signatures and descriptions. An LLM can read this file and perform text search to find the right function.
+Instead of requiring a running MCP server, `llms.txt` provides a **static index** of all shortfx functions with their signatures and descriptions. An LLM can read this file and perform text search to find the right function.
 
 ## Format
 
 ```text
-# AgentFx - Function Catalogue for LLMs
+# shortfx - Function Catalogue for LLMs
 
-> AgentFx: 2,932 functions across 6 modules.
+> shortfx: 2,932 functions across 6 modules.
 
 ## fxDate.date_operations
 - add_time_to_date(date, amount, unit) → Add a specified amount of time to a date

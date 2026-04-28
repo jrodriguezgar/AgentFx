@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxPython.py_itertools
+# Coverage tests for shortfx.fxPython.py_itertools
 
-from agentfx.fxPython import py_itertools as mod
+from shortfx.fxPython import py_itertools as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from agentfx.fxNumeric import (
+from shortfx.fxNumeric import (
     capsule_surface_area,
     capsule_volume,
     circular_ring_perimeter,
@@ -215,93 +215,93 @@ class TestCuboidSpaceDiagonal:
 class TestDistance:
 
     def test_2d(self):
-        from agentfx.fxNumeric.geometry_functions import distance_2d
+        from shortfx.fxNumeric.geometry_functions import distance_2d
         assert distance_2d(0, 0, 3, 4) == pytest.approx(5.0)
 
     def test_3d(self):
-        from agentfx.fxNumeric.geometry_functions import distance_3d
+        from shortfx.fxNumeric.geometry_functions import distance_3d
         assert distance_3d(0, 0, 0, 1, 2, 2) == pytest.approx(3.0)
 
 class TestMidpoint:
 
     def test_2d(self):
-        from agentfx.fxNumeric.geometry_functions import midpoint_2d
+        from shortfx.fxNumeric.geometry_functions import midpoint_2d
         assert midpoint_2d(0, 0, 4, 6) == (2.0, 3.0)
 
     def test_3d(self):
-        from agentfx.fxNumeric.geometry_functions import midpoint_3d
+        from shortfx.fxNumeric.geometry_functions import midpoint_3d
         assert midpoint_3d(0, 0, 0, 2, 4, 6) == (1.0, 2.0, 3.0)
 
 class TestTriangleFormulas:
 
     def test_area_vertices(self):
-        from agentfx.fxNumeric.geometry_functions import triangle_area_vertices
+        from shortfx.fxNumeric.geometry_functions import triangle_area_vertices
         assert triangle_area_vertices(0, 0, 4, 0, 0, 3) == pytest.approx(6.0)
 
     def test_heron(self):
-        from agentfx.fxNumeric.geometry_functions import heron_formula
+        from shortfx.fxNumeric.geometry_functions import heron_formula
         assert heron_formula(3, 4, 5) == pytest.approx(6.0)
 
     def test_law_of_cosines_side(self):
-        from agentfx.fxNumeric.geometry_functions import law_of_cosines_side
+        from shortfx.fxNumeric.geometry_functions import law_of_cosines_side
         assert law_of_cosines_side(3, 4, math.pi / 2) == pytest.approx(5.0)
 
     def test_law_of_cosines_angle(self):
-        from agentfx.fxNumeric.geometry_functions import law_of_cosines_angle
+        from shortfx.fxNumeric.geometry_functions import law_of_cosines_angle
         assert law_of_cosines_angle(3, 4, 5) == pytest.approx(math.pi / 2, rel=1e-6)
 
 class TestCircleFormulas:
 
     def test_area(self):
-        from agentfx.fxNumeric.geometry_functions import circle_area
+        from shortfx.fxNumeric.geometry_functions import circle_area
         assert circle_area(1) == pytest.approx(math.pi)
 
     def test_circumference(self):
-        from agentfx.fxNumeric.geometry_functions import circle_circumference
+        from shortfx.fxNumeric.geometry_functions import circle_circumference
         assert circle_circumference(1) == pytest.approx(2 * math.pi)
 
     def test_sector_area(self):
-        from agentfx.fxNumeric.geometry_functions import sector_area
+        from shortfx.fxNumeric.geometry_functions import sector_area
         assert sector_area(2, math.pi / 2) == pytest.approx(math.pi)
 
     def test_arc_length(self):
-        from agentfx.fxNumeric.geometry_functions import arc_length
+        from shortfx.fxNumeric.geometry_functions import arc_length
         assert arc_length(2, math.pi) == pytest.approx(2 * math.pi)
 
 class TestSolidGeometry:
 
     def test_sphere_volume(self):
-        from agentfx.fxNumeric.geometry_functions import sphere_volume
+        from shortfx.fxNumeric.geometry_functions import sphere_volume
         assert sphere_volume(1) == pytest.approx(4 * math.pi / 3)
 
     def test_sphere_surface(self):
-        from agentfx.fxNumeric.geometry_functions import sphere_surface_area
+        from shortfx.fxNumeric.geometry_functions import sphere_surface_area
         assert sphere_surface_area(1) == pytest.approx(4 * math.pi)
 
     def test_cylinder_volume(self):
-        from agentfx.fxNumeric.geometry_functions import cylinder_volume
+        from shortfx.fxNumeric.geometry_functions import cylinder_volume
         assert cylinder_volume(2, 5) == pytest.approx(20 * math.pi)
 
     def test_cone_volume(self):
-        from agentfx.fxNumeric.geometry_functions import cone_volume
+        from shortfx.fxNumeric.geometry_functions import cone_volume
         assert cone_volume(3, 4) == pytest.approx(12 * math.pi)
 
     def test_ellipsoid_volume(self):
-        from agentfx.fxNumeric.geometry_functions import ellipsoid_volume
+        from shortfx.fxNumeric.geometry_functions import ellipsoid_volume
         assert ellipsoid_volume(2, 3, 4) == pytest.approx(32 * math.pi)
 
     def test_torus_volume(self):
-        from agentfx.fxNumeric.geometry_functions import torus_volume
+        from shortfx.fxNumeric.geometry_functions import torus_volume
         assert torus_volume(3, 1) == pytest.approx(6 * math.pi ** 2)
 
 class TestConicSections:
 
     def test_parabola_focus(self):
-        from agentfx.fxNumeric.geometry_functions import parabola_focus
+        from shortfx.fxNumeric.geometry_functions import parabola_focus
         assert parabola_focus(1) == (0, 0.25)
 
     def test_hyperbola_eccentricity(self):
-        from agentfx.fxNumeric.geometry_functions import hyperbola_eccentricity
+        from shortfx.fxNumeric.geometry_functions import hyperbola_eccentricity
         assert hyperbola_eccentricity(3, 4) == pytest.approx(5 / 3)
 
 

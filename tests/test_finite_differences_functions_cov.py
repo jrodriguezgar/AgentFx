@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxNumeric.finite_differences_functions
+# Coverage tests for shortfx.fxNumeric.finite_differences_functions
 
-from agentfx.fxNumeric import finite_differences_functions as mod
+from shortfx.fxNumeric import finite_differences_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

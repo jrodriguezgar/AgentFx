@@ -1,7 +1,7 @@
-# Coverage tests for agentfx.fxNumeric.complex_functions
+# Coverage tests for shortfx.fxNumeric.complex_functions
 import math
 
-from agentfx.fxNumeric import complex_functions as mod
+from shortfx.fxNumeric import complex_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

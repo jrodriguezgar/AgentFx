@@ -4,7 +4,7 @@ from datetime import date, datetime, time
 
 import pytest
 
-from agentfx.fxDate.date_convertions import (
+from shortfx.fxDate.date_convertions import (
     date_to_iso_week_date,
     datetime_to_iso8601,
     decimal_hours_to_time,
@@ -17,19 +17,19 @@ from agentfx.fxDate.date_convertions import (
     time_to_decimal_hours,
     unix_epoch_days,
 )
-from agentfx.fxString.string_convertions import hex_to_text, ordinal_suffix, text_to_hex
-from agentfx.fxString.string_operations import normalize_unicode
+from shortfx.fxString.string_convertions import hex_to_text, ordinal_suffix, text_to_hex
+from shortfx.fxString.string_operations import normalize_unicode
 
 
 class TestUnixEpochDay:
 
     def test_epoch_zero(self):
-        from agentfx.fxDate.date_convertions import unix_epoch_day
+        from shortfx.fxDate.date_convertions import unix_epoch_day
 
         assert unix_epoch_day(date(1970, 1, 1)) == 0
 
     def test_known_date(self):
-        from agentfx.fxDate.date_convertions import unix_epoch_day
+        from shortfx.fxDate.date_convertions import unix_epoch_day
 
         # 2026-04-08 is 20551 days after 1970-01-01
         assert unix_epoch_day(date(2026, 4, 8)) == (date(2026, 4, 8) - date(1970, 1, 1)).days
@@ -37,7 +37,7 @@ class TestUnixEpochDay:
 class TestDateToExcelTimestamp:
 
     def test_noon(self):
-        from agentfx.fxDate.date_convertions import date_to_excel_timestamp
+        from shortfx.fxDate.date_convertions import date_to_excel_timestamp
 
         result = date_to_excel_timestamp(datetime(2026, 4, 8, 12, 0, 0))
         # Integer part = date serial, fractional = 0.5 (noon)
@@ -47,13 +47,13 @@ class TestDateToExcelTimestamp:
 class TestTimeZoneOffset:
 
     def test_madrid_summer(self):
-        from agentfx.fxDate.date_convertions import time_zone_offset
+        from shortfx.fxDate.date_convertions import time_zone_offset
 
         result = time_zone_offset("Europe/Madrid", datetime(2026, 7, 1))
         assert result == "+02:00"
 
     def test_utc(self):
-        from agentfx.fxDate.date_convertions import time_zone_offset
+        from shortfx.fxDate.date_convertions import time_zone_offset
 
         result = time_zone_offset("UTC", datetime(2026, 1, 1))
         assert result == "+00:00"
@@ -181,7 +181,7 @@ class TestHexToText:
         assert hex_to_text("48656c6c6f") == "Hello"
 
     def test_roundtrip(self):
-        original = "AgentFx 2024!"
+        original = "shortfx 2024!"
         assert hex_to_text(text_to_hex(original)) == original
 
     def test_invalid_hex(self):

@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxDate.date_sys
+# Coverage tests for shortfx.fxDate.date_sys
 
-from agentfx.fxDate import date_sys as mod
+from shortfx.fxDate import date_sys as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

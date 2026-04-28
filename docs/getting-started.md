@@ -5,25 +5,25 @@
 === "pip"
 
     ```bash
-    pip install agentfx
+    pip install shortfx
     ```
 
 === "uv"
 
     ```bash
-    uv add agentfx
+    uv add shortfx
     ```
 
 ### Optional Dependencies
 
 | Extra | Command | Purpose |
 |-------|---------|---------|
-| `mcp` | `pip install agentfx[mcp]` | MCP server for AI agents |
-| `semantic` | `pip install agentfx[semantic]` | Semantic search via fastembed |
-| `mcp-semantic` | `pip install agentfx[mcp-semantic]` | MCP + semantic search |
-| `scipy` | `pip install agentfx[scipy]` | SciPy-backed statistical functions |
-| `similarity` | `pip install agentfx[similarity]` | Advanced string similarity |
-| `all` | `pip install agentfx[all]` | Everything |
+| `mcp` | `pip install shortfx[mcp]` | MCP server for AI agents |
+| `semantic` | `pip install shortfx[semantic]` | Semantic search via fastembed |
+| `mcp-semantic` | `pip install shortfx[mcp-semantic]` | MCP + semantic search |
+| `scipy` | `pip install shortfx[scipy]` | SciPy-backed statistical functions |
+| `similarity` | `pip install shortfx[similarity]` | Advanced string similarity |
+| `all` | `pip install shortfx[all]` | Everything |
 
 ## Basic Usage
 
@@ -31,7 +31,7 @@
 
 ```python
 from datetime import datetime
-from agentfx.fxDate import date_operations
+from shortfx.fxDate import date_operations
 
 # Add days to a date
 start_date = datetime(2025, 1, 15)
@@ -44,7 +44,7 @@ is_valid = date_operations.is_valid_date("2025-02-30")  # False
 ### Numeric & Financial Operations
 
 ```python
-from agentfx.fxNumeric import finance_functions
+from shortfx.fxNumeric import finance_functions
 
 # Calculate Future Value (FV)
 fv = finance_functions.future_value(rate=0.05, nper=10, pmt=-100, pv=-1000)
@@ -53,7 +53,7 @@ fv = finance_functions.future_value(rate=0.05, nper=10, pmt=-100, pv=-1000)
 ### String Manipulation
 
 ```python
-from agentfx.fxString import string_operations
+from shortfx.fxString import string_operations
 
 # Find substring positions
 text = "Programming is fun, programming is great"
@@ -64,7 +64,7 @@ positions = string_operations.position_in_string(text, "is")
 ### Python Utilities
 
 ```python
-from agentfx.fxPython import py_tools, py_itertools
+from shortfx.fxPython import py_tools, py_itertools
 
 # Create dictionary from parallel lists
 dictionary = py_tools.create_key_value_dictionary("id,name", (1, "Alice"))
@@ -76,7 +76,7 @@ first_items = py_itertools.take(3, range(10))  # [0, 1, 2]
 ### Excel-Style Functions
 
 ```python
-from agentfx import fxExcel
+from shortfx import fxExcel
 
 table = [
     ["Name", "Age", "City"],
@@ -91,7 +91,7 @@ greeting = fxExcel.CONCATENATE("Hello", " ", "World")  # "Hello World"
 ### VBA Compatibility
 
 ```python
-from agentfx import fxVBA
+from shortfx import fxVBA
 
 text = "Hello World"
 start = fxVBA.Left(text, 5)           # "Hello"

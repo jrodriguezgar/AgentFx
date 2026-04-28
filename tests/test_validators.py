@@ -1,6 +1,6 @@
-"""Tests for agentfx._validators."""
+"""Tests for shortfx._validators."""
 import pytest
-from agentfx._validators import (
+from shortfx._validators import (
     ensure_type, ensure_numeric, ensure_positive,
     ensure_non_negative, ensure_not_empty,
 )

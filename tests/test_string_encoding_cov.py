@@ -1,6 +1,6 @@
-# Coverage tests for agentfx.fxString.string_encoding
+# Coverage tests for shortfx.fxString.string_encoding
 
-from agentfx.fxString import string_encoding as mod
+from shortfx.fxString import string_encoding as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,
