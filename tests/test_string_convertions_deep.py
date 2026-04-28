@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxString.string_convertions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxString.string_convertions
 
-import formulite.fxString.string_convertions as mod
+import agentfx.fxString.string_convertions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

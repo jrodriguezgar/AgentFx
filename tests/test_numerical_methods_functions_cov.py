@@ -1,10 +1,6 @@
-# Coverage tests for formulite.fxNumeric.numerical_methods_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.fxNumeric.numerical_methods_functions
 
-from formulite.fxNumeric import numerical_methods_functions as mod
+from agentfx.fxNumeric import numerical_methods_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -3,7 +3,7 @@
 
 import pytest
 
-from formulite.fxString.string_format import format_file_size
+from agentfx.fxString.string_format import format_file_size
 
 
 class TestFormatFileSize:
@@ -29,4 +29,3 @@ class TestFormatFileSize:
 # fxString — string_evaluations.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxString.string_evaluations import is_balanced_brackets

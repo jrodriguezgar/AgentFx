@@ -1,10 +1,6 @@
-# Coverage tests for formulite.fxVBA.misc_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.fxVBA.misc_functions
 
-from formulite.fxVBA import misc_functions as mod
+from agentfx.fxVBA import misc_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

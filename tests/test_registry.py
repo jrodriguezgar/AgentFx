@@ -1,6 +1,6 @@
-"""Tests for formulite.registry."""
+"""Tests for agentfx.registry."""
 import pytest
-from formulite.registry import get_tool_schemas, invoke_tool, search_tools
+from agentfx.registry import get_tool_schemas, invoke_tool, search_tools
 
 class TestGetToolSchemas:
     def test_returns_list(self):

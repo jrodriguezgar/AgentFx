@@ -1,14 +1,14 @@
 """Tests for fxNumeric.finance_functions."""
 
 import math
-from datetime import date, datetime, time
+from datetime import date, datetime
 
 import pytest
 
-from formulite.fxDate.date_convertions import date_to_excel_serial, excel_serial_to_date
-from formulite.fxDate.date_evaluations import is_golden_hour, week_year
-from formulite.fxDate.date_operations import date_to_week_label
-from formulite.fxNumeric.finance_functions import (
+from agentfx.fxDate.date_convertions import date_to_excel_serial, excel_serial_to_date
+from agentfx.fxDate.date_evaluations import is_golden_hour, week_year
+from agentfx.fxDate.date_operations import date_to_week_label
+from agentfx.fxNumeric.finance_functions import (
     accounts_payable_turnover,
     acid_test_ratio,
     annuity_due_certain,
@@ -116,7 +116,6 @@ from formulite.fxNumeric.finance_functions import (
     yang_zhang_volatility,
     zero_coupon_price,
 )
-from formulite.fxNumeric.statistics_functions import leaky_relu, sigmoid
 
 
 class TestPaybackPeriod:
@@ -142,17 +141,17 @@ class TestPaybackPeriod:
 class TestBlackScholes:
 
     def test_call_price(self):
-        from formulite.fxNumeric.finance_functions import black_scholes_call
+        from agentfx.fxNumeric.finance_functions import black_scholes_call
 
         assert round(black_scholes_call(100, 100, 1, 0.05, 0.2), 2) == 10.45
 
     def test_put_price(self):
-        from formulite.fxNumeric.finance_functions import black_scholes_put
+        from agentfx.fxNumeric.finance_functions import black_scholes_put
 
         assert round(black_scholes_put(100, 100, 1, 0.05, 0.2), 2) == 5.57
 
     def test_put_call_parity(self):
-        from formulite.fxNumeric.finance_functions import (
+        from agentfx.fxNumeric.finance_functions import (
             black_scholes_call, black_scholes_put,
         )
 
@@ -164,7 +163,7 @@ class TestBlackScholes:
 class TestImpliedVolatility:
 
     def test_round_trip(self):
-        from formulite.fxNumeric.finance_functions import (
+        from agentfx.fxNumeric.finance_functions import (
             black_scholes_call, implied_volatility,
         )
 
@@ -175,7 +174,7 @@ class TestImpliedVolatility:
 class TestAltmanZScore:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import altman_z_score
+        from agentfx.fxNumeric.finance_functions import altman_z_score
 
         z = altman_z_score(50, 30, 40, 200, 100, 300, 250)
         assert isinstance(z, float)
@@ -184,7 +183,7 @@ class TestAltmanZScore:
 class TestMacaulayDuration:
 
     def test_par_bond(self):
-        from formulite.fxNumeric.finance_functions import macaulay_duration_simple
+        from agentfx.fxNumeric.finance_functions import macaulay_duration_simple
 
         dur = macaulay_duration_simple(0.05, 0.05, 10)
         # Duration should be positive and less than periods
@@ -193,7 +192,7 @@ class TestMacaulayDuration:
 class TestBondConvexity:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import bond_convexity
+        from agentfx.fxNumeric.finance_functions import bond_convexity
 
         conv = bond_convexity(0.05, 0.05, 10, 100)
         assert conv > 0
@@ -201,13 +200,13 @@ class TestBondConvexity:
 class TestVaR:
 
     def test_parametric(self):
-        from formulite.fxNumeric.finance_functions import var_parametric
+        from agentfx.fxNumeric.finance_functions import var_parametric
 
         var = var_parametric(1_000_000, 0.001, 0.02, 0.95)
         assert var > 0
 
     def test_expected_shortfall_greater(self):
-        from formulite.fxNumeric.finance_functions import (
+        from agentfx.fxNumeric.finance_functions import (
             var_parametric, expected_shortfall,
         )
 
@@ -218,13 +217,13 @@ class TestVaR:
 class TestMortgage:
 
     def test_total_cost(self):
-        from formulite.fxNumeric.finance_functions import mortgage_total_cost
+        from agentfx.fxNumeric.finance_functions import mortgage_total_cost
 
         total = mortgage_total_cost(200_000, 0.035, 30)
         assert total > 200_000
 
     def test_remaining_balance_decreases(self):
-        from formulite.fxNumeric.finance_functions import mortgage_remaining_balance
+        from agentfx.fxNumeric.finance_functions import mortgage_remaining_balance
 
         b60 = mortgage_remaining_balance(200_000, 0.035, 30, 60)
         b120 = mortgage_remaining_balance(200_000, 0.035, 30, 120)
@@ -236,21 +235,21 @@ class TestMortgage:
 class TestDdb:
 
     def test_period_1(self):
-        from formulite.fxNumeric.finance_functions import ddb
+        from agentfx.fxNumeric.finance_functions import ddb
         assert round(ddb(10000, 1000, 5, 1), 2) == 4000.0
 
     def test_period_2(self):
-        from formulite.fxNumeric.finance_functions import ddb
+        from agentfx.fxNumeric.finance_functions import ddb
         assert round(ddb(10000, 1000, 5, 2), 2) == 2400.0
 
     def test_period_exceeds_life(self):
-        from formulite.fxNumeric.finance_functions import ddb
+        from agentfx.fxNumeric.finance_functions import ddb
 
         with pytest.raises(ValueError):
             ddb(10000, 1000, 5, 6)
 
     def test_negative_cost(self):
-        from formulite.fxNumeric.finance_functions import ddb
+        from agentfx.fxNumeric.finance_functions import ddb
 
         with pytest.raises(ValueError):
             ddb(-100, 0, 5, 1)
@@ -258,15 +257,15 @@ class TestDdb:
 class TestIpmt:
 
     def test_first_period(self):
-        from formulite.fxNumeric.finance_functions import ipmt
+        from agentfx.fxNumeric.finance_functions import ipmt
         assert round(ipmt(0.1 / 12, 1, 36, 8000), 2) == -66.67
 
     def test_zero_rate(self):
-        from formulite.fxNumeric.finance_functions import ipmt
+        from agentfx.fxNumeric.finance_functions import ipmt
         assert ipmt(0, 1, 12, 1200) == 0.0
 
     def test_invalid_period(self):
-        from formulite.fxNumeric.finance_functions import ipmt
+        from agentfx.fxNumeric.finance_functions import ipmt
 
         with pytest.raises(ValueError):
             ipmt(0.05, 0, 12, 1000)
@@ -274,24 +273,24 @@ class TestIpmt:
 class TestPpmt:
 
     def test_first_period(self):
-        from formulite.fxNumeric.finance_functions import ppmt
+        from agentfx.fxNumeric.finance_functions import ppmt
         result = round(ppmt(0.1 / 12, 1, 36, 8000), 2)
         assert result == -191.47
 
 class TestMirr:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import mirr
+        from agentfx.fxNumeric.finance_functions import mirr
         assert round(mirr([-100, 50, 60, 70], 0.10, 0.12), 4) == 0.2598
 
     def test_no_negative(self):
-        from formulite.fxNumeric.finance_functions import mirr
+        from agentfx.fxNumeric.finance_functions import mirr
 
         with pytest.raises(ValueError):
             mirr([10, 20, 30], 0.10, 0.12)
 
     def test_no_positive(self):
-        from formulite.fxNumeric.finance_functions import mirr
+        from agentfx.fxNumeric.finance_functions import mirr
 
         with pytest.raises(ValueError):
             mirr([-100, -50], 0.10, 0.12)
@@ -302,18 +301,18 @@ class TestMirr:
 class TestTreynorRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import treynor_ratio
+        from agentfx.fxNumeric.finance_functions import treynor_ratio
 
         assert treynor_ratio(0.12, 0.03, 1.2) == pytest.approx(0.075)
 
     def test_zero_beta(self):
-        from formulite.fxNumeric.finance_functions import treynor_ratio
+        from agentfx.fxNumeric.finance_functions import treynor_ratio
 
         with pytest.raises(ValueError):
             treynor_ratio(0.12, 0.03, 0)
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import treynor_ratio
+        from agentfx.fxNumeric.finance_functions import treynor_ratio
 
         with pytest.raises(TypeError):
             treynor_ratio("a", 0.03, 1.2)
@@ -321,12 +320,12 @@ class TestTreynorRatio:
 class TestCalmarRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import calmar_ratio
+        from agentfx.fxNumeric.finance_functions import calmar_ratio
 
         assert calmar_ratio(0.15, 0.10) == pytest.approx(1.5)
 
     def test_zero_drawdown(self):
-        from formulite.fxNumeric.finance_functions import calmar_ratio
+        from agentfx.fxNumeric.finance_functions import calmar_ratio
 
         with pytest.raises(ValueError):
             calmar_ratio(0.15, 0)
@@ -334,12 +333,12 @@ class TestCalmarRatio:
 class TestKellyCriterion:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import kelly_criterion
+        from agentfx.fxNumeric.finance_functions import kelly_criterion
 
         assert kelly_criterion(0.6, 2.0) == pytest.approx(0.4)
 
     def test_bad_probability(self):
-        from formulite.fxNumeric.finance_functions import kelly_criterion
+        from agentfx.fxNumeric.finance_functions import kelly_criterion
 
         with pytest.raises(ValueError):
             kelly_criterion(1.5, 2.0)
@@ -347,12 +346,12 @@ class TestKellyCriterion:
 class TestBreakevenUnits:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import breakeven_units
+        from agentfx.fxNumeric.finance_functions import breakeven_units
 
         assert breakeven_units(10000, 50, 30) == 500.0
 
     def test_no_margin(self):
-        from formulite.fxNumeric.finance_functions import breakeven_units
+        from agentfx.fxNumeric.finance_functions import breakeven_units
 
         with pytest.raises(ValueError):
             breakeven_units(10000, 30, 30)
@@ -360,12 +359,12 @@ class TestBreakevenUnits:
 class TestCostOfEquityCapm:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import cost_of_equity_capm
+        from agentfx.fxNumeric.finance_functions import cost_of_equity_capm
 
         assert cost_of_equity_capm(0.03, 1.2, 0.10) == pytest.approx(0.114)
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import cost_of_equity_capm
+        from agentfx.fxNumeric.finance_functions import cost_of_equity_capm
 
         with pytest.raises(TypeError):
             cost_of_equity_capm("a", 1.2, 0.10)
@@ -373,12 +372,12 @@ class TestCostOfEquityCapm:
 class TestInformationRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import information_ratio
+        from agentfx.fxNumeric.finance_functions import information_ratio
 
         assert information_ratio(0.12, 0.10, 0.04) == pytest.approx(0.5)
 
     def test_zero_tracking(self):
-        from formulite.fxNumeric.finance_functions import information_ratio
+        from agentfx.fxNumeric.finance_functions import information_ratio
 
         with pytest.raises(ValueError):
             information_ratio(0.12, 0.10, 0)
@@ -389,18 +388,18 @@ class TestInformationRatio:
 class TestGordonGrowthPrice:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import gordon_growth_price
+        from agentfx.fxNumeric.finance_functions import gordon_growth_price
 
         assert gordon_growth_price(2.0, 0.10, 0.05) == 40.0
 
     def test_growth_ge_rate(self):
-        from formulite.fxNumeric.finance_functions import gordon_growth_price
+        from agentfx.fxNumeric.finance_functions import gordon_growth_price
 
         with pytest.raises(ValueError):
             gordon_growth_price(2.0, 0.10, 0.10)
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import gordon_growth_price
+        from agentfx.fxNumeric.finance_functions import gordon_growth_price
 
         with pytest.raises(TypeError):
             gordon_growth_price("a", 0.10, 0.05)
@@ -408,12 +407,12 @@ class TestGordonGrowthPrice:
 class TestEarningsYield:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import earnings_yield
+        from agentfx.fxNumeric.finance_functions import earnings_yield
 
         assert earnings_yield(5, 100) == 0.05
 
     def test_zero_price(self):
-        from formulite.fxNumeric.finance_functions import earnings_yield
+        from agentfx.fxNumeric.finance_functions import earnings_yield
 
         with pytest.raises(ValueError):
             earnings_yield(5, 0)
@@ -421,12 +420,12 @@ class TestEarningsYield:
 class TestMarketCap:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import market_cap
+        from agentfx.fxNumeric.finance_functions import market_cap
 
         assert market_cap(150, 1_000_000) == 150_000_000.0
 
     def test_negative_shares(self):
-        from formulite.fxNumeric.finance_functions import market_cap
+        from agentfx.fxNumeric.finance_functions import market_cap
 
         with pytest.raises(ValueError):
             market_cap(150, -1)
@@ -434,12 +433,12 @@ class TestMarketCap:
 class TestEnterpriseValueSimple:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import enterprise_value_simple
+        from agentfx.fxNumeric.finance_functions import enterprise_value_simple
 
         assert enterprise_value_simple(1_000_000, 200_000, 50_000) == 1_150_000.0
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import enterprise_value_simple
+        from agentfx.fxNumeric.finance_functions import enterprise_value_simple
 
         with pytest.raises(TypeError):
             enterprise_value_simple("a", 200_000, 50_000)
@@ -447,12 +446,12 @@ class TestEnterpriseValueSimple:
 class TestLeverageRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import leverage_ratio
+        from agentfx.fxNumeric.finance_functions import leverage_ratio
 
         assert leverage_ratio(500_000, 200_000) == 2.5
 
     def test_zero_equity(self):
-        from formulite.fxNumeric.finance_functions import leverage_ratio
+        from agentfx.fxNumeric.finance_functions import leverage_ratio
 
         with pytest.raises(ValueError):
             leverage_ratio(500_000, 0)
@@ -460,18 +459,18 @@ class TestLeverageRatio:
 class TestDividendDiscountPrice:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import dividend_discount_price
+        from agentfx.fxNumeric.finance_functions import dividend_discount_price
 
         assert round(dividend_discount_price(2.0, 0.10, 5), 4) == 7.5816
 
     def test_zero_periods(self):
-        from formulite.fxNumeric.finance_functions import dividend_discount_price
+        from agentfx.fxNumeric.finance_functions import dividend_discount_price
 
         with pytest.raises(ValueError):
             dividend_discount_price(2.0, 0.10, 0)
 
     def test_type_periods(self):
-        from formulite.fxNumeric.finance_functions import dividend_discount_price
+        from agentfx.fxNumeric.finance_functions import dividend_discount_price
 
         with pytest.raises(TypeError):
             dividend_discount_price(2.0, 0.10, 5.5)
@@ -1054,12 +1053,6 @@ class TestIsGoldenHour:
 # fxNumeric — finance_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.finance_functions import (
-    loan_to_value,
-    debt_to_income,
-    annuity_due_fv,
-    annuity_due_pv,
-)
 
 class TestLoanToValue:
     def test_basic(self):
@@ -1159,49 +1152,49 @@ class TestBlackScholesGreeks:
     """Black-Scholes vega, theta, rho."""
 
     def test_option_vega_bs_atm(self):
-        from formulite.fxNumeric.finance_functions import option_vega_bs
+        from agentfx.fxNumeric.finance_functions import option_vega_bs
 
         result = option_vega_bs(100, 100, 1.0, 0.05, 0.2)
         assert round(result, 2) == 37.52
 
     def test_option_vega_bs_type_error(self):
-        from formulite.fxNumeric.finance_functions import option_vega_bs
+        from agentfx.fxNumeric.finance_functions import option_vega_bs
 
         with pytest.raises(TypeError):
             option_vega_bs("100", 100, 1.0, 0.05, 0.2)
 
     def test_option_vega_bs_value_error(self):
-        from formulite.fxNumeric.finance_functions import option_vega_bs
+        from agentfx.fxNumeric.finance_functions import option_vega_bs
 
         with pytest.raises(ValueError):
             option_vega_bs(-1, 100, 1.0, 0.05, 0.2)
 
     def test_option_theta_bs_call(self):
-        from formulite.fxNumeric.finance_functions import option_theta_bs
+        from agentfx.fxNumeric.finance_functions import option_theta_bs
 
         result = option_theta_bs(100, 100, 1.0, 0.05, 0.2, "call")
         assert round(result, 2) == -6.41
 
     def test_option_theta_bs_put(self):
-        from formulite.fxNumeric.finance_functions import option_theta_bs
+        from agentfx.fxNumeric.finance_functions import option_theta_bs
 
         result = option_theta_bs(100, 100, 1.0, 0.05, 0.2, "put")
         assert result < 0
 
     def test_option_theta_bs_invalid_type(self):
-        from formulite.fxNumeric.finance_functions import option_theta_bs
+        from agentfx.fxNumeric.finance_functions import option_theta_bs
 
         with pytest.raises(ValueError):
             option_theta_bs(100, 100, 1.0, 0.05, 0.2, "other")
 
     def test_option_rho_bs_call(self):
-        from formulite.fxNumeric.finance_functions import option_rho_bs
+        from agentfx.fxNumeric.finance_functions import option_rho_bs
 
         result = option_rho_bs(100, 100, 1.0, 0.05, 0.2, "call")
         assert round(result, 2) == 53.23
 
     def test_option_rho_bs_put(self):
-        from formulite.fxNumeric.finance_functions import option_rho_bs
+        from agentfx.fxNumeric.finance_functions import option_rho_bs
 
         result = option_rho_bs(100, 100, 1.0, 0.05, 0.2, "put")
         assert result < 0
@@ -1210,48 +1203,48 @@ class TestPerpetuities:
     """Perpetuity and continuous compounding functions."""
 
     def test_present_value_perpetuity(self):
-        from formulite.fxNumeric.finance_functions import present_value_perpetuity
+        from agentfx.fxNumeric.finance_functions import present_value_perpetuity
 
         assert present_value_perpetuity(100, 0.05) == 2000.0
 
     def test_present_value_perpetuity_type_error(self):
-        from formulite.fxNumeric.finance_functions import present_value_perpetuity
+        from agentfx.fxNumeric.finance_functions import present_value_perpetuity
 
         with pytest.raises(TypeError):
             present_value_perpetuity("100", 0.05)
 
     def test_growing_perpetuity_pv(self):
-        from formulite.fxNumeric.finance_functions import growing_perpetuity_pv
+        from agentfx.fxNumeric.finance_functions import growing_perpetuity_pv
 
         result = growing_perpetuity_pv(100, 0.10, 0.03)
         assert round(result, 2) == 1428.57
 
     def test_growing_perpetuity_pv_growth_ge_rate(self):
-        from formulite.fxNumeric.finance_functions import growing_perpetuity_pv
+        from agentfx.fxNumeric.finance_functions import growing_perpetuity_pv
 
         with pytest.raises(ValueError):
             growing_perpetuity_pv(100, 0.05, 0.05)
 
     def test_growing_annuity_pv(self):
-        from formulite.fxNumeric.finance_functions import growing_annuity_pv
+        from agentfx.fxNumeric.finance_functions import growing_annuity_pv
 
         result = growing_annuity_pv(100, 0.10, 0.03, 20)
         assert round(result, 2) == 1045.05
 
     def test_continuous_compounding(self):
-        from formulite.fxNumeric.finance_functions import continuous_compounding
+        from agentfx.fxNumeric.finance_functions import continuous_compounding
 
         result = continuous_compounding(1000, 0.05, 10)
         assert round(result, 2) == 1648.72
 
     def test_discount_factor(self):
-        from formulite.fxNumeric.finance_functions import discount_factor
+        from agentfx.fxNumeric.finance_functions import discount_factor
 
         result = discount_factor(0.05, 10)
         assert round(result, 6) == 0.613913
 
     def test_discount_factor_type_error(self):
-        from formulite.fxNumeric.finance_functions import discount_factor
+        from agentfx.fxNumeric.finance_functions import discount_factor
 
         with pytest.raises(TypeError):
             discount_factor("0.05", 10)
@@ -1724,12 +1717,6 @@ class TestDateToWeekLabel:
 # fxNumeric — finance_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.finance_functions import (
-    markup_percentage,
-    markdown_percentage,
-    inflation_adjusted_value,
-    purchasing_power,
-)
 
 class TestMarkupPercentage:
 
@@ -1778,13 +1765,6 @@ class TestDateToExcelSerial:
 
 # ── fxNumeric · finance_functions ─────────────────────────────────────────
 
-from formulite.fxNumeric.finance_functions import (
-    net_asset_value,
-    unlevered_beta,
-    levered_beta,
-    bond_current_yield,
-    cost_of_debt_after_tax,
-)
 
 class TestNetAssetValue:
 
@@ -1859,13 +1839,6 @@ class TestWeekYear:
 
 # ── fxNumeric · finance_functions ────────────────────────────────────
 
-from formulite.fxNumeric.finance_functions import (
-    modified_dietz_return,
-    omega_ratio,
-    ulcer_index,
-    effective_duration,
-    convexity_adjustment,
-)
 
 class TestModifiedDietzReturn:
 
@@ -1954,23 +1927,23 @@ class TestEffectiveDuration:
 class TestWacc:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import wacc
+        from agentfx.fxNumeric.finance_functions import wacc
         result = wacc(600_000, 400_000, 0.08, 0.05, 0.30)
         assert round(result, 4) == 0.062
 
     def test_all_equity(self):
-        from formulite.fxNumeric.finance_functions import wacc
+        from agentfx.fxNumeric.finance_functions import wacc
         result = wacc(1_000_000, 0, 0.10, 0.05, 0.30)
         assert round(result, 4) == 0.1
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import wacc
+        from agentfx.fxNumeric.finance_functions import wacc
 
         with pytest.raises(TypeError):
             wacc("x", 400_000, 0.08, 0.05, 0.30)
 
     def test_value_error_negative(self):
-        from formulite.fxNumeric.finance_functions import wacc
+        from agentfx.fxNumeric.finance_functions import wacc
 
         with pytest.raises(ValueError):
             wacc(-1, 400_000, 0.08, 0.05, 0.30)
@@ -1978,47 +1951,47 @@ class TestWacc:
 class TestCapm:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import capm
+        from agentfx.fxNumeric.finance_functions import capm
         result = capm(0.03, 1.2, 0.10)
         assert round(result, 4) == 0.114
 
     def test_zero_beta(self):
-        from formulite.fxNumeric.finance_functions import capm
+        from agentfx.fxNumeric.finance_functions import capm
         result = capm(0.03, 0.0, 0.10)
         assert round(result, 4) == 0.03
 
 class TestSharpeRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import sharpe_ratio
+        from agentfx.fxNumeric.finance_functions import sharpe_ratio
         result = sharpe_ratio([0.05, 0.02, 0.07, -0.01, 0.04])
         assert round(result, 4) == 1.2465
 
     def test_with_rfr(self):
-        from formulite.fxNumeric.finance_functions import sharpe_ratio
+        from agentfx.fxNumeric.finance_functions import sharpe_ratio
         result = sharpe_ratio([0.05, 0.02, 0.07, -0.01, 0.04], 0.01)
         assert result > 0
 
 class TestSortinoRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import sortino_ratio
+        from agentfx.fxNumeric.finance_functions import sortino_ratio
         result = sortino_ratio([0.05, 0.02, 0.07, -0.01, 0.04])
         assert result > 0
 
     def test_no_downside(self):
-        from formulite.fxNumeric.finance_functions import sortino_ratio
+        from agentfx.fxNumeric.finance_functions import sortino_ratio
         result = sortino_ratio([0.05, 0.02, 0.07, 0.01, 0.04])
         assert result == float("inf")
 
 class TestDebtToEquity:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import debt_to_equity
+        from agentfx.fxNumeric.finance_functions import debt_to_equity
         assert debt_to_equity(500_000, 250_000) == 2.0
 
     def test_zero_equity(self):
-        from formulite.fxNumeric.finance_functions import debt_to_equity
+        from agentfx.fxNumeric.finance_functions import debt_to_equity
 
         with pytest.raises(ValueError):
             debt_to_equity(500_000, 0)
@@ -2031,96 +2004,96 @@ class TestDebtToEquity:
 class TestRuleOf72:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import rule_of_72
+        from agentfx.fxNumeric.finance_functions import rule_of_72
         assert rule_of_72(0.06) == 12.0
 
     def test_high_rate(self):
-        from formulite.fxNumeric.finance_functions import rule_of_72
+        from agentfx.fxNumeric.finance_functions import rule_of_72
         assert rule_of_72(0.12) == 6.0
 
     def test_zero_rate(self):
-        from formulite.fxNumeric.finance_functions import rule_of_72
+        from agentfx.fxNumeric.finance_functions import rule_of_72
         with pytest.raises(ValueError):
             rule_of_72(0)
 
 class TestRealRateOfReturn:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import real_rate_of_return
+        from agentfx.fxNumeric.finance_functions import real_rate_of_return
         assert round(real_rate_of_return(0.08, 0.03), 6) == 0.048544
 
     def test_zero_inflation(self):
-        from formulite.fxNumeric.finance_functions import real_rate_of_return
+        from agentfx.fxNumeric.finance_functions import real_rate_of_return
         assert round(real_rate_of_return(0.05, 0.0), 10) == 0.05
 
     def test_invalid_inflation(self):
-        from formulite.fxNumeric.finance_functions import real_rate_of_return
+        from agentfx.fxNumeric.finance_functions import real_rate_of_return
         with pytest.raises(ValueError):
             real_rate_of_return(0.05, -1)
 
 class TestGrossMargin:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import gross_margin
+        from agentfx.fxNumeric.finance_functions import gross_margin
         assert gross_margin(100000, 60000) == 0.4
 
     def test_zero_revenue(self):
-        from formulite.fxNumeric.finance_functions import gross_margin
+        from agentfx.fxNumeric.finance_functions import gross_margin
         with pytest.raises(ValueError):
             gross_margin(0, 100)
 
 class TestOperatingMargin:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import operating_margin
+        from agentfx.fxNumeric.finance_functions import operating_margin
         assert operating_margin(25000, 100000) == 0.25
 
     def test_zero_revenue(self):
-        from formulite.fxNumeric.finance_functions import operating_margin
+        from agentfx.fxNumeric.finance_functions import operating_margin
         with pytest.raises(ValueError):
             operating_margin(1000, 0)
 
 class TestCurrentRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import current_ratio
+        from agentfx.fxNumeric.finance_functions import current_ratio
         assert current_ratio(150000, 100000) == 1.5
 
     def test_zero_liabilities(self):
-        from formulite.fxNumeric.finance_functions import current_ratio
+        from agentfx.fxNumeric.finance_functions import current_ratio
         with pytest.raises(ValueError):
             current_ratio(100, 0)
 
 class TestReturnOnAssets:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import return_on_assets
+        from agentfx.fxNumeric.finance_functions import return_on_assets
         assert return_on_assets(50000, 500000) == 0.1
 
     def test_zero_assets(self):
-        from formulite.fxNumeric.finance_functions import return_on_assets
+        from agentfx.fxNumeric.finance_functions import return_on_assets
         with pytest.raises(ValueError):
             return_on_assets(100, 0)
 
 class TestReturnOnEquity:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import return_on_equity
+        from agentfx.fxNumeric.finance_functions import return_on_equity
         assert return_on_equity(50000, 200000) == 0.25
 
     def test_zero_equity(self):
-        from formulite.fxNumeric.finance_functions import return_on_equity
+        from agentfx.fxNumeric.finance_functions import return_on_equity
         with pytest.raises(ValueError):
             return_on_equity(100, 0)
 
 class TestEarningsPerShare:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import earnings_per_share
+        from agentfx.fxNumeric.finance_functions import earnings_per_share
         assert earnings_per_share(1000000, 500000) == 2.0
 
     def test_zero_shares(self):
-        from formulite.fxNumeric.finance_functions import earnings_per_share
+        from agentfx.fxNumeric.finance_functions import earnings_per_share
         with pytest.raises(ValueError):
             earnings_per_share(100, 0)
 
@@ -2356,18 +2329,18 @@ class TestEffectiveAnnualRate:
 class TestDebtServiceCoverage:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import debt_service_coverage
+        from agentfx.fxNumeric.finance_functions import debt_service_coverage
 
         assert debt_service_coverage(120000, 100000) == 1.2
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import debt_service_coverage
+        from agentfx.fxNumeric.finance_functions import debt_service_coverage
 
         with pytest.raises(TypeError):
             debt_service_coverage("a", 100000)
 
     def test_zero_debt(self):
-        from formulite.fxNumeric.finance_functions import debt_service_coverage
+        from agentfx.fxNumeric.finance_functions import debt_service_coverage
 
         with pytest.raises(ValueError):
             debt_service_coverage(100000, 0)
@@ -2375,18 +2348,18 @@ class TestDebtServiceCoverage:
 class TestBurnRate:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import burn_rate
+        from agentfx.fxNumeric.finance_functions import burn_rate
 
         assert burn_rate(500000, 350000, 6) == 25000.0
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import burn_rate
+        from agentfx.fxNumeric.finance_functions import burn_rate
 
         with pytest.raises(TypeError):
             burn_rate("a", 350000, 6)
 
     def test_zero_months(self):
-        from formulite.fxNumeric.finance_functions import burn_rate
+        from agentfx.fxNumeric.finance_functions import burn_rate
 
         with pytest.raises(ValueError):
             burn_rate(500000, 350000, 0)
@@ -2394,12 +2367,12 @@ class TestBurnRate:
 class TestMonthsOfRunway:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import months_of_runway
+        from agentfx.fxNumeric.finance_functions import months_of_runway
 
         assert months_of_runway(300000, 25000) == 12.0
 
     def test_zero_burn(self):
-        from formulite.fxNumeric.finance_functions import months_of_runway
+        from agentfx.fxNumeric.finance_functions import months_of_runway
 
         with pytest.raises(ValueError):
             months_of_runway(300000, 0)
@@ -2407,12 +2380,12 @@ class TestMonthsOfRunway:
 class TestRevenuePerEmployee:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import revenue_per_employee
+        from agentfx.fxNumeric.finance_functions import revenue_per_employee
 
         assert revenue_per_employee(1000000, 50) == 20000.0
 
     def test_zero_employees(self):
-        from formulite.fxNumeric.finance_functions import revenue_per_employee
+        from agentfx.fxNumeric.finance_functions import revenue_per_employee
 
         with pytest.raises(ValueError):
             revenue_per_employee(1000000, 0)
@@ -2420,12 +2393,12 @@ class TestRevenuePerEmployee:
 class TestFixedChargeCoverage:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import fixed_charge_coverage
+        from agentfx.fxNumeric.finance_functions import fixed_charge_coverage
 
         assert fixed_charge_coverage(200000, 80000) == pytest.approx(3.5)
 
     def test_type_error(self):
-        from formulite.fxNumeric.finance_functions import fixed_charge_coverage
+        from agentfx.fxNumeric.finance_functions import fixed_charge_coverage
 
         with pytest.raises(TypeError):
             fixed_charge_coverage("a", 80000)
@@ -2433,12 +2406,12 @@ class TestFixedChargeCoverage:
 class TestOperatingCashFlowRatio:
 
     def test_basic(self):
-        from formulite.fxNumeric.finance_functions import operating_cash_flow_ratio
+        from agentfx.fxNumeric.finance_functions import operating_cash_flow_ratio
 
         assert operating_cash_flow_ratio(150000, 100000) == 1.5
 
     def test_zero_liabilities(self):
-        from formulite.fxNumeric.finance_functions import operating_cash_flow_ratio
+        from agentfx.fxNumeric.finance_functions import operating_cash_flow_ratio
 
         with pytest.raises(ValueError):
             operating_cash_flow_ratio(150000, 0)

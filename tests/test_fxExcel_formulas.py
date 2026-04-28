@@ -1,9 +1,9 @@
-'''Tests for formulite.fxExcel modules (excluding engineering/statistic).'''
+'''Tests for agentfx.fxExcel modules (excluding engineering/statistic).'''
 import pytest
 from datetime import datetime
 
 # -- database_formulas --
-from formulite.fxExcel.database_formulas import (
+from agentfx.fxExcel.database_formulas import (
     DAVERAGE, DCOUNT, DMAX, DMIN, DSUM, DGET,
 )
 
@@ -32,7 +32,7 @@ class TestDatabase:
         assert r == "Alice"
 
 # -- information_formulas --
-from formulite.fxExcel.information_formulas import (
+from agentfx.fxExcel.information_formulas import (
     ISBLANK, ISERROR, ISLOGICAL, ISNUMBER, ISTEXT, TYPE,
 )
 
@@ -51,7 +51,7 @@ class TestInformation:
         assert TYPE(1) == 1
 
 # -- logic_formulas --
-from formulite.fxExcel.logic_formulas import (
+from agentfx.fxExcel.logic_formulas import (
     AND, OR, NOT, IF, IFERROR, XOR,
 )
 
@@ -73,7 +73,7 @@ class TestLogicFormulas:
         assert XOR(True, True) is False
 
 # -- math_formulas --
-from formulite.fxExcel.math_formulas import (
+from agentfx.fxExcel.math_formulas import (
     ABS, CEILING, FLOOR, INT, MOD, POWER, ROUND,
     SQRT, SUM, SUMPRODUCT, PRODUCT, SIGN,
 )
@@ -105,7 +105,7 @@ class TestMathFormulas:
         assert SIGN(5) == 1 and SIGN(-5) == -1 and SIGN(0) == 0
 
 # -- text_formulas --
-from formulite.fxExcel.text_formulas import (
+from agentfx.fxExcel.text_formulas import (
     CONCATENATE, LEFT, RIGHT, MID, LEN, LOWER, UPPER, TRIM,
     FIND, SEARCH, SUBSTITUTE, REPT, TEXT,
 )
@@ -140,7 +140,7 @@ class TestTextFormulas:
         assert isinstance(r, str)
 
 # -- lookup_formulas --
-from formulite.fxExcel.lookup_formulas import (
+from agentfx.fxExcel.lookup_formulas import (
     VLOOKUP, HLOOKUP, INDEX, MATCH, CHOOSE,
 )
 
@@ -160,7 +160,7 @@ class TestLookup:
         assert CHOOSE(2, "a", "b", "c") == "b"
 
 # -- date_formulas --
-from formulite.fxExcel.date_formulas import (
+from agentfx.fxExcel.date_formulas import (
     TODAY, NOW, YEAR, MONTH, DAY, DATE, EDATE, EOMONTH,
     WEEKDAY, WEEKNUM, DAYS,
 )

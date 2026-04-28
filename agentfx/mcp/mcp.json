@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agentfx": {
+      "command": "python",
+      "args": ["-m", "agentfx.mcp"],
+      "env": {}
+    }
+  }
+}

@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxNumeric.coordinate_systems_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
+# Coverage tests for agentfx.fxNumeric.coordinate_systems_functions
 import math
 
-from formulite.fxNumeric import coordinate_systems_functions as mod
+from agentfx.fxNumeric import coordinate_systems_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

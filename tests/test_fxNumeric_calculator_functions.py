@@ -4,8 +4,7 @@ import math
 
 import pytest
 
-from formulite.fxNumeric.arithmetic_functions import factorial
-from formulite.fxNumeric.calculator_functions import evaluate_expression, list_available_constants, list_available_functions
+from agentfx.fxNumeric.calculator_functions import evaluate_expression, list_available_constants, list_available_functions
 
 
 class TestEvaluateExpression:

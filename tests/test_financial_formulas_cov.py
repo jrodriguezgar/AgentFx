@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxExcel.financial_formulas
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.fxExcel.financial_formulas
+from datetime import date, datetime
 
-from formulite.fxExcel import financial_formulas as mod
+from agentfx.fxExcel import financial_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

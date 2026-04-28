@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     centroid_circular_sector,
     centroid_cone,
     centroid_hemisphere,

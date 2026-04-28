@@ -1,10 +1,6 @@
-# Coverage tests for formulite.fxNumeric.random_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.fxNumeric.random_functions
 
-from formulite.fxNumeric import random_functions as mod
+from agentfx.fxNumeric import random_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

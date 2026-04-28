@@ -1,12 +1,11 @@
 """Coverage tests for fxDate modules."""
 import pytest
-from datetime import date, datetime, timedelta, time
+from datetime import date, datetime, time
 
 # date_convertions
-from formulite.fxDate.date_convertions import (
-    date_to_string, date_to_iso_format, date_to_julian,
-    julian_to_date, date_to_excel_serial, excel_serial_to_date,
-    seconds_to_hms, hms_to_seconds, datetime_to_date,
+from agentfx.fxDate.date_convertions import (
+    date_to_excel_serial, excel_serial_to_date,
+    seconds_to_hms, datetime_to_date,
     datetime_to_timestamp, timestamp_to_datetime,
     datetime_to_iso8601, iso8601_to_datetime,
     datetime_to_milliseconds_timestamp, milliseconds_timestamp_to_datetime,
@@ -76,21 +75,13 @@ class TestDateConvertions:
         assert isinstance(r, (int, float))
 
 # date_operations
-from formulite.fxDate.date_operations import (
-    add_months, add_years, add_time_to_date,
-    calculate_days_between_dates, days_between, months_between_dates,
+from agentfx.fxDate.date_operations import (
     day_of_year, days_in_month, days_remaining_in_year,
-    end_of_month, start_of_month, start_of_quarter, end_of_quarter,
-    start_of_year, end_of_year, first_day_of_week, last_day_of_week,
     next_business_day, previous_business_day,
-    get_nth_weekday_of_month, last_weekday_of_month,
-    clamp_date, date_range, fiscal_quarter,
-    is_leap_year, is_weekend, is_working_day,
-    week_number, weekday_name, weekday_number, month_name,
-    get_quarter, get_season, age,
+    get_nth_weekday_of_month, clamp_date, date_range, fiscal_quarter,
+    is_leap_year, age,
     string_to_date, string_to_datetime,
-    networkdays, workday, date_part,
-    human_readable_duration,
+    networkdays,
 )
 
 class TestDateOperations:
@@ -137,15 +128,14 @@ class TestDateOperations:
         assert isinstance(r, int)
 
 # date_evaluations  
-from formulite.fxDate.date_evaluations import (
+from agentfx.fxDate.date_evaluations import (
     is_weekday, is_future, is_past, is_today,
     is_same_day, is_same_month, is_same_year,
     is_first_day_of_month, is_last_day_of_month,
     is_first_of_month, is_end_of_month, is_end_of_quarter,
     is_date_in_range, is_friday_13th, is_palindrome_date,
-    zodiac_sign, chinese_zodiac, moon_phase,
-    days_until_next_birthday, fiscal_quarter as eval_fiscal_quarter,
-    century_of_date, generation_name,
+    zodiac_sign, chinese_zodiac, days_until_next_birthday, fiscal_quarter as eval_fiscal_quarter,
+    century_of_date,
 )
 
 class TestDateEvaluations:
@@ -198,8 +188,8 @@ class TestDateEvaluations:
         assert century_of_date(date(2026, 1, 1)) == 21
 
 # date_sys
-from formulite.fxDate.date_sys import (
-    current_date, current_time, current_datetime, current_year,
+from agentfx.fxDate.date_sys import (
+    current_time, current_datetime, current_year,
     current_month, current_day, current_quarter, current_season,
     current_week_number, current_weekday_name,
     current_is_leap_year, current_is_weekend,

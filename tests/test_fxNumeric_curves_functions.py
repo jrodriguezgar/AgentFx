@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     bezier_cubic,
     bezier_quadratic,
     brachistochrone_time,
@@ -34,7 +34,7 @@ from formulite.fxNumeric import (
     surface_area_revolution,
     tautochrone_period,
 )
-from formulite.fxNumeric import curves_functions as cf
+from agentfx.fxNumeric import curves_functions as cf
 
 
 class TestFermatSpiral:

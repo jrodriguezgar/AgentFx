@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxNumeric.trigonometry_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxNumeric.trigonometry_functions
 
-import formulite.fxNumeric.trigonometry_functions as mod
+import agentfx.fxNumeric.trigonometry_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

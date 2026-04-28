@@ -1,10 +1,8 @@
-# Coverage tests for formulite.fxNumeric.conversion_functions
-import pytest
-from datetime import date, datetime, time, timedelta
+# Coverage tests for agentfx.fxNumeric.conversion_functions
 from decimal import Decimal
 import math
 
-from formulite.fxNumeric import conversion_functions as mod
+from agentfx.fxNumeric import conversion_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

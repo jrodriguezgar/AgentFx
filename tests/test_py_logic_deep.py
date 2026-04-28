@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxPython.py_logic
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxPython.py_logic
 
-import formulite.fxPython.py_logic as mod
+import agentfx.fxPython.py_logic as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

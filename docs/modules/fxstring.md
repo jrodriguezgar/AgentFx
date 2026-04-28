@@ -23,7 +23,7 @@ Advanced text manipulation, regex, hashing, validation, encoding, similarity alg
 ## Quick Examples
 
 ```python
-from formulite.fxString import string_operations, string_validations
+from agentfx.fxString import string_operations, string_validations
 
 # Find substring positions
 text = "Programming is fun, programming is great"

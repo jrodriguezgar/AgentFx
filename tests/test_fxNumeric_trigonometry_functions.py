@@ -5,66 +5,45 @@ from datetime import datetime
 
 import pytest
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
+    along_track_distance,
     angle_bisector_length,
     angular_deficiency,
+    annular_sector_area,
     annulus_area,
+    arbelos_area,
     arc_length,
     cartesian_to_cylindrical,
     cartesian_to_polar,
     cartesian_to_spherical,
     chord_length,
-    circular_segment_height,
-    cone_slant_height,
-    cylindrical_to_cartesian,
-    damped_oscillation,
-    gudermannian,
-    hacoverversine,
-    hyperbolic_distance,
-    inverse_gudermannian,
-    normalize_angle,
-    polar_to_cartesian,
-    regular_polygon_interior_angle,
-    regular_polygon_perimeter,
-    rhombus_area,
-    sagitta,
-    sector_area,
-    segment_area,
-    sinusoidal_wave,
-    spherical_law_of_cosines,
-    spherical_to_cartesian,
-    stadium_area,
-)
-from formulite.fxNumeric.conversion_functions import radiation_dose_convert
-from formulite.fxNumeric.finance_functions import profitability_index
-from formulite.fxNumeric.number_theory_functions import is_cube_number, is_perfect_power
-from formulite.fxNumeric.trigonometry_functions import (
-    along_track_distance,
-    annular_sector_area,
-    arbelos_area,
-    cartesian_to_polar,
-    cartesian_to_spherical,
     circular_ring_area,
     circular_sector_area,
     circular_segment_area,
     circular_segment_chord,
+    circular_segment_height,
     cone_slant_height,
     coversine,
     cross_track_distance,
     cyclic_polygon_radius,
+    cylindrical_to_cartesian,
+    damped_oscillation,
     ellipse_circumference_approx,
     ellipsoid_volume,
     epicycloid_arc_length,
     frustum_lateral_area,
     geodesic_area,
     gudermannian,
+    hacoverversine,
     haversine_angle,
     haversine_distance,
     hexagon_area,
+    hyperbolic_distance,
     hypocycloid_arc_length,
     inscribed_angle,
     inverse_gudermannian,
     lens_area,
+    normalize_angle,
     paraboloid_volume,
     parallelogram_area,
     polar_to_cartesian,
@@ -74,12 +53,16 @@ from formulite.fxNumeric.trigonometry_functions import (
     regular_polygon_interior_angle,
     regular_polygon_perimeter,
     reuleaux_triangle_area,
+    rhombus_area,
     sagitta,
     salinon_area,
     sector_arc_length,
+    sector_area,
     segment_area,
     sinc,
+    sinusoidal_wave,
     solar_elevation,
+    spherical_law_of_cosines,
     spherical_lune_area,
     spherical_sector_volume,
     spherical_to_cartesian,
@@ -92,6 +75,8 @@ from formulite.fxNumeric.trigonometry_functions import (
     vincenty_distance,
     wedge_volume,
 )
+from agentfx.fxNumeric.conversion_functions import radiation_dose_convert
+from agentfx.fxNumeric.finance_functions import profitability_index
 
 
 class TestProfitabilityIndex:
@@ -115,15 +100,6 @@ class TestProfitabilityIndex:
 
 # ── Trigonometry ─────────────────────────────────────────────────────────────
 
-from formulite.fxNumeric.trigonometry_functions import (
-    sinc,
-    polar_to_cartesian,
-    cartesian_to_polar,
-    spherical_to_cartesian,
-    cartesian_to_spherical,
-    haversine_distance,
-    normalize_angle,
-)
 
 class TestSinc:
 
@@ -200,7 +176,7 @@ class TestHaversineDistance:
 class TestBearing:
 
     def test_madrid_to_paris(self):
-        from formulite.fxNumeric.trigonometry_functions import bearing
+        from agentfx.fxNumeric.trigonometry_functions import bearing
 
         b = bearing(40.4168, -3.7038, 48.8566, 2.3522)
         assert 20 < b < 30
@@ -208,7 +184,7 @@ class TestBearing:
 class TestDestinationPoint:
 
     def test_northward(self):
-        from formulite.fxNumeric.trigonometry_functions import destination_point
+        from agentfx.fxNumeric.trigonometry_functions import destination_point
 
         lat, lon = destination_point(0, 0, 0, 111.195)  # ~1 degree north
         assert lat == pytest.approx(1.0, abs=0.1)
@@ -216,7 +192,7 @@ class TestDestinationPoint:
 class TestMidpointGeo:
 
     def test_symmetry(self):
-        from formulite.fxNumeric.trigonometry_functions import midpoint_geo
+        from agentfx.fxNumeric.trigonometry_functions import midpoint_geo
 
         mlat, mlon = midpoint_geo(0, 0, 0, 10)
         assert mlon == pytest.approx(5.0, abs=0.1)
@@ -224,31 +200,31 @@ class TestMidpointGeo:
 class TestPointInCircle:
 
     def test_inside(self):
-        from formulite.fxNumeric.trigonometry_functions import point_in_circle
+        from agentfx.fxNumeric.trigonometry_functions import point_in_circle
 
         assert point_in_circle(1, 1, 0, 0, 2) is True
 
     def test_outside(self):
-        from formulite.fxNumeric.trigonometry_functions import point_in_circle
+        from agentfx.fxNumeric.trigonometry_functions import point_in_circle
 
         assert point_in_circle(3, 0, 0, 0, 2) is False
 
 class TestPointInTriangle:
 
     def test_inside(self):
-        from formulite.fxNumeric.trigonometry_functions import point_in_triangle
+        from agentfx.fxNumeric.trigonometry_functions import point_in_triangle
 
         assert point_in_triangle(1, 1, 0, 0, 4, 0, 0, 4) is True
 
     def test_outside(self):
-        from formulite.fxNumeric.trigonometry_functions import point_in_triangle
+        from agentfx.fxNumeric.trigonometry_functions import point_in_triangle
 
         assert point_in_triangle(5, 5, 0, 0, 4, 0, 0, 4) is False
 
 class TestTriangleCentroid:
 
     def test_right_triangle(self):
-        from formulite.fxNumeric.trigonometry_functions import triangle_centroid
+        from agentfx.fxNumeric.trigonometry_functions import triangle_centroid
 
         cx, cy = triangle_centroid(0, 0, 3, 0, 0, 3)
         assert (cx, cy) == (1.0, 1.0)
@@ -256,21 +232,21 @@ class TestTriangleCentroid:
 class TestTriangleIncircleRadius:
 
     def test_345_triangle(self):
-        from formulite.fxNumeric.trigonometry_functions import triangle_incircle_radius
+        from agentfx.fxNumeric.trigonometry_functions import triangle_incircle_radius
 
         assert round(triangle_incircle_radius(3, 4, 5), 6) == 1.0
 
 class TestTriangleCircumradius:
 
     def test_345_triangle(self):
-        from formulite.fxNumeric.trigonometry_functions import triangle_circumradius
+        from agentfx.fxNumeric.trigonometry_functions import triangle_circumradius
 
         assert round(triangle_circumradius(3, 4, 5), 6) == 2.5
 
 class TestRotation2D:
 
     def test_90_degrees(self):
-        from formulite.fxNumeric.trigonometry_functions import rotation_2d
+        from agentfx.fxNumeric.trigonometry_functions import rotation_2d
 
         rx, ry = rotation_2d(1, 0, math.pi / 2)
         assert round(rx, 10) == 0.0
@@ -279,22 +255,22 @@ class TestRotation2D:
 class TestDistancePointToLine:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import distance_point_to_line
+        from agentfx.fxNumeric.trigonometry_functions import distance_point_to_line
 
         assert distance_point_to_line(1, 1, 0, 0, 2, 0) == 1.0
 
 class TestTriangleAreaSas:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import triangle_area_sas
+        from agentfx.fxNumeric.trigonometry_functions import triangle_area_sas
         assert round(triangle_area_sas(5, 7, math.pi / 6), 4) == 8.75
 
     def test_right_angle(self):
-        from formulite.fxNumeric.trigonometry_functions import triangle_area_sas
+        from agentfx.fxNumeric.trigonometry_functions import triangle_area_sas
         assert round(triangle_area_sas(3, 4, math.pi / 2), 4) == 6.0
 
     def test_zero_side(self):
-        from formulite.fxNumeric.trigonometry_functions import triangle_area_sas
+        from agentfx.fxNumeric.trigonometry_functions import triangle_area_sas
 
         with pytest.raises(ValueError):
             triangle_area_sas(0, 5, 1.0)
@@ -302,23 +278,23 @@ class TestTriangleAreaSas:
 class TestLawOfCosinesSide:
 
     def test_equilateral_hint(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_cosines_side
+        from agentfx.fxNumeric.trigonometry_functions import law_of_cosines_side
         # Equilateral triangle: a=b=5, angle=60° → c=5
         assert round(law_of_cosines_side(5, 5, math.pi / 3), 4) == 5.0
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_cosines_side
+        from agentfx.fxNumeric.trigonometry_functions import law_of_cosines_side
         assert round(law_of_cosines_side(5, 7, math.pi / 3), 4) == 6.2450
 
 class TestLawOfCosinesAngle:
 
     def test_right_triangle(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_cosines_angle
+        from agentfx.fxNumeric.trigonometry_functions import law_of_cosines_angle
         # 3-4-5 right triangle: angle opposite 5 = pi/2
         assert round(law_of_cosines_angle(3, 4, 5), 4) == 1.5708
 
     def test_invalid_triangle(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_cosines_angle
+        from agentfx.fxNumeric.trigonometry_functions import law_of_cosines_angle
 
         with pytest.raises(ValueError):
             law_of_cosines_angle(1, 1, 10)
@@ -329,12 +305,12 @@ class TestLawOfCosinesAngle:
 class TestRegularPolygonArea:
 
     def test_hexagon(self):
-        from formulite.fxNumeric.trigonometry_functions import regular_polygon_area
+        from agentfx.fxNumeric.trigonometry_functions import regular_polygon_area
 
         assert round(regular_polygon_area(6, 2), 4) == 10.3923
 
     def test_too_few_sides(self):
-        from formulite.fxNumeric.trigonometry_functions import regular_polygon_area
+        from agentfx.fxNumeric.trigonometry_functions import regular_polygon_area
 
         with pytest.raises(ValueError):
             regular_polygon_area(2, 1)
@@ -342,12 +318,12 @@ class TestRegularPolygonArea:
 class TestFrustumVolume:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import frustum_volume
+        from agentfx.fxNumeric.trigonometry_functions import frustum_volume
 
         assert round(frustum_volume(2, 4, 5), 4) == 146.6077
 
     def test_negative_height(self):
-        from formulite.fxNumeric.trigonometry_functions import frustum_volume
+        from agentfx.fxNumeric.trigonometry_functions import frustum_volume
 
         with pytest.raises(ValueError):
             frustum_volume(2, 4, -1)
@@ -355,12 +331,12 @@ class TestFrustumVolume:
 class TestTorusVolume:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import torus_volume
+        from agentfx.fxNumeric.trigonometry_functions import torus_volume
 
         assert round(torus_volume(5, 2), 4) == 394.7842
 
     def test_minor_ge_major(self):
-        from formulite.fxNumeric.trigonometry_functions import torus_volume
+        from agentfx.fxNumeric.trigonometry_functions import torus_volume
 
         with pytest.raises(ValueError):
             torus_volume(2, 5)
@@ -368,12 +344,12 @@ class TestTorusVolume:
 class TestTorusSurfaceArea:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import torus_surface_area
+        from agentfx.fxNumeric.trigonometry_functions import torus_surface_area
 
         assert round(torus_surface_area(5, 2), 4) == 394.7842
 
     def test_type_error(self):
-        from formulite.fxNumeric.trigonometry_functions import torus_surface_area
+        from agentfx.fxNumeric.trigonometry_functions import torus_surface_area
 
         with pytest.raises(TypeError):
             torus_surface_area("a", 2)
@@ -381,12 +357,12 @@ class TestTorusSurfaceArea:
 class TestConeLateralArea:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import cone_lateral_area
+        from agentfx.fxNumeric.trigonometry_functions import cone_lateral_area
 
         assert round(cone_lateral_area(3, 5), 4) == 47.1239
 
     def test_negative_radius(self):
-        from formulite.fxNumeric.trigonometry_functions import cone_lateral_area
+        from agentfx.fxNumeric.trigonometry_functions import cone_lateral_area
 
         with pytest.raises(ValueError):
             cone_lateral_area(-3, 5)
@@ -397,12 +373,12 @@ class TestConeLateralArea:
 class TestSphericalCapVolume:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import spherical_cap_volume
+        from agentfx.fxNumeric.trigonometry_functions import spherical_cap_volume
 
         assert round(spherical_cap_volume(5, 2), 4) == 54.4543
 
     def test_height_too_large(self):
-        from formulite.fxNumeric.trigonometry_functions import spherical_cap_volume
+        from agentfx.fxNumeric.trigonometry_functions import spherical_cap_volume
 
         with pytest.raises(ValueError):
             spherical_cap_volume(5, 11)
@@ -410,12 +386,12 @@ class TestSphericalCapVolume:
 class TestSphericalCapArea:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import spherical_cap_area
+        from agentfx.fxNumeric.trigonometry_functions import spherical_cap_area
 
         assert round(spherical_cap_area(5, 2), 4) == 62.8319
 
     def test_negative(self):
-        from formulite.fxNumeric.trigonometry_functions import spherical_cap_area
+        from agentfx.fxNumeric.trigonometry_functions import spherical_cap_area
 
         with pytest.raises(ValueError):
             spherical_cap_area(5, -1)
@@ -423,12 +399,12 @@ class TestSphericalCapArea:
 class TestPyramidVolume:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import pyramid_volume
+        from agentfx.fxNumeric.trigonometry_functions import pyramid_volume
 
         assert pyramid_volume(25, 6) == pytest.approx(50.0)
 
     def test_negative_height(self):
-        from formulite.fxNumeric.trigonometry_functions import pyramid_volume
+        from agentfx.fxNumeric.trigonometry_functions import pyramid_volume
 
         with pytest.raises(ValueError):
             pyramid_volume(25, -1)
@@ -436,12 +412,12 @@ class TestPyramidVolume:
 class TestCylinderLateralArea:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import cylinder_lateral_area
+        from agentfx.fxNumeric.trigonometry_functions import cylinder_lateral_area
 
         assert round(cylinder_lateral_area(3, 5), 4) == 94.2478
 
     def test_type_error(self):
-        from formulite.fxNumeric.trigonometry_functions import cylinder_lateral_area
+        from agentfx.fxNumeric.trigonometry_functions import cylinder_lateral_area
 
         with pytest.raises(TypeError):
             cylinder_lateral_area("a", 5)
@@ -449,12 +425,12 @@ class TestCylinderLateralArea:
 class TestRhombusArea:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import rhombus_area
+        from agentfx.fxNumeric.trigonometry_functions import rhombus_area
 
         assert rhombus_area(10, 8) == 40.0
 
     def test_negative_diagonal(self):
-        from formulite.fxNumeric.trigonometry_functions import rhombus_area
+        from agentfx.fxNumeric.trigonometry_functions import rhombus_area
 
         with pytest.raises(ValueError):
             rhombus_area(-10, 8)
@@ -943,11 +919,6 @@ class TestRadiationDoseConvert:
 # fxNumeric — trigonometry_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.trigonometry_functions import (
-    cross_track_distance,
-    along_track_distance,
-    intermediate_point,
-)
 
 class TestCrossTrackDistance:
     def test_on_path(self):
@@ -1344,50 +1315,50 @@ class TestConeSlantHeightV2:
 class TestLawOfSines:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_sines
+        from agentfx.fxNumeric.trigonometry_functions import law_of_sines
         result = law_of_sines(10, math.radians(30), math.radians(45))
         assert result == pytest.approx(14.1421, rel=1e-3)
 
     def test_symmetric(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_sines
+        from agentfx.fxNumeric.trigonometry_functions import law_of_sines
         result = law_of_sines(5, math.radians(60), math.radians(60))
         assert result == pytest.approx(5.0, rel=1e-6)
 
     def test_invalid_angle_sum_raises(self):
-        from formulite.fxNumeric.trigonometry_functions import law_of_sines
+        from agentfx.fxNumeric.trigonometry_functions import law_of_sines
         with pytest.raises(ValueError):
             law_of_sines(10, math.radians(100), math.radians(100))
 
 class TestHeronsFormula:
 
     def test_345_triangle(self):
-        from formulite.fxNumeric.trigonometry_functions import herons_formula
+        from agentfx.fxNumeric.trigonometry_functions import herons_formula
         assert herons_formula(3, 4, 5) == pytest.approx(6.0)
 
     def test_equilateral(self):
-        from formulite.fxNumeric.trigonometry_functions import herons_formula
+        from agentfx.fxNumeric.trigonometry_functions import herons_formula
         result = herons_formula(6, 6, 6)
         assert result == pytest.approx(9.0 * math.sqrt(3), rel=1e-6)
 
     def test_invalid_triangle_raises(self):
-        from formulite.fxNumeric.trigonometry_functions import herons_formula
+        from agentfx.fxNumeric.trigonometry_functions import herons_formula
         with pytest.raises(ValueError):
             herons_formula(1, 2, 10)
 
 class TestCircularArcLength:
 
     def test_quarter_circle(self):
-        from formulite.fxNumeric.trigonometry_functions import circular_arc_length
+        from agentfx.fxNumeric.trigonometry_functions import circular_arc_length
         result = circular_arc_length(5, math.pi / 2)
         assert result == pytest.approx(7.854, rel=1e-3)
 
     def test_full_circle(self):
-        from formulite.fxNumeric.trigonometry_functions import circular_arc_length
+        from agentfx.fxNumeric.trigonometry_functions import circular_arc_length
         result = circular_arc_length(1, 2 * math.pi)
         assert result == pytest.approx(2 * math.pi)
 
     def test_zero_angle(self):
-        from formulite.fxNumeric.trigonometry_functions import circular_arc_length
+        from agentfx.fxNumeric.trigonometry_functions import circular_arc_length
         assert circular_arc_length(10, 0) == 0.0
 
 
@@ -1396,24 +1367,24 @@ class TestCircularArcLength:
 class TestSectorAreaV2:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import sector_area
+        from agentfx.fxNumeric.trigonometry_functions import sector_area
         result = sector_area(5, math.pi / 2)
         assert round(result, 4) == 19.635
 
     def test_zero_angle(self):
-        from formulite.fxNumeric.trigonometry_functions import sector_area
+        from agentfx.fxNumeric.trigonometry_functions import sector_area
         result = sector_area(5, 0)
         assert result == 0.0
 
 class TestChordLengthV2:
 
     def test_60_degrees(self):
-        from formulite.fxNumeric.trigonometry_functions import chord_length
+        from agentfx.fxNumeric.trigonometry_functions import chord_length
         result = chord_length(5, math.pi / 3)
         assert round(result, 4) == 5.0
 
     def test_180_degrees(self):
-        from formulite.fxNumeric.trigonometry_functions import chord_length
+        from agentfx.fxNumeric.trigonometry_functions import chord_length
         result = chord_length(5, math.pi)
         assert round(result, 4) == 10.0
 
@@ -1425,36 +1396,36 @@ class TestChordLengthV2:
 class TestVersine:
 
     def test_pi_over_3(self):
-        from formulite.fxNumeric.trigonometry_functions import versine
+        from agentfx.fxNumeric.trigonometry_functions import versine
         assert round(versine(math.pi / 3), 4) == 0.5
 
     def test_zero(self):
-        from formulite.fxNumeric.trigonometry_functions import versine
+        from agentfx.fxNumeric.trigonometry_functions import versine
         assert versine(0) == 0.0
 
 class TestExsecant:
 
     def test_pi_over_3(self):
-        from formulite.fxNumeric.trigonometry_functions import exsecant
+        from agentfx.fxNumeric.trigonometry_functions import exsecant
         assert round(exsecant(math.pi / 3), 4) == 1.0
 
     def test_zero(self):
-        from formulite.fxNumeric.trigonometry_functions import exsecant
+        from agentfx.fxNumeric.trigonometry_functions import exsecant
         assert exsecant(0) == 0.0
 
     def test_undefined(self):
-        from formulite.fxNumeric.trigonometry_functions import exsecant
+        from agentfx.fxNumeric.trigonometry_functions import exsecant
         with pytest.raises(ValueError):
             exsecant(math.pi / 2)
 
 class TestAngularVelocity:
 
     def test_one_rev(self):
-        from formulite.fxNumeric.trigonometry_functions import angular_velocity
+        from agentfx.fxNumeric.trigonometry_functions import angular_velocity
         assert round(angular_velocity(1, 1), 4) == 6.2832
 
     def test_zero_time(self):
-        from formulite.fxNumeric.trigonometry_functions import angular_velocity
+        from agentfx.fxNumeric.trigonometry_functions import angular_velocity
         with pytest.raises(ValueError):
             angular_velocity(1, 0)
 
@@ -1572,12 +1543,12 @@ class TestSegmentAreaV2:
 class TestAnnulusAreaV2:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import annulus_area
+        from agentfx.fxNumeric.trigonometry_functions import annulus_area
 
         assert round(annulus_area(5, 3), 4) == 50.2655
 
     def test_inner_ge_outer(self):
-        from formulite.fxNumeric.trigonometry_functions import annulus_area
+        from agentfx.fxNumeric.trigonometry_functions import annulus_area
 
         with pytest.raises(ValueError):
             annulus_area(3, 5)
@@ -1585,12 +1556,12 @@ class TestAnnulusAreaV2:
 class TestEllipseArea:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import ellipse_area
+        from agentfx.fxNumeric.trigonometry_functions import ellipse_area
 
         assert round(ellipse_area(5, 3), 4) == 47.1239
 
     def test_negative_axis(self):
-        from formulite.fxNumeric.trigonometry_functions import ellipse_area
+        from agentfx.fxNumeric.trigonometry_functions import ellipse_area
 
         with pytest.raises(ValueError):
             ellipse_area(-5, 3)
@@ -1598,12 +1569,12 @@ class TestEllipseArea:
 class TestEllipsePerimeter:
 
     def test_basic(self):
-        from formulite.fxNumeric.trigonometry_functions import ellipse_perimeter
+        from agentfx.fxNumeric.trigonometry_functions import ellipse_perimeter
 
         assert round(ellipse_perimeter(5, 3), 3) == 25.527
 
     def test_type_error(self):
-        from formulite.fxNumeric.trigonometry_functions import ellipse_perimeter
+        from agentfx.fxNumeric.trigonometry_functions import ellipse_perimeter
 
         with pytest.raises(TypeError):
             ellipse_perimeter("a", 3)
@@ -1614,39 +1585,39 @@ class TestEllipsePerimeter:
 class TestEllipseFormulas:
 
     def test_area(self):
-        from formulite.fxNumeric.geometry_functions import ellipse_area
+        from agentfx.fxNumeric.geometry_functions import ellipse_area
         assert ellipse_area(3, 2) == pytest.approx(6 * math.pi)
 
     def test_eccentricity(self):
-        from formulite.fxNumeric.geometry_functions import ellipse_eccentricity
+        from agentfx.fxNumeric.geometry_functions import ellipse_eccentricity
         assert ellipse_eccentricity(5, 3) == pytest.approx(0.8)
 
 class TestPolygonFormulas:
 
     def test_polygon_area(self):
-        from formulite.fxNumeric.geometry_functions import polygon_area
+        from agentfx.fxNumeric.geometry_functions import polygon_area
         assert polygon_area([(0, 0), (4, 0), (4, 3), (0, 3)]) == pytest.approx(12.0)
 
     def test_regular_polygon(self):
-        from formulite.fxNumeric.geometry_functions import regular_polygon_area
+        from agentfx.fxNumeric.geometry_functions import regular_polygon_area
         # Regular hexagon with side 1
         assert regular_polygon_area(6, 1) == pytest.approx(
             3 * math.sqrt(3) / 2, rel=1e-6
         )
 
     def test_trapezoid(self):
-        from formulite.fxNumeric.geometry_functions import trapezoid_area
+        from agentfx.fxNumeric.geometry_functions import trapezoid_area
         assert trapezoid_area(3, 5, 4) == pytest.approx(16.0)
 
 class TestSphericalTrig:
 
     def test_haversine_distance(self):
-        from formulite.fxNumeric.geometry_functions import haversine_distance
+        from agentfx.fxNumeric.geometry_functions import haversine_distance
         d = haversine_distance(40.7128, -74.0060, 51.5074, -0.1278)
         assert d == pytest.approx(5570, rel=0.01)
 
     def test_spherical_law_of_cosines(self):
-        from formulite.fxNumeric.geometry_functions import spherical_law_of_cosines
+        from agentfx.fxNumeric.geometry_functions import spherical_law_of_cosines
         c = spherical_law_of_cosines(0.5, 0.6, 1.0)
         # cos(c)=cos(0.5)cos(0.6)+sin(0.5)sin(0.6)cos(1.0) ≈ 0.8706 => c ≈ 0.5145
         assert c == pytest.approx(0.5145, rel=1e-3)
@@ -1654,35 +1625,35 @@ class TestSphericalTrig:
 class TestVersineV2:
 
     def test_zero(self):
-        from formulite.fxNumeric.trigonometry_functions import versine
+        from agentfx.fxNumeric.trigonometry_functions import versine
         assert versine(0) == pytest.approx(0.0)
 
     def test_pi(self):
-        from formulite.fxNumeric.trigonometry_functions import versine
+        from agentfx.fxNumeric.trigonometry_functions import versine
         assert versine(math.pi) == pytest.approx(2.0)
 
 class TestHaversineTrig:
 
     def test_zero(self):
-        from formulite.fxNumeric.trigonometry_functions import haversine_trig
+        from agentfx.fxNumeric.trigonometry_functions import haversine_trig
         assert haversine_trig(0) == pytest.approx(0.0)
 
     def test_pi(self):
-        from formulite.fxNumeric.trigonometry_functions import haversine_trig
+        from agentfx.fxNumeric.trigonometry_functions import haversine_trig
         assert haversine_trig(math.pi) == pytest.approx(1.0)
 
 class TestExsecantV2:
 
     def test_zero(self):
-        from formulite.fxNumeric.trigonometry_functions import exsecant
+        from agentfx.fxNumeric.trigonometry_functions import exsecant
         assert exsecant(0) == pytest.approx(0.0)
 
 class TestCoversineV2:
 
     def test_zero(self):
-        from formulite.fxNumeric.trigonometry_functions import coversine
+        from agentfx.fxNumeric.trigonometry_functions import coversine
         assert coversine(0) == pytest.approx(1.0)
 
     def test_pi_half(self):
-        from formulite.fxNumeric.trigonometry_functions import coversine
+        from agentfx.fxNumeric.trigonometry_functions import coversine
         assert coversine(math.pi / 2) == pytest.approx(0.0, abs=1e-10)

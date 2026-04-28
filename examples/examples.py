@@ -1,9 +1,9 @@
-# Examples using FormuLite functions
+# Examples using AgentFx functions
 
-from formulite.fxExcel.math_formulas import SUMIF
-from formulite.fxExcel.statistic_formulas import AVERAGE
-from formulite.fxExcel.text_formulas import CONCAT, LEFT, RIGHT
-from formulite.fxExcel.lookup_formulas import VLOOKUP
+from agentfx.fxExcel.math_formulas import SUMIF
+from agentfx.fxExcel.statistic_formulas import AVERAGE
+from agentfx.fxExcel.text_formulas import CONCAT, LEFT, RIGHT
+from agentfx.fxExcel.lookup_formulas import VLOOKUP
 
 # Ejemplos de funciones matemáticas
 numbers = [1, 2, 3, 4, 5]

@@ -4,32 +4,32 @@ import math
 
 import pytest
 
-from formulite.fxNumeric.arithmetic_functions import (
+from agentfx.fxNumeric.arithmetic_functions import (
     euler_method,
     fixed_point_iteration,
     gaussian_quadrature,
     secant_method,
 )
-from formulite.fxNumeric.statistics_functions import ewma_variance
-from formulite.fxNumeric import numerical_methods_functions as nm
+from agentfx.fxNumeric.statistics_functions import ewma_variance
+from agentfx.fxNumeric import numerical_methods_functions as nm
 
 
 class TestRootFinding:
 
     def test_newton_sqrt2(self):
-        from formulite.fxNumeric.arithmetic_functions import newton_raphson
+        from agentfx.fxNumeric.arithmetic_functions import newton_raphson
 
         root = newton_raphson(lambda x: x ** 2 - 2, lambda x: 2 * x, 1.0)
         assert root == pytest.approx(math.sqrt(2), abs=1e-10)
 
     def test_bisection_sqrt2(self):
-        from formulite.fxNumeric.arithmetic_functions import bisection_method
+        from agentfx.fxNumeric.arithmetic_functions import bisection_method
 
         root = bisection_method(lambda x: x ** 2 - 2, 1, 2)
         assert root == pytest.approx(math.sqrt(2), abs=1e-8)
 
     def test_bisection_same_sign_raises(self):
-        from formulite.fxNumeric.arithmetic_functions import bisection_method
+        from agentfx.fxNumeric.arithmetic_functions import bisection_method
 
         with pytest.raises(ValueError):
             bisection_method(lambda x: x ** 2 + 1, 0, 3)
@@ -58,12 +58,6 @@ class TestEwmaVariance:
 # fxNumeric — arithmetic_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.arithmetic_functions import (
-    secant_method,
-    fixed_point_iteration,
-    romberg_integrate,
-    adaptive_simpson,
-)
 
 class TestSecantMethod:
     def test_square_root_of_2(self):

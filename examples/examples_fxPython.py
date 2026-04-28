@@ -1,6 +1,6 @@
 
 # Examples of fxPython module usage
-from formulite.fxPython import py_operations, py_tools, py_itertools
+from agentfx.fxPython import py_operations, py_tools, py_itertools
 
 
 # --- Example 1: Scientific expression evaluator ---

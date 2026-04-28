@@ -20,7 +20,7 @@ Functions with names and behaviors matching VBA and Microsoft Access, designed f
 ## Quick Examples
 
 ```python
-from formulite import fxVBA
+from agentfx import fxVBA
 
 text = "Hello World"
 

@@ -1,6 +1,6 @@
-"""Tests for formulite._validators."""
+"""Tests for agentfx._validators."""
 import pytest
-from formulite._validators import (
+from agentfx._validators import (
     ensure_type, ensure_numeric, ensure_positive,
     ensure_non_negative, ensure_not_empty,
 )

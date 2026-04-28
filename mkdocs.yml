@@ -1,8 +1,8 @@
-site_name: FormuLite
+site_name: AgentFx
 site_description: "A Python library of 3,000+ reusable functions organized like Excel formulas"
-site_url: https://jrodriguezgar.github.io/FormuLite/
-repo_url: https://github.com/jrodriguezgar/FormuLite
-repo_name: jrodriguezgar/FormuLite
+site_url: https://jrodriguezgar.github.io/AgentFx/
+repo_url: https://github.com/jrodriguezgar/AgentFx
+repo_name: jrodriguezgar/AgentFx
 edit_uri: edit/main/docs/
 
 theme:
@@ -97,6 +97,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jrodriguezgar/FormuLite
+      link: https://github.com/jrodriguezgar/AgentFx
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/formulite/
+      link: https://pypi.org/project/agentfx/

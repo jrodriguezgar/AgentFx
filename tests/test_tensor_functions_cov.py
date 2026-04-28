@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxNumeric.tensor_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
+# Coverage tests for agentfx.fxNumeric.tensor_functions
 import math
 
-from formulite.fxNumeric import tensor_functions as mod
+from agentfx.fxNumeric import tensor_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

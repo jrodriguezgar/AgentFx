@@ -1,18 +1,16 @@
 """Coverage tests for fxString modules."""
 import pytest
 
-from formulite.fxString.string_operations import (
+from agentfx.fxString.string_operations import (
     reverse_string, count_occurrences, pad_start, pad_end,
     truncate_string, collapse_whitespace,
     repeat_string, replace_string,
     replace_first_occurrence, replace_last_occurrence,
     substring, left_substring, right_substring,
-    position_in_string, position_in_string_reverse,
-    concatenate_strings, swap_case, erase_specialchar,
+    swap_case, erase_specialchar,
     erase_digits, erase_allspaces, erase_lrspaces,
     slugify, camel_to_snake, snake_to_camel,
-    title_case, count_words, count_lines, count_characters,
-    wrap_text, center_string, pad_center,
+    title_case, count_words, count_lines, wrap_text, center_string, pad_center,
     remove_prefix, remove_suffix,
     reverse_words, distinct_words,
     sort_lines, remove_blank_lines,
@@ -140,12 +138,11 @@ class TestStringOperations:
         r = rot13("hello")
         assert isinstance(r, str)
 
-from formulite.fxString.string_format import (
+from agentfx.fxString.string_format import (
     format_number, format_as_currency, format_as_percent,
-    format_date, format_file_size,
+    format_file_size,
     capitalize_string, mask_data, normalize_text,
-    to_lower, to_upper, swap_case as fmt_swap_case,
-    word_wrap, zfill, pad_string,
+    to_lower, to_upper, word_wrap, zfill, pad_string,
     format_name, format_fullname,
     numbers_from_string, remove_numbers_from_string,
     string_aZ, string_aZ09, pluralize_count,
@@ -208,13 +205,8 @@ class TestStringFormat:
         r = pluralize_count(3, "cat")
         assert isinstance(r, str)
 
-from formulite.fxString.string_similarity import (
-    string_levenshtein_score, string_hamming_score,
-    string_jarowinkler_score, string_cosine_score,
-    string_jaccard_score, string_sorensendice_score,
-    string_lcs_score, string_similarity_score,
-    calculate_similarity, find_closest_match,
-    rank_by_similarity, generate_ngrams,
+from agentfx.fxString.string_similarity import (
+    string_lcs_score, generate_ngrams,
 )
 
 class TestStringSimilarity:
@@ -227,8 +219,8 @@ class TestStringSimilarity:
         r = generate_ngrams("hello", 2)
         assert isinstance(r, list)
 
-from formulite.fxString.string_evaluations import (
-    is_numeric as str_is_numeric, is_alphabetic, is_aZ, is_aZ09,
+from agentfx.fxString.string_evaluations import (
+    is_numeric as str_is_numeric, is_aZ, is_aZ09,
     is_palindrome, is_anagram, is_email_format,
     is_url_format, is_ipv4, is_ipv6,
     count_sentences, word_frequency, char_frequency,
@@ -236,7 +228,7 @@ from formulite.fxString.string_evaluations import (
     flesch_reading_ease, gunning_fog_index,
     is_json, is_uuid, is_valid_base64,
     check_password_strength,
-    has_numbers, has_substring,
+    has_numbers,
 )
 
 class TestStringEvaluations:
@@ -292,7 +284,7 @@ class TestStringEvaluations:
     def test_has_numbers(self):
         assert has_numbers("abc123") is True
 
-from formulite.fxString.string_caseconv import (
+from agentfx.fxString.string_caseconv import (
     to_camel_case, to_constant_case, to_kebab_case,
     to_pascal_case, to_slug, to_snake_case, to_title_case,
 )
@@ -315,7 +307,7 @@ class TestStringCaseConv:
     def test_title(self):
         assert to_title_case("hello world") == "Hello World"
 
-from formulite.fxString.string_encoding import (
+from agentfx.fxString.string_encoding import (
     encode_base64, decode_base64, encode_url, decode_url,
     encode_html_entities, decode_html_entities,
     caesar_cipher as enc_caesar, vigenere_cipher,
@@ -339,7 +331,7 @@ class TestStringEncoding:
         r = vigenere_cipher("hello", "key")
         assert isinstance(r, str)
 
-from formulite.fxString.string_hashing import fingerprint, hash_string
+from agentfx.fxString.string_hashing import fingerprint, hash_string
 
 class TestStringHashing:
     def test_hash_string(self):
@@ -349,8 +341,8 @@ class TestStringHashing:
         r = fingerprint("hello world test")
         assert isinstance(r, str)
 
-from formulite.fxString.string_regex import (
-    regex_match, regex_extract_all, regex_count,
+from agentfx.fxString.string_regex import (
+    regex_match,
 )
 
 class TestStringRegex:
@@ -358,7 +350,7 @@ class TestStringRegex:
         r = regex_match(r"\d+", "abc123")
         assert r is not None
 
-from formulite.fxString.string_compression import compress_string, decompress_string
+from agentfx.fxString.string_compression import compress_string, decompress_string
 
 class TestStringCompression:
     def test_roundtrip(self):
@@ -366,7 +358,7 @@ class TestStringCompression:
         compressed = compress_string(original)
         assert decompress_string(compressed) == original
 
-from formulite.fxString.string_convertions import (
+from agentfx.fxString.string_convertions import (
     integer_to_roman, roman_to_integer, text_to_binary, binary_to_text,
     base64_encode, base64_decode, text_to_hex, hex_to_text,
     text_to_morse, morse_to_text,
@@ -403,7 +395,7 @@ class TestStringConversions:
     def test_ordinal_suffix(self):
         assert ordinal_suffix(1) in ("st", "1st")
 
-from formulite.fxString.string_validations import contains_digit, same_letters
+from agentfx.fxString.string_validations import contains_digit, same_letters
 
 class TestStringValidations:
     def test_contains_digit(self):

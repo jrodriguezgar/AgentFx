@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxNumeric.rounding_functions
-import pytest
-from datetime import date, datetime, time, timedelta
+# Coverage tests for agentfx.fxNumeric.rounding_functions
 from decimal import Decimal
-import math
 
-from formulite.fxNumeric import rounding_functions as mod
+from agentfx.fxNumeric import rounding_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

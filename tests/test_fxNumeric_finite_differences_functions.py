@@ -1,7 +1,7 @@
 """Tests for fxNumeric.finite_differences_functions."""
 
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     bessel_interpolation,
     divided_difference_table,
     forward_difference_table,

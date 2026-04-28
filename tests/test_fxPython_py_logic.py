@@ -1,10 +1,6 @@
-# Coverage tests for formulite.fxPython.py_logic
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.fxPython.py_logic
 
-from formulite.fxPython import py_logic as mod
+from agentfx.fxPython import py_logic as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

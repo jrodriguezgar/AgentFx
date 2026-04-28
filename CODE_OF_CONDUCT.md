@@ -46,7 +46,7 @@ an individual is officially representing the community in public spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the project maintainers via
-[GitHub Security Advisories](https://github.com/jrodriguezgar/FormuLite/security/advisories/new)
+[GitHub Security Advisories](https://github.com/jrodriguezgar/AgentFx/security/advisories/new)
 or by opening a private issue.
 
 All complaints will be reviewed and investigated promptly and fairly.

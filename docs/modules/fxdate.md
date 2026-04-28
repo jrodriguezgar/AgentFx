@@ -15,7 +15,7 @@ Date manipulation, evaluations, conversions, and system date queries.
 
 ```python
 from datetime import datetime
-from formulite.fxDate import date_operations, date_evaluations
+from agentfx.fxDate import date_operations, date_evaluations
 
 # Add 30 days to a date
 new_date = date_operations.add_time_to_date(datetime(2025, 1, 15), 30, "days")

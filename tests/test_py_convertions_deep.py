@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxPython.py_convertions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxPython.py_convertions
 
-import formulite.fxPython.py_convertions as mod
+import agentfx.fxPython.py_convertions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

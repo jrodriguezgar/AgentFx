@@ -3,7 +3,7 @@
 
 import pytest
 
-from formulite.fxString.string_convertions import (
+from agentfx.fxString.string_convertions import (
     base64_decode,
     base64_encode,
     hex_color_to_rgb,
@@ -13,8 +13,8 @@ from formulite.fxString.string_convertions import (
     text_to_nato_phonetic,
     text_to_phonetic_ipa,
 )
-from formulite.fxString.string_evaluations import is_balanced_brackets
-from formulite.fxString.string_operations import extract_domain_from_url
+from agentfx.fxString.string_evaluations import is_balanced_brackets
+from agentfx.fxString.string_operations import extract_domain_from_url
 
 
 class TestIsBalancedBrackets:
@@ -39,11 +39,6 @@ class TestIsBalancedBrackets:
 # fxString — string_convertions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxString.string_convertions import (
-    text_to_nato_phonetic,
-    nato_phonetic_to_text,
-    text_to_braille,
-)
 
 class TestTextToNatoPhonetic:
     def test_basic(self):
@@ -122,7 +117,7 @@ class TestBase64:
         assert base64_decode("SGVsbG8gV29ybGQ=") == "Hello World"
 
     def test_roundtrip(self):
-        original = "FormuLite rocks!"
+        original = "AgentFx rocks!"
         assert base64_decode(base64_encode(original)) == original
 
     def test_decode_invalid(self):
@@ -155,10 +150,6 @@ class TestExtractDomainFromUrl:
 
 # ── fxString · string_convertions ─────────────────────────────────────────
 
-from formulite.fxString.string_convertions import (
-    text_to_hex,
-    hex_to_text,
-)
 
 class TestTextToHex:
 

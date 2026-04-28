@@ -2,7 +2,7 @@
 
 import math
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     christoffel_symbols_diagonal,
     geodesic_equation_rhs,
     kronecker_delta,

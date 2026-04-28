@@ -1,7 +1,7 @@
 [project]
-name = "formulite"
-version = "0.2.2"
-description = "A Python library for high-level functions similar to Excel formulas"
+name = "agentfx"
+version = "0.3.0"
+description = "3000+ deterministic Python functions for AI agents — MCP server, JSON Schema, zero deps"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -9,16 +9,16 @@ authors = [
     { name = "Javier Rodríguez", email = "jrodriguezga@outlook.com" },
 ]
 keywords = [
-    "formulas",
-    "excel",
-    "functions",
+    "ai-agent",
     "mcp",
     "ai-tools",
-    "date",
-    "finance",
-    "statistics",
-    "vba",
-    "string",
+    "function-calling",
+    "deterministic",
+    "formulas",
+    "excel",
+    "llm",
+    "openai",
+    "langchain",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -37,10 +37,10 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/jrodriguezgar/FormuLite"
-Repository = "https://github.com/jrodriguezgar/FormuLite"
-Issues = "https://github.com/jrodriguezgar/FormuLite/issues"
-Changelog = "https://github.com/jrodriguezgar/FormuLite/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/jrodriguezgar/AgentFx"
+Repository = "https://github.com/jrodriguezgar/AgentFx"
+Issues = "https://github.com/jrodriguezgar/AgentFx/issues"
+Changelog = "https://github.com/jrodriguezgar/AgentFx/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 mcp = ["mcp[cli]>=1.0.0"]
@@ -66,7 +66,7 @@ all = [
 ]
 
 [project.scripts]
-formulite-mcp = "formulite.mcp.server:main"
+agentfx-mcp = "agentfx.mcp.server:main"
 
 [dependency-groups]
 dev = [
@@ -75,6 +75,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=6.0.0",
     "pytest-timeout>=2.4.0",
+    "twine>=6.0.0",
 ]
 docs = [
     "mkdocs-material>=9.5.0",
@@ -89,17 +90,17 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["formulite"]
+packages = ["agentfx"]
 
 [tool.coverage.run]
-source = ["formulite"]
+source = ["agentfx"]
 omit = [
-    "formulite/mcp/*",
-    "formulite/mcp_server.py",
-    "formulite/__main__.py",
-    "formulite/semantic_search.py",
-    "formulite/fxExcel/statistic_formulas.py",
-    "formulite/fxExcel/engineering_formulas.py",
+    "agentfx/mcp/*",
+    "agentfx/mcp_server.py",
+    "agentfx/__main__.py",
+    "agentfx/semantic_search.py",
+    "agentfx/fxExcel/statistic_formulas.py",
+    "agentfx/fxExcel/engineering_formulas.py",
 ]
 
 [tool.coverage.report]

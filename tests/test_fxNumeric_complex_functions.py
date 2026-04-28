@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     complex_add,
     complex_argument,
     complex_argument_degrees,

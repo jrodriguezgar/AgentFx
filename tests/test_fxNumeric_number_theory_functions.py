@@ -1,73 +1,51 @@
 """Tests for fxNumeric.number_theory_functions."""
 
-import math
 
 import pytest
 
-from formulite.fxDate.date_evaluations import is_first_of_month, is_palindrome_date
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     additive_persistence,
     aliquot_sum,
     big_omega,
     carmichael_lambda,
     collatz_steps,
-    coprime,
-    digital_sum,
-    is_abundant_number,
-    is_amicable_pair,
-    is_deficient_number,
-    is_happy_number,
-    is_harshad_number,
-    is_kaprekar_number,
-    is_palindromic_number,
-    is_perfect_number,
-    is_powerful_number,
-    is_semiprime,
-    is_smith_number,
-    is_square_free,
-    jacobi_symbol,
-    kronecker_symbol,
-    legendre_symbol,
-    liouville_lambda,
-    mobius_function,
-    multiplicative_persistence,
-    number_of_divisors,
-    omega_prime,
-    partition_function,
-    prime_counting_approx,
-    prime_nth_approx,
-    primitive_root,
-    radical,
-    squarefree_part,
-    stern_brocot,
-    sum_of_divisors,
-    sum_of_squares_count,
-)
-from formulite.fxNumeric.number_theory_functions import (
-    aliquot_sum,
-    carmichael_lambda,
     continued_fraction_expansion,
     convergents,
+    coprime,
     delannoy_number,
     digit_count,
+    digital_sum,
     discrete_logarithm,
     egyptian_fraction,
     euler_totient,
     eulerian_number,
+    is_abundant_number,
     is_achilles_number,
+    is_amicable_pair,
     is_automorphic_number,
     is_cube_number,
+    is_deficient_number,
+    is_happy_number,
+    is_harshad_number,
+    is_kaprekar_number,
     is_lychrel_candidate,
     is_palindrome_number,
+    is_palindromic_number,
+    is_perfect_number,
     is_perfect_power,
     is_powerful_number,
     is_pronic_number,
     is_semiprime,
+    is_smith_number,
+    is_square_free,
+    jacobi_symbol,
     jacobsthal_number,
+    kronecker_symbol,
     legendre_symbol,
     liouville_lambda,
     lucas_number,
     lucas_sequence,
+    mobius_function,
     modular_exponentiation,
     modular_inverse,
     motzkin_number,
@@ -75,17 +53,27 @@ from formulite.fxNumeric.number_theory_functions import (
     narayana_number,
     next_prime,
     number_of_distinct_prime_factors,
+    number_of_divisors,
+    omega_prime,
+    partition_function,
     pell_number,
+    prime_counting_approx,
+    prime_nth_approx,
     primitive_root,
+    radical,
     schroeder_number,
+    squarefree_part,
+    stern_brocot,
     stirling_number_second,
     sum_of_cubes_of_digits,
+    sum_of_divisors,
+    sum_of_squares_count,
     sum_of_squares_of_digits,
     sum_proper_divisors,
     tribonacci_number,
 )
-from formulite.fxNumeric.statistics_functions import contraharmonic_mean
-from formulite.fxNumeric.trigonometry_functions import intermediate_point, normalize_angle
+from agentfx.fxNumeric.statistics_functions import contraharmonic_mean
+from agentfx.fxNumeric.trigonometry_functions import intermediate_point, normalize_angle
 
 
 class TestNormalizeAngle:
@@ -110,16 +98,6 @@ class TestNormalizeAngle:
 
 # ── Number Theory ────────────────────────────────────────────────────────────
 
-from formulite.fxNumeric.number_theory_functions import (
-    euler_totient,
-    is_palindrome_number,
-    modular_exponentiation,
-    modular_inverse,
-    lucas_sequence,
-    catalan_number,
-    next_prime,
-    is_coprime,
-)
 
 class TestEulerTotient:
 
@@ -190,25 +168,25 @@ class TestNextPrime:
 class TestIsAbundantNumber:
 
     def test_abundant_12(self):
-        from formulite.fxNumeric.number_theory_functions import is_abundant_number
+        from agentfx.fxNumeric.number_theory_functions import is_abundant_number
         assert is_abundant_number(12) is True
 
     def test_not_abundant_10(self):
-        from formulite.fxNumeric.number_theory_functions import is_abundant_number
+        from agentfx.fxNumeric.number_theory_functions import is_abundant_number
         assert is_abundant_number(10) is False
 
     def test_not_abundant_1(self):
-        from formulite.fxNumeric.number_theory_functions import is_abundant_number
+        from agentfx.fxNumeric.number_theory_functions import is_abundant_number
         assert is_abundant_number(1) is False
 
     def test_type_error(self):
-        from formulite.fxNumeric.number_theory_functions import is_abundant_number
+        from agentfx.fxNumeric.number_theory_functions import is_abundant_number
 
         with pytest.raises(TypeError):
             is_abundant_number(12.5)
 
     def test_value_error(self):
-        from formulite.fxNumeric.number_theory_functions import is_abundant_number
+        from agentfx.fxNumeric.number_theory_functions import is_abundant_number
 
         with pytest.raises(ValueError):
             is_abundant_number(0)
@@ -216,39 +194,39 @@ class TestIsAbundantNumber:
 class TestIsDeficientNumber:
 
     def test_deficient_8(self):
-        from formulite.fxNumeric.number_theory_functions import is_deficient_number
+        from agentfx.fxNumeric.number_theory_functions import is_deficient_number
         assert is_deficient_number(8) is True
 
     def test_not_deficient_12(self):
-        from formulite.fxNumeric.number_theory_functions import is_deficient_number
+        from agentfx.fxNumeric.number_theory_functions import is_deficient_number
         assert is_deficient_number(12) is False
 
     def test_deficient_1(self):
-        from formulite.fxNumeric.number_theory_functions import is_deficient_number
+        from agentfx.fxNumeric.number_theory_functions import is_deficient_number
         assert is_deficient_number(1) is True
 
 class TestGoldbachPartition:
 
     def test_partition_28(self):
-        from formulite.fxNumeric.number_theory_functions import goldbach_partition
+        from agentfx.fxNumeric.number_theory_functions import goldbach_partition
 
         p, q = goldbach_partition(28)
         assert p + q == 28
 
     def test_partition_100(self):
-        from formulite.fxNumeric.number_theory_functions import goldbach_partition
+        from agentfx.fxNumeric.number_theory_functions import goldbach_partition
 
         p, q = goldbach_partition(100)
         assert p + q == 100
 
     def test_odd_raises(self):
-        from formulite.fxNumeric.number_theory_functions import goldbach_partition
+        from agentfx.fxNumeric.number_theory_functions import goldbach_partition
 
         with pytest.raises(ValueError):
             goldbach_partition(7)
 
     def test_small_raises(self):
-        from formulite.fxNumeric.number_theory_functions import goldbach_partition
+        from agentfx.fxNumeric.number_theory_functions import goldbach_partition
 
         with pytest.raises(ValueError):
             goldbach_partition(2)
@@ -256,23 +234,23 @@ class TestGoldbachPartition:
 class TestNthFibonacci:
 
     def test_fib_0(self):
-        from formulite.fxNumeric.number_theory_functions import nth_fibonacci
+        from agentfx.fxNumeric.number_theory_functions import nth_fibonacci
         assert nth_fibonacci(0) == 0
 
     def test_fib_1(self):
-        from formulite.fxNumeric.number_theory_functions import nth_fibonacci
+        from agentfx.fxNumeric.number_theory_functions import nth_fibonacci
         assert nth_fibonacci(1) == 1
 
     def test_fib_10(self):
-        from formulite.fxNumeric.number_theory_functions import nth_fibonacci
+        from agentfx.fxNumeric.number_theory_functions import nth_fibonacci
         assert nth_fibonacci(10) == 55
 
     def test_fib_20(self):
-        from formulite.fxNumeric.number_theory_functions import nth_fibonacci
+        from agentfx.fxNumeric.number_theory_functions import nth_fibonacci
         assert nth_fibonacci(20) == 6765
 
     def test_negative_raises(self):
-        from formulite.fxNumeric.number_theory_functions import nth_fibonacci
+        from agentfx.fxNumeric.number_theory_functions import nth_fibonacci
 
         with pytest.raises(ValueError):
             nth_fibonacci(-1)
@@ -280,39 +258,39 @@ class TestNthFibonacci:
 class TestMobiusFunction:
 
     def test_one(self):
-        from formulite.fxNumeric.number_theory_functions import mobius_function
+        from agentfx.fxNumeric.number_theory_functions import mobius_function
         assert mobius_function(1) == 1
 
     def test_prime(self):
-        from formulite.fxNumeric.number_theory_functions import mobius_function
+        from agentfx.fxNumeric.number_theory_functions import mobius_function
         assert mobius_function(7) == -1
 
     def test_two_distinct_primes(self):
-        from formulite.fxNumeric.number_theory_functions import mobius_function
+        from agentfx.fxNumeric.number_theory_functions import mobius_function
         # 6 = 2*3, two distinct primes → μ = 1
         assert mobius_function(6) == 1
 
     def test_squared_factor(self):
-        from formulite.fxNumeric.number_theory_functions import mobius_function
+        from agentfx.fxNumeric.number_theory_functions import mobius_function
         # 12 = 2²*3, has squared factor → μ = 0
         assert mobius_function(12) == 0
 
 class TestIntegerPartitionsCount:
 
     def test_zero(self):
-        from formulite.fxNumeric.number_theory_functions import integer_partitions_count
+        from agentfx.fxNumeric.number_theory_functions import integer_partitions_count
         assert integer_partitions_count(0) == 1
 
     def test_five(self):
-        from formulite.fxNumeric.number_theory_functions import integer_partitions_count
+        from agentfx.fxNumeric.number_theory_functions import integer_partitions_count
         assert integer_partitions_count(5) == 7
 
     def test_ten(self):
-        from formulite.fxNumeric.number_theory_functions import integer_partitions_count
+        from agentfx.fxNumeric.number_theory_functions import integer_partitions_count
         assert integer_partitions_count(10) == 42
 
     def test_negative_raises(self):
-        from formulite.fxNumeric.number_theory_functions import integer_partitions_count
+        from agentfx.fxNumeric.number_theory_functions import integer_partitions_count
 
         with pytest.raises(ValueError):
             integer_partitions_count(-1)
@@ -323,16 +301,16 @@ class TestIntegerPartitionsCount:
 class TestChineseRemainderTheorem:
 
     def test_basic(self):
-        from formulite.fxNumeric.number_theory_functions import chinese_remainder_theorem
+        from agentfx.fxNumeric.number_theory_functions import chinese_remainder_theorem
         assert chinese_remainder_theorem([2, 3, 2], [3, 5, 7]) == 23
 
     def test_two_congruences(self):
-        from formulite.fxNumeric.number_theory_functions import chinese_remainder_theorem
+        from agentfx.fxNumeric.number_theory_functions import chinese_remainder_theorem
         # x ≡ 1 (mod 3), x ≡ 4 (mod 5) → x = 4
         assert chinese_remainder_theorem([1, 4], [3, 5]) == 4
 
     def test_not_coprime(self):
-        from formulite.fxNumeric.number_theory_functions import chinese_remainder_theorem
+        from agentfx.fxNumeric.number_theory_functions import chinese_remainder_theorem
 
         with pytest.raises(ValueError):
             chinese_remainder_theorem([1, 2], [4, 6])
@@ -340,29 +318,29 @@ class TestChineseRemainderTheorem:
 class TestIsHarshadNumber:
 
     def test_harshad_18(self):
-        from formulite.fxNumeric.number_theory_functions import is_harshad_number
+        from agentfx.fxNumeric.number_theory_functions import is_harshad_number
         assert is_harshad_number(18) is True
 
     def test_not_harshad_19(self):
-        from formulite.fxNumeric.number_theory_functions import is_harshad_number
+        from agentfx.fxNumeric.number_theory_functions import is_harshad_number
         assert is_harshad_number(19) is False
 
     def test_harshad_1(self):
-        from formulite.fxNumeric.number_theory_functions import is_harshad_number
+        from agentfx.fxNumeric.number_theory_functions import is_harshad_number
         assert is_harshad_number(1) is True
 
 class TestJacobiSymbol:
 
     def test_basic(self):
-        from formulite.fxNumeric.number_theory_functions import jacobi_symbol
+        from agentfx.fxNumeric.number_theory_functions import jacobi_symbol
         assert jacobi_symbol(2, 15) == 1
 
     def test_negative_result(self):
-        from formulite.fxNumeric.number_theory_functions import jacobi_symbol
+        from agentfx.fxNumeric.number_theory_functions import jacobi_symbol
         assert jacobi_symbol(7, 15) == -1
 
     def test_even_n_raises(self):
-        from formulite.fxNumeric.number_theory_functions import jacobi_symbol
+        from agentfx.fxNumeric.number_theory_functions import jacobi_symbol
 
         with pytest.raises(ValueError):
             jacobi_symbol(2, 4)
@@ -373,17 +351,17 @@ class TestJacobiSymbol:
 class TestCollatzSteps:
 
     def test_6(self):
-        from formulite.fxNumeric.number_theory_functions import collatz_steps
+        from agentfx.fxNumeric.number_theory_functions import collatz_steps
 
         assert collatz_steps(6) == 8
 
     def test_1(self):
-        from formulite.fxNumeric.number_theory_functions import collatz_steps
+        from agentfx.fxNumeric.number_theory_functions import collatz_steps
 
         assert collatz_steps(1) == 0
 
     def test_negative(self):
-        from formulite.fxNumeric.number_theory_functions import collatz_steps
+        from agentfx.fxNumeric.number_theory_functions import collatz_steps
 
         with pytest.raises(ValueError):
             collatz_steps(-1)
@@ -391,17 +369,17 @@ class TestCollatzSteps:
 class TestAdditivePersistence:
 
     def test_199(self):
-        from formulite.fxNumeric.number_theory_functions import additive_persistence
+        from agentfx.fxNumeric.number_theory_functions import additive_persistence
 
         assert additive_persistence(199) == 3
 
     def test_single_digit(self):
-        from formulite.fxNumeric.number_theory_functions import additive_persistence
+        from agentfx.fxNumeric.number_theory_functions import additive_persistence
 
         assert additive_persistence(5) == 0
 
     def test_type_error(self):
-        from formulite.fxNumeric.number_theory_functions import additive_persistence
+        from agentfx.fxNumeric.number_theory_functions import additive_persistence
 
         with pytest.raises(TypeError):
             additive_persistence(5.5)
@@ -409,17 +387,17 @@ class TestAdditivePersistence:
 class TestIsSquareFree:
 
     def test_true(self):
-        from formulite.fxNumeric.number_theory_functions import is_square_free
+        from agentfx.fxNumeric.number_theory_functions import is_square_free
 
         assert is_square_free(30) is True
 
     def test_false(self):
-        from formulite.fxNumeric.number_theory_functions import is_square_free
+        from agentfx.fxNumeric.number_theory_functions import is_square_free
 
         assert is_square_free(12) is False
 
     def test_one(self):
-        from formulite.fxNumeric.number_theory_functions import is_square_free
+        from agentfx.fxNumeric.number_theory_functions import is_square_free
 
         assert is_square_free(1) is True
 
@@ -429,51 +407,51 @@ class TestIsSquareFree:
 class TestCountDivisors:
 
     def test_12(self):
-        from formulite.fxNumeric.number_theory_functions import count_divisors
+        from agentfx.fxNumeric.number_theory_functions import count_divisors
 
         assert count_divisors(12) == 6
 
     def test_prime(self):
-        from formulite.fxNumeric.number_theory_functions import count_divisors
+        from agentfx.fxNumeric.number_theory_functions import count_divisors
 
         assert count_divisors(7) == 2
 
     def test_one(self):
-        from formulite.fxNumeric.number_theory_functions import count_divisors
+        from agentfx.fxNumeric.number_theory_functions import count_divisors
 
         assert count_divisors(1) == 1
 
 class TestRadical:
 
     def test_12(self):
-        from formulite.fxNumeric.number_theory_functions import radical
+        from agentfx.fxNumeric.number_theory_functions import radical
 
         assert radical(12) == 6
 
     def test_1(self):
-        from formulite.fxNumeric.number_theory_functions import radical
+        from agentfx.fxNumeric.number_theory_functions import radical
 
         assert radical(1) == 1
 
     def test_prime(self):
-        from formulite.fxNumeric.number_theory_functions import radical
+        from agentfx.fxNumeric.number_theory_functions import radical
 
         assert radical(13) == 13
 
 class TestIsSphenicNumber:
 
     def test_true(self):
-        from formulite.fxNumeric.number_theory_functions import is_sphenic_number
+        from agentfx.fxNumeric.number_theory_functions import is_sphenic_number
 
         assert is_sphenic_number(30) is True
 
     def test_false(self):
-        from formulite.fxNumeric.number_theory_functions import is_sphenic_number
+        from agentfx.fxNumeric.number_theory_functions import is_sphenic_number
 
         assert is_sphenic_number(12) is False
 
     def test_66(self):
-        from formulite.fxNumeric.number_theory_functions import is_sphenic_number
+        from agentfx.fxNumeric.number_theory_functions import is_sphenic_number
 
         assert is_sphenic_number(66) is True
 
@@ -817,11 +795,6 @@ class TestIntermediatePoint:
 # fxNumeric — number_theory_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.number_theory_functions import (
-    legendre_symbol,
-    continued_fraction_expansion,
-    convergents,
-)
 
 class TestLegendreSymbol:
     def test_quadratic_residue(self):
@@ -1282,11 +1255,6 @@ class TestContraharmonicMean:
 
 # ── fxNumeric · number_theory_functions ──────────────────────────────
 
-from formulite.fxNumeric.number_theory_functions import (
-    carmichael_lambda,
-    is_lychrel_candidate,
-    digit_factorial_sum,
-)
 
 class TestCarmichaelLambda:
 
@@ -1338,52 +1306,52 @@ class TestIsLychrelCandidate:
 class TestIsSmithNumberV2:
 
     def test_22_is_smith(self):
-        from formulite.fxNumeric.number_theory_functions import is_smith_number
+        from agentfx.fxNumeric.number_theory_functions import is_smith_number
         assert is_smith_number(22) is True
 
     def test_27_is_smith(self):
-        from formulite.fxNumeric.number_theory_functions import is_smith_number
+        from agentfx.fxNumeric.number_theory_functions import is_smith_number
         assert is_smith_number(27) is True
 
     def test_prime_not_smith(self):
-        from formulite.fxNumeric.number_theory_functions import is_smith_number
+        from agentfx.fxNumeric.number_theory_functions import is_smith_number
         assert is_smith_number(23) is False
 
     def test_4_is_smith(self):
-        from formulite.fxNumeric.number_theory_functions import is_smith_number
+        from agentfx.fxNumeric.number_theory_functions import is_smith_number
         assert is_smith_number(4) is True
 
 class TestIsNarcissisticNumber:
 
     def test_153(self):
-        from formulite.fxNumeric.number_theory_functions import is_narcissistic_number
+        from agentfx.fxNumeric.number_theory_functions import is_narcissistic_number
         assert is_narcissistic_number(153) is True
 
     def test_370(self):
-        from formulite.fxNumeric.number_theory_functions import is_narcissistic_number
+        from agentfx.fxNumeric.number_theory_functions import is_narcissistic_number
         assert is_narcissistic_number(370) is True
 
     def test_single_digits(self):
-        from formulite.fxNumeric.number_theory_functions import is_narcissistic_number
+        from agentfx.fxNumeric.number_theory_functions import is_narcissistic_number
         for d in range(10):
             assert is_narcissistic_number(d) is True
 
     def test_10_is_not(self):
-        from formulite.fxNumeric.number_theory_functions import is_narcissistic_number
+        from agentfx.fxNumeric.number_theory_functions import is_narcissistic_number
         assert is_narcissistic_number(10) is False
 
 class TestSternBrocotV2:
 
     def test_first_10(self):
-        from formulite.fxNumeric.number_theory_functions import stern_brocot
+        from agentfx.fxNumeric.number_theory_functions import stern_brocot
         assert stern_brocot(10) == [0, 1, 1, 2, 1, 3, 2, 3, 1, 4]
 
     def test_single(self):
-        from formulite.fxNumeric.number_theory_functions import stern_brocot
+        from agentfx.fxNumeric.number_theory_functions import stern_brocot
         assert stern_brocot(1) == [0]
 
     def test_two(self):
-        from formulite.fxNumeric.number_theory_functions import stern_brocot
+        from agentfx.fxNumeric.number_theory_functions import stern_brocot
         assert stern_brocot(2) == [0, 1]
 
 
@@ -1392,71 +1360,71 @@ class TestSternBrocotV2:
 class TestIsSquareNumber:
 
     def test_true(self):
-        from formulite.fxNumeric.number_theory_functions import is_square_number
+        from agentfx.fxNumeric.number_theory_functions import is_square_number
         assert is_square_number(49) is True
 
     def test_false(self):
-        from formulite.fxNumeric.number_theory_functions import is_square_number
+        from agentfx.fxNumeric.number_theory_functions import is_square_number
         assert is_square_number(50) is False
 
     def test_zero(self):
-        from formulite.fxNumeric.number_theory_functions import is_square_number
+        from agentfx.fxNumeric.number_theory_functions import is_square_number
         assert is_square_number(0) is True
 
 class TestIsTriangularNumber:
 
     def test_true(self):
-        from formulite.fxNumeric.number_theory_functions import is_triangular_number
+        from agentfx.fxNumeric.number_theory_functions import is_triangular_number
         assert is_triangular_number(10) is True
 
     def test_false(self):
-        from formulite.fxNumeric.number_theory_functions import is_triangular_number
+        from agentfx.fxNumeric.number_theory_functions import is_triangular_number
         assert is_triangular_number(11) is False
 
     def test_one(self):
-        from formulite.fxNumeric.number_theory_functions import is_triangular_number
+        from agentfx.fxNumeric.number_theory_functions import is_triangular_number
         assert is_triangular_number(1) is True
 
 class TestIsPowerOfTwo:
 
     def test_true(self):
-        from formulite.fxNumeric.number_theory_functions import is_power_of_two
+        from agentfx.fxNumeric.number_theory_functions import is_power_of_two
         assert is_power_of_two(64) is True
 
     def test_false(self):
-        from formulite.fxNumeric.number_theory_functions import is_power_of_two
+        from agentfx.fxNumeric.number_theory_functions import is_power_of_two
         assert is_power_of_two(65) is False
 
     def test_one(self):
-        from formulite.fxNumeric.number_theory_functions import is_power_of_two
+        from agentfx.fxNumeric.number_theory_functions import is_power_of_two
         assert is_power_of_two(1) is True
 
 class TestDigitalSumV2:
 
     def test_basic(self):
-        from formulite.fxNumeric.number_theory_functions import digital_sum
+        from agentfx.fxNumeric.number_theory_functions import digital_sum
         assert digital_sum(12345) == 15
 
     def test_negative(self):
-        from formulite.fxNumeric.number_theory_functions import digital_sum
+        from agentfx.fxNumeric.number_theory_functions import digital_sum
         assert digital_sum(-999) == 27
 
     def test_zero(self):
-        from formulite.fxNumeric.number_theory_functions import digital_sum
+        from agentfx.fxNumeric.number_theory_functions import digital_sum
         assert digital_sum(0) == 0
 
 class TestCountDigits:
 
     def test_basic(self):
-        from formulite.fxNumeric.number_theory_functions import count_digits
+        from agentfx.fxNumeric.number_theory_functions import count_digits
         assert count_digits(12345) == 5
 
     def test_negative(self):
-        from formulite.fxNumeric.number_theory_functions import count_digits
+        from agentfx.fxNumeric.number_theory_functions import count_digits
         assert count_digits(-99) == 2
 
     def test_zero(self):
-        from formulite.fxNumeric.number_theory_functions import count_digits
+        from agentfx.fxNumeric.number_theory_functions import count_digits
         assert count_digits(0) == 1
 
 
@@ -1624,35 +1592,35 @@ class TestMultiplicativePersistenceV2:
 class TestIsKaprekarNumberV2:
 
     def test_true(self):
-        from formulite.fxNumeric.number_theory_functions import is_kaprekar_number
+        from agentfx.fxNumeric.number_theory_functions import is_kaprekar_number
 
         assert is_kaprekar_number(9) is True
         assert is_kaprekar_number(45) is True
 
     def test_false(self):
-        from formulite.fxNumeric.number_theory_functions import is_kaprekar_number
+        from agentfx.fxNumeric.number_theory_functions import is_kaprekar_number
 
         assert is_kaprekar_number(10) is False
 
     def test_one(self):
-        from formulite.fxNumeric.number_theory_functions import is_kaprekar_number
+        from agentfx.fxNumeric.number_theory_functions import is_kaprekar_number
 
         assert is_kaprekar_number(1) is True
 
 class TestIsHappyNumberV2:
 
     def test_happy(self):
-        from formulite.fxNumeric.number_theory_functions import is_happy_number
+        from agentfx.fxNumeric.number_theory_functions import is_happy_number
 
         assert is_happy_number(19) is True
 
     def test_unhappy(self):
-        from formulite.fxNumeric.number_theory_functions import is_happy_number
+        from agentfx.fxNumeric.number_theory_functions import is_happy_number
 
         assert is_happy_number(2) is False
 
     def test_negative(self):
-        from formulite.fxNumeric.number_theory_functions import is_happy_number
+        from agentfx.fxNumeric.number_theory_functions import is_happy_number
 
         with pytest.raises(ValueError):
             is_happy_number(-1)
@@ -1660,17 +1628,17 @@ class TestIsHappyNumberV2:
 class TestDigitalRoot:
 
     def test_basic(self):
-        from formulite.fxNumeric.number_theory_functions import digital_root
+        from agentfx.fxNumeric.number_theory_functions import digital_root
 
         assert digital_root(493) == 7
 
     def test_zero(self):
-        from formulite.fxNumeric.number_theory_functions import digital_root
+        from agentfx.fxNumeric.number_theory_functions import digital_root
 
         assert digital_root(0) == 0
 
     def test_single_digit(self):
-        from formulite.fxNumeric.number_theory_functions import digital_root
+        from agentfx.fxNumeric.number_theory_functions import digital_root
 
         assert digital_root(5) == 5
 

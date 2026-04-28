@@ -20,7 +20,7 @@ Functions with names and behaviors identical to Microsoft Excel, making the tran
 ## Quick Examples
 
 ```python
-from formulite import fxExcel
+from agentfx import fxExcel
 
 # VLOOKUP
 table = [

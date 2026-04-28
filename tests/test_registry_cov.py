@@ -1,10 +1,6 @@
-# Coverage tests for formulite.registry
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.registry
 
-from formulite import registry as mod
+from agentfx import registry as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

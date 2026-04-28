@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxNumeric.series_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxNumeric.series_functions
 
-import formulite.fxNumeric.series_functions as mod
+import agentfx.fxNumeric.series_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

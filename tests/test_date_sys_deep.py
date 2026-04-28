@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxDate.date_sys
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxDate.date_sys
 
-import formulite.fxDate.date_sys as mod
+import agentfx.fxDate.date_sys as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

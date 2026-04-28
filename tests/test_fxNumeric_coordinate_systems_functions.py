@@ -2,7 +2,7 @@
 
 import math
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     bipolar_to_cartesian,
     cartesian_to_cylindrical,
     cartesian_to_parabolic_cylindrical,

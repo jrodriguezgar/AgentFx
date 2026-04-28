@@ -3,12 +3,12 @@ hide:
   - navigation
 ---
 
-# FormuLite
+# AgentFx
 
 > _"Write less, do more."_
 > _"The deterministic toolset your AI agents can trust."_
 
-**FormuLite** is a Python library that encapsulates complex programming logic into **3,000+ reusable functions**, organized like Excel formulas. It also serves as a **deterministic toolset for AI agents** via `llms.txt` and a built-in MCP server.
+**AgentFx** is a Python library that encapsulates complex programming logic into **3,000+ reusable functions**, organized like Excel formulas. It also serves as a **deterministic toolset for AI agents** via `llms.txt` and a built-in MCP server.
 
 ---
 
@@ -64,7 +64,7 @@ hide:
 ## Quick Example
 
 ```python
-from formulite import fxDate, fxExcel, fxNumeric
+from agentfx import fxDate, fxExcel, fxNumeric
 
 # Date arithmetic
 from datetime import datetime

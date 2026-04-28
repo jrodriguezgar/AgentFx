@@ -1,6 +1,6 @@
-# Contributing to FormuLite
+# Contributing to AgentFx
 
-Thank you for your interest in contributing to FormuLite! This guide explains how to add new formulas to the project step by step.
+Thank you for your interest in contributing to AgentFx! This guide explains how to add new formulas to the project step by step.
 
 ---
 
@@ -42,7 +42,7 @@ This is the simplest case. Example: adding a `cube_root` function to `fxNumeric/
 Open the target file and add your function:
 
 ```python
-# formulite/fxNumeric/arithmetic_functions.py
+# agentfx/fxNumeric/arithmetic_functions.py
 
 def cube_root(x: float) -> float:
     """Calculates the cube root of a number.
@@ -60,7 +60,7 @@ def cube_root(x: float) -> float:
         TypeError: If x is not numeric.
 
     Usage Example:
-        >>> from formulite.fxNumeric.arithmetic_functions import cube_root
+        >>> from agentfx.fxNumeric.arithmetic_functions import cube_root
         >>> cube_root(27)
         3.0
         >>> cube_root(-8)
@@ -98,7 +98,7 @@ Example: adding a `matrix_functions.py` file to `fxNumeric`.
 ### Step 1 — Create the file
 
 ```python
-# formulite/fxNumeric/matrix_functions.py
+# agentfx/fxNumeric/matrix_functions.py
 
 """Matrix operations module.
 
@@ -127,7 +127,7 @@ def matrix_transpose(matrix: List[List[float]]) -> List[List[float]]:
         ValueError: If rows have inconsistent lengths.
 
     Usage Example:
-        >>> from formulite.fxNumeric.matrix_functions import matrix_transpose
+        >>> from agentfx.fxNumeric.matrix_functions import matrix_transpose
         >>> matrix_transpose([[1, 2], [3, 4]])
         [[1, 3], [2, 4]]
 
@@ -144,7 +144,7 @@ def matrix_transpose(matrix: List[List[float]]) -> List[List[float]]:
 
 ### Step 2 — Register the file in `__init__.py`
 
-Open `formulite/fxNumeric/__init__.py` and add the new file to `_SUBMODULES`:
+Open `agentfx/fxNumeric/__init__.py` and add the new file to `_SUBMODULES`:
 
 ```python
 _SUBMODULES = [
@@ -178,7 +178,7 @@ If none of the existing modules (`fxDate`, `fxNumeric`, `fxString`, `fxPython`, 
 ### Step 1 — Create the module directory
 
 ```
-formulite/
+agentfx/
 └── fxGeometry/           # New module
     ├── __init__.py
     └── shape_functions.py
@@ -189,7 +189,7 @@ formulite/
 Follow the exact same pattern as existing modules:
 
 ```python
-# formulite/fxGeometry/__init__.py
+# agentfx/fxGeometry/__init__.py
 
 """fxGeometry — Geometric calculations and shape operations.
 
@@ -197,13 +197,13 @@ Re-exports all public functions from submodules. Submodules with
 uninstalled optional dependencies are silently skipped.
 """
 
-from formulite._loader import auto_export
+from agentfx._loader import auto_export
 
 _SUBMODULES = [
     "shape_functions",
 ]
 
-auto_export("formulite.fxGeometry", _SUBMODULES, globals())
+auto_export("agentfx.fxGeometry", _SUBMODULES, globals())
 ```
 
 ### Step 3 — Write your function files
@@ -215,13 +215,13 @@ Follow the same structure as [Adding a New Function](#adding-a-new-function-to-a
 - Add a new `## fxGeometry` section in `llms.txt`.
 - Update the function count in the header of `llms.txt`.
 - Add the module to the `README.md` main modules list.
-- Create a `README.md` inside `formulite/fxGeometry/` describing the module.
+- Create a `README.md` inside `agentfx/fxGeometry/` describing the module.
 
 ---
 
 ## Function Design Rules
 
-Every function in FormuLite must follow these principles:
+Every function in AgentFx must follow these principles:
 
 | Rule | Description |
 |------|-------------|
@@ -257,7 +257,7 @@ def function_name(param: type) -> return_type:
         ExceptionType: When it occurs.
 
     Usage Example:
-        >>> from formulite.fxModule.file import function_name
+        >>> from agentfx.fxModule.file import function_name
         >>> function_name(value)
         expected_result
 
@@ -271,10 +271,10 @@ Required sections: **description line**, **Args**, **Returns**. Include **Raises
 
 ## Input Validation
 
-Use the shared helpers in `formulite/_validators.py` for consistent error messages:
+Use the shared helpers in `agentfx/_validators.py` for consistent error messages:
 
 ```python
-from formulite._validators import ensure_type, ensure_numeric, ensure_positive
+from agentfx._validators import ensure_type, ensure_numeric, ensure_positive
 
 def my_function(value: float, name: str) -> float:
     ensure_numeric(value, "value")
@@ -312,7 +312,7 @@ Tests live in the `tests/` directory and use **pytest**.
 """Tests for fxNumeric matrix operations."""
 
 import pytest
-from formulite.fxNumeric.matrix_functions import matrix_transpose
+from agentfx.fxNumeric.matrix_functions import matrix_transpose
 
 
 def test_matrix_transpose_square():
@@ -371,14 +371,14 @@ Add the function entry under the correct `### file.py` section:
 If you created a new file, add a new `### file.py` heading under the correct module section. Update the total function count in the header:
 
 ```markdown
-# FormuLite - LLM Function Reference
+# AgentFx - LLM Function Reference
 
 **2181+ functions across 6 modules** | ...
 ```
 
 ### 2. Module `README.md`
 
-If the module has a `README.md` (e.g., `formulite/fxNumeric/README.md`), add the new function there.
+If the module has a `README.md` (e.g., `agentfx/fxNumeric/README.md`), add the new function there.
 
 ---
 

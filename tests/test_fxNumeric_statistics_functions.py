@@ -4,33 +4,7 @@ import math
 
 import pytest
 
-from formulite.fxNumeric import (
-    beta_function,
-    cauchy_pdf,
-    chi_squared_pdf,
-    exponential_cdf,
-    exponential_pdf,
-    gamma_pdf,
-    geometric_pmf,
-    hypergeometric_pmf,
-    log_normal_pdf,
-    logistic_function,
-    multinomial_coefficient,
-    negative_binomial_pmf,
-    normal_cdf,
-    uniform_cdf,
-    uniform_pdf,
-    weibull_pdf,
-)
-from formulite.fxNumeric.conversion_functions import bmi, ideal_gas_pressure
-from formulite.fxNumeric.finance_functions import (
-    annuity_due_pv,
-    convexity_adjustment,
-    cost_of_debt_after_tax,
-    purchasing_power,
-)
-from formulite.fxNumeric.number_theory_functions import is_coprime
-from formulite.fxNumeric.statistics_functions import (
+from agentfx.fxNumeric import (
     absolute_error,
     adjusted_r_squared,
     anderson_darling,
@@ -40,12 +14,14 @@ from formulite.fxNumeric.statistics_functions import (
     bayes_theorem,
     bayesian_update,
     benford_distribution,
+    beta_function,
     beta_function_value,
     binary_entropy,
     binomial_pmf,
     binomial_probability,
     bowley_skewness,
     cauchy_pdf,
+    chi_squared_pdf,
     chi_squared_statistic,
     coefficient_of_quartile_deviation,
     coefficient_of_variation,
@@ -69,6 +45,7 @@ from formulite.fxNumeric.statistics_functions import (
     false_discovery_rate,
     gamma_pdf,
     geometric_pdf,
+    geometric_pmf,
     gini_impurity_binary,
     glass_delta,
     grubbs_test,
@@ -102,6 +79,7 @@ from formulite.fxNumeric.statistics_functions import (
     midhinge,
     midrange,
     moors_kurtosis,
+    multinomial_coefficient,
     mutual_information,
     negative_binomial_pmf,
     negative_predictive_value,
@@ -143,6 +121,8 @@ from formulite.fxNumeric.statistics_functions import (
     triangular_pdf,
     trimmed_variance,
     tukey_trimean,
+    uniform_cdf,
+    uniform_pdf,
     weibull_pdf,
     weighted_median,
     weighted_moving_average,
@@ -153,6 +133,13 @@ from formulite.fxNumeric.statistics_functions import (
     z_score_to_percentile,
     zipf_pmf,
 )
+from agentfx.fxNumeric.finance_functions import (
+    annuity_due_pv,
+    convexity_adjustment,
+    cost_of_debt_after_tax,
+    purchasing_power,
+)
+from agentfx.fxNumeric.number_theory_functions import is_coprime
 
 
 class TestIsCoprime:
@@ -169,13 +156,6 @@ class TestIsCoprime:
 
 # ── Statistics ───────────────────────────────────────────────────────────────
 
-from formulite.fxNumeric.statistics_functions import (
-    root_mean_square,
-    weighted_variance,
-    auto_correlation,
-    kendall_tau,
-    quantile,
-)
 
 class TestRootMeanSquare:
 
@@ -218,7 +198,7 @@ class TestKendallTau:
 class TestBootstrapCI:
 
     def test_contains_mean(self):
-        from formulite.fxNumeric.statistics_functions import bootstrap_mean_ci
+        from agentfx.fxNumeric.statistics_functions import bootstrap_mean_ci
 
         lo, hi = bootstrap_mean_ci([1, 2, 3, 4, 5], 0.95, 5000, seed=42)
         assert lo < 3.0 < hi
@@ -226,14 +206,14 @@ class TestBootstrapCI:
 class TestEmpiricalCDF:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import empirical_cdf
+        from agentfx.fxNumeric.statistics_functions import empirical_cdf
 
         assert empirical_cdf([1, 2, 3, 4, 5], 3) == 0.6
 
 class TestJarqueBera:
 
     def test_normal_data(self):
-        from formulite.fxNumeric.statistics_functions import jarque_bera
+        from agentfx.fxNumeric.statistics_functions import jarque_bera
 
         jb, is_normal = jarque_bera([1, 2, 3, 4, 5])
         assert is_normal is True
@@ -241,7 +221,7 @@ class TestJarqueBera:
 class TestDurbinWatson:
 
     def test_no_autocorrelation(self):
-        from formulite.fxNumeric.statistics_functions import durbin_watson
+        from agentfx.fxNumeric.statistics_functions import durbin_watson
 
         # Alternating residuals → DW near 2 or above
         dw = durbin_watson([0.1, -0.1, 0.1, -0.1, 0.1])
@@ -250,7 +230,7 @@ class TestDurbinWatson:
 class TestMannWhitney:
 
     def test_separated_samples(self):
-        from formulite.fxNumeric.statistics_functions import mann_whitney_u
+        from agentfx.fxNumeric.statistics_functions import mann_whitney_u
 
         u, z = mann_whitney_u([1, 2, 3], [4, 5, 6])
         assert u == 0.0
@@ -258,7 +238,7 @@ class TestMannWhitney:
 class TestRunsTest:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import runs_test_statistic
+        from agentfx.fxNumeric.statistics_functions import runs_test_statistic
 
         runs, z = runs_test_statistic([1, 1, 0, 0, 1, 0, 1])
         assert runs == 5
@@ -266,21 +246,21 @@ class TestRunsTest:
 class TestTheilSenSlope:
 
     def test_perfect_linear(self):
-        from formulite.fxNumeric.statistics_functions import theil_sen_slope
+        from agentfx.fxNumeric.statistics_functions import theil_sen_slope
 
         assert theil_sen_slope([1, 2, 3, 4], [2, 4, 6, 8]) == 2.0
 
 class TestExponentialSmoothingSingle:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import exponential_smoothing_single
+        from agentfx.fxNumeric.statistics_functions import exponential_smoothing_single
 
         assert exponential_smoothing_single(10, 8, 0.3) == pytest.approx(8.6)
 
 class TestBayesianUpdate:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import bayesian_update
+        from agentfx.fxNumeric.statistics_functions import bayesian_update
 
         assert bayesian_update(0.01, [0.9], [0.05]) == pytest.approx(0.18)
 
@@ -290,15 +270,15 @@ class TestBayesianUpdate:
 class TestMeanAbsoluteError:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import mean_absolute_error
+        from agentfx.fxNumeric.statistics_functions import mean_absolute_error
         assert mean_absolute_error([3, -0.5, 2, 7], [2.5, 0.0, 2, 8]) == 0.5
 
     def test_perfect(self):
-        from formulite.fxNumeric.statistics_functions import mean_absolute_error
+        from agentfx.fxNumeric.statistics_functions import mean_absolute_error
         assert mean_absolute_error([1, 2, 3], [1, 2, 3]) == 0.0
 
     def test_length_mismatch(self):
-        from formulite.fxNumeric.statistics_functions import mean_absolute_error
+        from agentfx.fxNumeric.statistics_functions import mean_absolute_error
 
         with pytest.raises(ValueError):
             mean_absolute_error([1, 2], [1])
@@ -306,21 +286,21 @@ class TestMeanAbsoluteError:
 class TestRootMeanSquaredError:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import root_mean_squared_error
+        from agentfx.fxNumeric.statistics_functions import root_mean_squared_error
         assert round(root_mean_squared_error([3, -0.5, 2, 7], [2.5, 0.0, 2, 8]), 4) == 0.6124
 
     def test_perfect(self):
-        from formulite.fxNumeric.statistics_functions import root_mean_squared_error
+        from agentfx.fxNumeric.statistics_functions import root_mean_squared_error
         assert root_mean_squared_error([1, 2, 3], [1, 2, 3]) == 0.0
 
 class TestRelativeStandardDeviation:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import relative_standard_deviation
+        from agentfx.fxNumeric.statistics_functions import relative_standard_deviation
         assert round(relative_standard_deviation([10, 12, 11, 9, 13]), 2) == 14.37
 
     def test_zero_mean_raises(self):
-        from formulite.fxNumeric.statistics_functions import relative_standard_deviation
+        from agentfx.fxNumeric.statistics_functions import relative_standard_deviation
 
         with pytest.raises(ValueError):
             relative_standard_deviation([-1, 1])
@@ -328,15 +308,15 @@ class TestRelativeStandardDeviation:
 class TestGiniCoefficient:
 
     def test_equal(self):
-        from formulite.fxNumeric.statistics_functions import gini_coefficient
+        from agentfx.fxNumeric.statistics_functions import gini_coefficient
         assert gini_coefficient([1, 1, 1, 1]) == 0.0
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import gini_coefficient
+        from agentfx.fxNumeric.statistics_functions import gini_coefficient
         assert round(gini_coefficient([1, 2, 3, 4, 5]), 4) == 0.2667
 
     def test_negative_raises(self):
-        from formulite.fxNumeric.statistics_functions import gini_coefficient
+        from agentfx.fxNumeric.statistics_functions import gini_coefficient
 
         with pytest.raises(ValueError):
             gini_coefficient([-1, 2])
@@ -347,15 +327,15 @@ class TestGiniCoefficient:
 class TestSpearmanRankCorrelation:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import spearman_rank_correlation
+        from agentfx.fxNumeric.statistics_functions import spearman_rank_correlation
         assert round(spearman_rank_correlation([1, 2, 3, 4, 5], [5, 6, 7, 8, 7]), 2) == 0.82
 
     def test_perfect(self):
-        from formulite.fxNumeric.statistics_functions import spearman_rank_correlation
+        from agentfx.fxNumeric.statistics_functions import spearman_rank_correlation
         assert round(spearman_rank_correlation([1, 2, 3], [10, 20, 30]), 2) == 1.0
 
     def test_length_mismatch(self):
-        from formulite.fxNumeric.statistics_functions import spearman_rank_correlation
+        from agentfx.fxNumeric.statistics_functions import spearman_rank_correlation
 
         with pytest.raises(ValueError):
             spearman_rank_correlation([1, 2], [1])
@@ -363,15 +343,15 @@ class TestSpearmanRankCorrelation:
 class TestChiSquaredStatistic:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import chi_squared_statistic
+        from agentfx.fxNumeric.statistics_functions import chi_squared_statistic
         assert chi_squared_statistic([20, 30, 50], [25, 25, 50]) == 2.0
 
     def test_perfect_fit(self):
-        from formulite.fxNumeric.statistics_functions import chi_squared_statistic
+        from agentfx.fxNumeric.statistics_functions import chi_squared_statistic
         assert chi_squared_statistic([10, 20, 30], [10, 20, 30]) == 0.0
 
     def test_zero_expected(self):
-        from formulite.fxNumeric.statistics_functions import chi_squared_statistic
+        from agentfx.fxNumeric.statistics_functions import chi_squared_statistic
 
         with pytest.raises(ValueError):
             chi_squared_statistic([10, 20], [0, 20])
@@ -379,15 +359,15 @@ class TestChiSquaredStatistic:
 class TestMovingMedian:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import moving_median
+        from agentfx.fxNumeric.statistics_functions import moving_median
         assert moving_median([1, 3, 5, 7, 9], 3) == [None, None, 3.0, 5.0, 7.0]
 
     def test_window_1(self):
-        from formulite.fxNumeric.statistics_functions import moving_median
+        from agentfx.fxNumeric.statistics_functions import moving_median
         assert moving_median([5, 3, 8], 1) == [5.0, 3.0, 8.0]
 
     def test_even_window(self):
-        from formulite.fxNumeric.statistics_functions import moving_median
+        from agentfx.fxNumeric.statistics_functions import moving_median
         assert moving_median([1, 2, 3, 4], 2) == [None, 1.5, 2.5, 3.5]
 
 
@@ -680,18 +660,18 @@ class TestWeightedMedian:
 class TestFocalLoss:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import focal_loss
+        from agentfx.fxNumeric.statistics_functions import focal_loss
 
         assert round(focal_loss(1, 0.9), 6) == 0.000263
 
     def test_invalid_label(self):
-        from formulite.fxNumeric.statistics_functions import focal_loss
+        from agentfx.fxNumeric.statistics_functions import focal_loss
 
         with pytest.raises(ValueError):
             focal_loss(2, 0.9)
 
     def test_invalid_pred(self):
-        from formulite.fxNumeric.statistics_functions import focal_loss
+        from agentfx.fxNumeric.statistics_functions import focal_loss
 
         with pytest.raises(ValueError):
             focal_loss(1, 1.0)
@@ -699,30 +679,30 @@ class TestFocalLoss:
 class TestMeanBiasError:
 
     def test_overestimate(self):
-        from formulite.fxNumeric.statistics_functions import mean_bias_error
+        from agentfx.fxNumeric.statistics_functions import mean_bias_error
 
         assert mean_bias_error(105, 100) == 5.0
 
     def test_underestimate(self):
-        from formulite.fxNumeric.statistics_functions import mean_bias_error
+        from agentfx.fxNumeric.statistics_functions import mean_bias_error
 
         assert mean_bias_error(95, 100) == -5.0
 
 class TestDiceCoefficientScalar:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import dice_coefficient_scalar
+        from agentfx.fxNumeric.statistics_functions import dice_coefficient_scalar
 
         assert dice_coefficient_scalar(30, 10, 5) == pytest.approx(0.8)
 
     def test_all_zero(self):
-        from formulite.fxNumeric.statistics_functions import dice_coefficient_scalar
+        from agentfx.fxNumeric.statistics_functions import dice_coefficient_scalar
 
         with pytest.raises(ValueError):
             dice_coefficient_scalar(0, 0, 0)
 
     def test_negative(self):
-        from formulite.fxNumeric.statistics_functions import dice_coefficient_scalar
+        from agentfx.fxNumeric.statistics_functions import dice_coefficient_scalar
 
         with pytest.raises(ValueError):
             dice_coefficient_scalar(-1, 0, 0)
@@ -730,12 +710,12 @@ class TestDiceCoefficientScalar:
 class TestExponentialDecayRate:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import exponential_decay_rate
+        from agentfx.fxNumeric.statistics_functions import exponential_decay_rate
 
         assert round(exponential_decay_rate(100, 50, 5), 4) == 0.1386
 
     def test_final_exceeds_initial(self):
-        from formulite.fxNumeric.statistics_functions import exponential_decay_rate
+        from agentfx.fxNumeric.statistics_functions import exponential_decay_rate
 
         with pytest.raises(ValueError):
             exponential_decay_rate(50, 100, 5)
@@ -743,12 +723,12 @@ class TestExponentialDecayRate:
 class TestZScoreSingle:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import z_score_single
+        from agentfx.fxNumeric.statistics_functions import z_score_single
 
         assert z_score_single(85, 70, 10) == 1.5
 
     def test_zero_std(self):
-        from formulite.fxNumeric.statistics_functions import z_score_single
+        from agentfx.fxNumeric.statistics_functions import z_score_single
 
         with pytest.raises(ValueError):
             z_score_single(85, 70, 0)
@@ -759,12 +739,12 @@ class TestZScoreSingle:
 class TestRecallScoreScalar:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import recall_score_scalar
+        from agentfx.fxNumeric.statistics_functions import recall_score_scalar
 
         assert recall_score_scalar(80, 20) == 0.8
 
     def test_both_zero(self):
-        from formulite.fxNumeric.statistics_functions import recall_score_scalar
+        from agentfx.fxNumeric.statistics_functions import recall_score_scalar
 
         with pytest.raises(ValueError):
             recall_score_scalar(0, 0)
@@ -772,12 +752,12 @@ class TestRecallScoreScalar:
 class TestPrecisionScoreScalar:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import precision_score_scalar
+        from agentfx.fxNumeric.statistics_functions import precision_score_scalar
 
         assert precision_score_scalar(80, 20) == 0.8
 
     def test_negative(self):
-        from formulite.fxNumeric.statistics_functions import precision_score_scalar
+        from agentfx.fxNumeric.statistics_functions import precision_score_scalar
 
         with pytest.raises(ValueError):
             precision_score_scalar(-1, 20)
@@ -785,12 +765,12 @@ class TestPrecisionScoreScalar:
 class TestF1ScoreScalar:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import f1_score_scalar
+        from agentfx.fxNumeric.statistics_functions import f1_score_scalar
 
         assert f1_score_scalar(80, 10, 20) == pytest.approx(0.8421, rel=1e-3)
 
     def test_all_zero(self):
-        from formulite.fxNumeric.statistics_functions import f1_score_scalar
+        from agentfx.fxNumeric.statistics_functions import f1_score_scalar
 
         with pytest.raises(ValueError):
             f1_score_scalar(0, 0, 0)
@@ -798,12 +778,12 @@ class TestF1ScoreScalar:
 class TestSpecificityScoreScalar:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import specificity_score_scalar
+        from agentfx.fxNumeric.statistics_functions import specificity_score_scalar
 
         assert specificity_score_scalar(900, 100) == 0.9
 
     def test_type_error(self):
-        from formulite.fxNumeric.statistics_functions import specificity_score_scalar
+        from agentfx.fxNumeric.statistics_functions import specificity_score_scalar
 
         with pytest.raises(TypeError):
             specificity_score_scalar("a", 100)
@@ -811,12 +791,12 @@ class TestSpecificityScoreScalar:
 class TestMatthewsCorrcoefScalar:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import matthews_corrcoef_scalar
+        from agentfx.fxNumeric.statistics_functions import matthews_corrcoef_scalar
 
         assert round(matthews_corrcoef_scalar(80, 900, 100, 20), 3) == 0.544
 
     def test_degenerate(self):
-        from formulite.fxNumeric.statistics_functions import matthews_corrcoef_scalar
+        from agentfx.fxNumeric.statistics_functions import matthews_corrcoef_scalar
 
         with pytest.raises(ValueError):
             matthews_corrcoef_scalar(0, 0, 0, 0)
@@ -1356,12 +1336,6 @@ class TestAnnuityDuePv:
 # fxNumeric — statistics_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.statistics_functions import (
-    anderson_darling,
-    grubbs_test,
-    dixon_q_test,
-    ewma_variance,
-)
 
 class TestAndersonDarling:
     def test_uniform_ish(self):
@@ -1483,53 +1457,53 @@ class TestMLActivations:
     """CELU, hard_sigmoid, hard_swish."""
 
     def test_celu_positive(self):
-        from formulite.fxNumeric.statistics_functions import celu
+        from agentfx.fxNumeric.statistics_functions import celu
 
         assert celu(1.0) == 1.0
 
     def test_celu_negative(self):
-        from formulite.fxNumeric.statistics_functions import celu
+        from agentfx.fxNumeric.statistics_functions import celu
 
         assert round(celu(-1.0, 1.0), 6) == -0.632121
 
     def test_celu_zero(self):
-        from formulite.fxNumeric.statistics_functions import celu
+        from agentfx.fxNumeric.statistics_functions import celu
 
         assert celu(0.0) == 0.0
 
     def test_celu_invalid_alpha(self):
-        from formulite.fxNumeric.statistics_functions import celu
+        from agentfx.fxNumeric.statistics_functions import celu
 
         with pytest.raises(ValueError):
             celu(1.0, alpha=0)
 
     def test_hard_sigmoid_center(self):
-        from formulite.fxNumeric.statistics_functions import hard_sigmoid
+        from agentfx.fxNumeric.statistics_functions import hard_sigmoid
 
         assert hard_sigmoid(0.0) == 0.5
 
     def test_hard_sigmoid_saturated_high(self):
-        from formulite.fxNumeric.statistics_functions import hard_sigmoid
+        from agentfx.fxNumeric.statistics_functions import hard_sigmoid
 
         assert hard_sigmoid(3.0) == 1.0
 
     def test_hard_sigmoid_saturated_low(self):
-        from formulite.fxNumeric.statistics_functions import hard_sigmoid
+        from agentfx.fxNumeric.statistics_functions import hard_sigmoid
 
         assert hard_sigmoid(-3.0) == 0.0
 
     def test_hard_swish_zero(self):
-        from formulite.fxNumeric.statistics_functions import hard_swish
+        from agentfx.fxNumeric.statistics_functions import hard_swish
 
         assert hard_swish(0.0) == 0.0
 
     def test_hard_swish_positive(self):
-        from formulite.fxNumeric.statistics_functions import hard_swish
+        from agentfx.fxNumeric.statistics_functions import hard_swish
 
         assert hard_swish(3.0) == 3.0
 
     def test_hard_swish_negative(self):
-        from formulite.fxNumeric.statistics_functions import hard_swish
+        from agentfx.fxNumeric.statistics_functions import hard_swish
 
         assert round(hard_swish(-1.0), 6) == -0.333333
 
@@ -2345,11 +2319,6 @@ class TestPurchasingPower:
 # fxNumeric — statistics_functions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxNumeric.statistics_functions import (
-    sigmoid,
-    logit,
-    softplus,
-)
 
 class TestSigmoid:
 
@@ -2398,11 +2367,6 @@ class TestCostOfDebtAfterTax:
 
 # ── fxNumeric · statistics_functions ──────────────────────────────────────
 
-from formulite.fxNumeric.statistics_functions import (
-    quartile_deviation,
-    bowley_skewness,
-    coefficient_of_quartile_deviation,
-)
 
 class TestQuartileDeviationV2:
 
@@ -2459,7 +2423,6 @@ class TestCoefficientOfQuartileDeviation:
 
 # ── fxNumeric · number_theory_functions ───────────────────────────────────
 
-from formulite.fxNumeric.number_theory_functions import is_fibonacci_number
 
 class TestConvexityAdjustment:
 
@@ -2478,12 +2441,6 @@ class TestConvexityAdjustment:
 
 # ── fxNumeric · statistics_functions ─────────────────────────────────
 
-from formulite.fxNumeric.statistics_functions import (
-    tukey_trimean,
-    midrange,
-    midhinge,
-    contraharmonic_mean,
-)
 
 class TestTukeyTrimean:
 
@@ -2530,122 +2487,122 @@ class TestMidhinge:
 class TestCosineimilarity:
 
     def test_identical_vectors(self):
-        from formulite.fxNumeric.statistics_functions import cosine_similarity
+        from agentfx.fxNumeric.statistics_functions import cosine_similarity
         assert cosine_similarity([1, 2, 3], [1, 2, 3]) == pytest.approx(1.0)
 
     def test_orthogonal_vectors(self):
-        from formulite.fxNumeric.statistics_functions import cosine_similarity
+        from agentfx.fxNumeric.statistics_functions import cosine_similarity
         assert cosine_similarity([1, 0], [0, 1]) == pytest.approx(0.0)
 
     def test_opposite_vectors(self):
-        from formulite.fxNumeric.statistics_functions import cosine_similarity
+        from agentfx.fxNumeric.statistics_functions import cosine_similarity
         assert cosine_similarity([1, 0], [-1, 0]) == pytest.approx(-1.0)
 
     def test_typical(self):
-        from formulite.fxNumeric.statistics_functions import cosine_similarity
+        from agentfx.fxNumeric.statistics_functions import cosine_similarity
         result = cosine_similarity([1, 2, 3], [4, 5, 6])
         assert result == pytest.approx(0.9746318461970762, rel=1e-6)
 
     def test_zero_vector_raises(self):
-        from formulite.fxNumeric.statistics_functions import cosine_similarity
+        from agentfx.fxNumeric.statistics_functions import cosine_similarity
         with pytest.raises(ValueError):
             cosine_similarity([0, 0, 0], [1, 2, 3])
 
     def test_different_lengths_raises(self):
-        from formulite.fxNumeric.statistics_functions import cosine_similarity
+        from agentfx.fxNumeric.statistics_functions import cosine_similarity
         with pytest.raises(ValueError):
             cosine_similarity([1, 2], [1, 2, 3])
 
 class TestEuclideanDistanceV2:
 
     def test_same_point(self):
-        from formulite.fxNumeric.statistics_functions import euclidean_distance
+        from agentfx.fxNumeric.statistics_functions import euclidean_distance
         assert euclidean_distance([0, 0], [0, 0]) == 0.0
 
     def test_3d(self):
-        from formulite.fxNumeric.statistics_functions import euclidean_distance
+        from agentfx.fxNumeric.statistics_functions import euclidean_distance
         assert euclidean_distance([1, 2, 3], [4, 6, 3]) == pytest.approx(5.0)
 
     def test_2d_345(self):
-        from formulite.fxNumeric.statistics_functions import euclidean_distance
+        from agentfx.fxNumeric.statistics_functions import euclidean_distance
         assert euclidean_distance([0, 0], [3, 4]) == pytest.approx(5.0)
 
 class TestManhattanDistanceV2:
 
     def test_typical(self):
-        from formulite.fxNumeric.statistics_functions import manhattan_distance
+        from agentfx.fxNumeric.statistics_functions import manhattan_distance
         assert manhattan_distance([1, 2, 3], [4, 6, 3]) == 7
 
     def test_same_point(self):
-        from formulite.fxNumeric.statistics_functions import manhattan_distance
+        from agentfx.fxNumeric.statistics_functions import manhattan_distance
         assert manhattan_distance([5, 5], [5, 5]) == 0
 
 class TestMinkowskiDistance:
 
     def test_p1_is_manhattan(self):
-        from formulite.fxNumeric.statistics_functions import minkowski_distance
+        from agentfx.fxNumeric.statistics_functions import minkowski_distance
         result = minkowski_distance([1, 2, 3], [4, 6, 3], 1)
         assert result == pytest.approx(7.0)
 
     def test_p2_is_euclidean(self):
-        from formulite.fxNumeric.statistics_functions import minkowski_distance
+        from agentfx.fxNumeric.statistics_functions import minkowski_distance
         result = minkowski_distance([1, 2, 3], [4, 6, 3], 2)
         assert result == pytest.approx(5.0)
 
     def test_p3(self):
-        from formulite.fxNumeric.statistics_functions import minkowski_distance
+        from agentfx.fxNumeric.statistics_functions import minkowski_distance
         result = minkowski_distance([1, 2, 3], [4, 6, 3], 3)
         assert result == pytest.approx(4.4979, rel=1e-3)
 
     def test_p_less_than_1_raises(self):
-        from formulite.fxNumeric.statistics_functions import minkowski_distance
+        from agentfx.fxNumeric.statistics_functions import minkowski_distance
         with pytest.raises(ValueError):
             minkowski_distance([1], [2], 0.5)
 
 class TestJaccardSimilarity:
 
     def test_overlap(self):
-        from formulite.fxNumeric.statistics_functions import jaccard_similarity
+        from agentfx.fxNumeric.statistics_functions import jaccard_similarity
         assert jaccard_similarity([1, 2, 3], [2, 3, 4]) == pytest.approx(0.5)
 
     def test_identical(self):
-        from formulite.fxNumeric.statistics_functions import jaccard_similarity
+        from agentfx.fxNumeric.statistics_functions import jaccard_similarity
         assert jaccard_similarity([1, 2, 3], [1, 2, 3]) == pytest.approx(1.0)
 
     def test_disjoint(self):
-        from formulite.fxNumeric.statistics_functions import jaccard_similarity
+        from agentfx.fxNumeric.statistics_functions import jaccard_similarity
         assert jaccard_similarity([1, 2], [3, 4]) == pytest.approx(0.0)
 
     def test_both_empty(self):
-        from formulite.fxNumeric.statistics_functions import jaccard_similarity
+        from agentfx.fxNumeric.statistics_functions import jaccard_similarity
         assert jaccard_similarity([], []) == pytest.approx(1.0)
 
 class TestCramersVV2:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import cramers_v
+        from agentfx.fxNumeric.statistics_functions import cramers_v
         result = cramers_v(10.0, 100, 3)
         assert result == pytest.approx(0.2236, rel=1e-2)
 
     def test_perfect_association(self):
-        from formulite.fxNumeric.statistics_functions import cramers_v
+        from agentfx.fxNumeric.statistics_functions import cramers_v
         result = cramers_v(100.0, 100, 2)
         assert result == pytest.approx(1.0)
 
     def test_too_small_table_raises(self):
-        from formulite.fxNumeric.statistics_functions import cramers_v
+        from agentfx.fxNumeric.statistics_functions import cramers_v
         with pytest.raises(ValueError):
             cramers_v(10.0, 100, 1)
 
 class TestPointBiserialCorrelationV2:
 
     def test_positive(self):
-        from formulite.fxNumeric.statistics_functions import point_biserial_correlation
+        from agentfx.fxNumeric.statistics_functions import point_biserial_correlation
         result = point_biserial_correlation([0, 0, 1, 1], [10, 12, 20, 22])
         assert result == pytest.approx(0.8492, rel=1e-2)
 
     def test_all_same_binary_raises(self):
-        from formulite.fxNumeric.statistics_functions import point_biserial_correlation
+        from agentfx.fxNumeric.statistics_functions import point_biserial_correlation
         with pytest.raises(ValueError):
             point_biserial_correlation([1, 1, 1], [1, 2, 3])
 
@@ -2655,26 +2612,26 @@ class TestPointBiserialCorrelationV2:
 class TestKlDivergence:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import kl_divergence
+        from agentfx.fxNumeric.statistics_functions import kl_divergence
         result = kl_divergence([0.4, 0.6], [0.5, 0.5])
         assert round(result, 3) == 0.029
 
     def test_identical(self):
-        from formulite.fxNumeric.statistics_functions import kl_divergence
+        from agentfx.fxNumeric.statistics_functions import kl_divergence
         result = kl_divergence([0.5, 0.5], [0.5, 0.5])
         assert abs(result) < 1e-10
 
 class TestCrossEntropyV2:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import cross_entropy
+        from agentfx.fxNumeric.statistics_functions import cross_entropy
         result = cross_entropy([0.4, 0.6], [0.5, 0.5])
         assert round(result, 4) == 1.0
 
 class TestRollingCorrelation:
 
     def test_perfect(self):
-        from formulite.fxNumeric.statistics_functions import rolling_correlation
+        from agentfx.fxNumeric.statistics_functions import rolling_correlation
         result = rolling_correlation([1, 2, 3, 4, 5], [2, 4, 6, 8, 10], 3)
         assert result[0] is None
         assert result[1] is None
@@ -2683,12 +2640,12 @@ class TestRollingCorrelation:
 class TestCumulativeReturn:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import cumulative_return
+        from agentfx.fxNumeric.statistics_functions import cumulative_return
         result = cumulative_return([0.05, -0.02, 0.03])
         assert round(result, 5) == 0.05987
 
     def test_empty(self):
-        from formulite.fxNumeric.statistics_functions import cumulative_return
+        from agentfx.fxNumeric.statistics_functions import cumulative_return
 
         with pytest.raises(ValueError):
             cumulative_return([])
@@ -2696,12 +2653,12 @@ class TestCumulativeReturn:
 class TestMaxDrawdown:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import max_drawdown
+        from agentfx.fxNumeric.statistics_functions import max_drawdown
         result = max_drawdown([100, 120, 90, 110, 80])
         assert round(result, 4) == round(1 - 80 / 120, 4)
 
     def test_monotonic_up(self):
-        from formulite.fxNumeric.statistics_functions import max_drawdown
+        from agentfx.fxNumeric.statistics_functions import max_drawdown
         result = max_drawdown([100, 110, 120, 130])
         assert result == 0.0
 
@@ -2713,49 +2670,49 @@ class TestMaxDrawdown:
 class TestZToPercentile:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import z_to_percentile
+        from agentfx.fxNumeric.statistics_functions import z_to_percentile
         assert round(z_to_percentile(1.96), 2) == 97.5
 
     def test_zero(self):
-        from formulite.fxNumeric.statistics_functions import z_to_percentile
+        from agentfx.fxNumeric.statistics_functions import z_to_percentile
         assert z_to_percentile(0) == 50.0
 
     def test_negative(self):
-        from formulite.fxNumeric.statistics_functions import z_to_percentile
+        from agentfx.fxNumeric.statistics_functions import z_to_percentile
         assert round(z_to_percentile(-1.96), 2) == 2.5
 
 class TestPercentileToZ:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import percentile_to_z
+        from agentfx.fxNumeric.statistics_functions import percentile_to_z
         assert round(percentile_to_z(97.5), 2) == 1.96
 
     def test_median(self):
-        from formulite.fxNumeric.statistics_functions import percentile_to_z
+        from agentfx.fxNumeric.statistics_functions import percentile_to_z
         assert round(percentile_to_z(50), 2) == 0.0
 
     def test_out_of_range(self):
-        from formulite.fxNumeric.statistics_functions import percentile_to_z
+        from agentfx.fxNumeric.statistics_functions import percentile_to_z
         with pytest.raises(ValueError):
             percentile_to_z(0)
 
     def test_out_of_range_100(self):
-        from formulite.fxNumeric.statistics_functions import percentile_to_z
+        from agentfx.fxNumeric.statistics_functions import percentile_to_z
         with pytest.raises(ValueError):
             percentile_to_z(100)
 
 class TestCohensDV2:
 
     def test_medium_effect(self):
-        from formulite.fxNumeric.statistics_functions import cohens_d
+        from agentfx.fxNumeric.statistics_functions import cohens_d
         assert round(cohens_d([1, 2, 3, 4, 5], [3, 4, 5, 6, 7]), 4) == -1.2649
 
     def test_zero_diff(self):
-        from formulite.fxNumeric.statistics_functions import cohens_d
+        from agentfx.fxNumeric.statistics_functions import cohens_d
         assert cohens_d([1, 2, 3, 4, 5], [1, 2, 3, 4, 5]) == 0.0
 
     def test_small_n(self):
-        from formulite.fxNumeric.statistics_functions import cohens_d
+        from agentfx.fxNumeric.statistics_functions import cohens_d
         with pytest.raises(ValueError):
             cohens_d([1], [1, 2, 3])
 
@@ -2993,17 +2950,17 @@ class TestAbsoluteError:
 class TestGelu:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import gelu
+        from agentfx.fxNumeric.statistics_functions import gelu
 
         assert round(gelu(1.0), 4) == 0.8412
 
     def test_zero(self):
-        from formulite.fxNumeric.statistics_functions import gelu
+        from agentfx.fxNumeric.statistics_functions import gelu
 
         assert gelu(0) == pytest.approx(0.0, abs=1e-6)
 
     def test_type_error(self):
-        from formulite.fxNumeric.statistics_functions import gelu
+        from agentfx.fxNumeric.statistics_functions import gelu
 
         with pytest.raises(TypeError):
             gelu("a")
@@ -3011,29 +2968,29 @@ class TestGelu:
 class TestMish:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import mish
+        from agentfx.fxNumeric.statistics_functions import mish
 
         assert round(mish(1.0), 4) == 0.8651
 
     def test_zero(self):
-        from formulite.fxNumeric.statistics_functions import mish
+        from agentfx.fxNumeric.statistics_functions import mish
 
         assert mish(0) == pytest.approx(0.0, abs=1e-6)
 
 class TestHingeLoss:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import hinge_loss
+        from agentfx.fxNumeric.statistics_functions import hinge_loss
 
         assert hinge_loss(1, 0.5) == 0.5
 
     def test_correct_prediction(self):
-        from formulite.fxNumeric.statistics_functions import hinge_loss
+        from agentfx.fxNumeric.statistics_functions import hinge_loss
 
         assert hinge_loss(1, 2.0) == 0.0
 
     def test_invalid_label(self):
-        from formulite.fxNumeric.statistics_functions import hinge_loss
+        from agentfx.fxNumeric.statistics_functions import hinge_loss
 
         with pytest.raises(ValueError):
             hinge_loss(0, 0.5)
@@ -3041,12 +2998,12 @@ class TestHingeLoss:
 class TestLogLoss:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import log_loss
+        from agentfx.fxNumeric.statistics_functions import log_loss
 
         assert round(log_loss(1, 0.9), 4) == 0.1054
 
     def test_invalid_label(self):
-        from formulite.fxNumeric.statistics_functions import log_loss
+        from agentfx.fxNumeric.statistics_functions import log_loss
 
         with pytest.raises(ValueError):
             log_loss(2, 0.5)
@@ -3054,12 +3011,12 @@ class TestLogLoss:
 class TestTanhActivation:
 
     def test_basic(self):
-        from formulite.fxNumeric.statistics_functions import tanh_activation
+        from agentfx.fxNumeric.statistics_functions import tanh_activation
 
         assert round(tanh_activation(1.0), 4) == 0.7616
 
     def test_zero(self):
-        from formulite.fxNumeric.statistics_functions import tanh_activation
+        from agentfx.fxNumeric.statistics_functions import tanh_activation
 
         assert tanh_activation(0) == pytest.approx(0.0)
 
@@ -3069,10 +3026,10 @@ class TestTanhActivation:
 class TestBetaFunctionV2:
 
     def test_basic(self):
-        from formulite.fxNumeric.special_functions import beta_function
+        from agentfx.fxNumeric.special_functions import beta_function
         # B(2,3) = 1!*2!/4! = 1/12
         assert beta_function(2, 3) == pytest.approx(1.0 / 12.0)
 
     def test_symmetry(self):
-        from formulite.fxNumeric.special_functions import beta_function
+        from agentfx.fxNumeric.special_functions import beta_function
         assert beta_function(3, 5) == pytest.approx(beta_function(5, 3))

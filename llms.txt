@@ -1,6 +1,7 @@
-# FormuLite - Function Catalogue for LLMs
+# AgentFx - Function Catalogue for LLMs
 
-> FormuLite is a Python library with 3000+ reusable functions organized like Excel formulas.
+> AgentFx is a Python library with 3000+ reusable functions organized like Excel formulas.
+> PyPI package: `agentfx` (`pip install agentfx`). Import as `import agentfx`.
 > This file helps LLMs discover function signatures and descriptions without calling a server.
 
 ## How to Use

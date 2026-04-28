@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxString.string_format
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Coverage tests for agentfx.fxString.string_format
+from datetime import datetime
 
-from formulite.fxString import string_format as mod
+from agentfx.fxString import string_format as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

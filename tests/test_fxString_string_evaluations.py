@@ -3,7 +3,7 @@
 
 import pytest
 
-from formulite.fxString.string_evaluations import (
+from agentfx.fxString.string_evaluations import (
     automated_readability_index,
     avg_word_length,
     coleman_liau_index,
@@ -33,28 +33,28 @@ from formulite.fxString.string_evaluations import (
     is_valid_vin,
     smog_index,
 )
-from formulite.fxString.string_operations import extract_mentions
+from agentfx.fxString.string_operations import extract_mentions
 
 
 class TestTextEntropy:
 
     def test_uniform(self):
-        from formulite.fxString.string_evaluations import text_entropy
+        from agentfx.fxString.string_evaluations import text_entropy
 
         assert round(text_entropy("abcd"), 2) == 2.0
 
     def test_all_same(self):
-        from formulite.fxString.string_evaluations import text_entropy
+        from agentfx.fxString.string_evaluations import text_entropy
 
         assert text_entropy("aaaa") == 0.0
 
     def test_empty(self):
-        from formulite.fxString.string_evaluations import text_entropy
+        from agentfx.fxString.string_evaluations import text_entropy
 
         assert text_entropy("") == 0.0
 
     def test_type_error(self):
-        from formulite.fxString.string_evaluations import text_entropy
+        from agentfx.fxString.string_evaluations import text_entropy
 
         with pytest.raises(TypeError):
             text_entropy(123)
@@ -215,50 +215,50 @@ class TestStringValidationsPhase20b:
     """E.164 phone and password strength."""
 
     def test_is_valid_e164_phone_valid(self):
-        from formulite.fxString.string_evaluations import is_valid_e164_phone
+        from agentfx.fxString.string_evaluations import is_valid_e164_phone
 
         assert is_valid_e164_phone("+34612345678") is True
 
     def test_is_valid_e164_phone_no_plus(self):
-        from formulite.fxString.string_evaluations import is_valid_e164_phone
+        from agentfx.fxString.string_evaluations import is_valid_e164_phone
 
         assert is_valid_e164_phone("34612345678") is False
 
     def test_is_valid_e164_phone_too_long(self):
-        from formulite.fxString.string_evaluations import is_valid_e164_phone
+        from agentfx.fxString.string_evaluations import is_valid_e164_phone
 
         assert is_valid_e164_phone("+1234567890123456") is False
 
     def test_is_valid_e164_phone_leading_zero(self):
-        from formulite.fxString.string_evaluations import is_valid_e164_phone
+        from agentfx.fxString.string_evaluations import is_valid_e164_phone
 
         assert is_valid_e164_phone("+0123456789") is False
 
     def test_is_valid_e164_phone_type_error(self):
-        from formulite.fxString.string_evaluations import is_valid_e164_phone
+        from agentfx.fxString.string_evaluations import is_valid_e164_phone
 
         with pytest.raises(TypeError):
             is_valid_e164_phone(123)
 
     def test_check_password_strength_empty(self):
-        from formulite.fxString.string_evaluations import check_password_strength
+        from agentfx.fxString.string_evaluations import check_password_strength
 
         assert check_password_strength("") == 0
 
     def test_check_password_strength_weak(self):
-        from formulite.fxString.string_evaluations import check_password_strength
+        from agentfx.fxString.string_evaluations import check_password_strength
 
         score = check_password_strength("abc")
         assert 0 < score < 50
 
     def test_check_password_strength_strong(self):
-        from formulite.fxString.string_evaluations import check_password_strength
+        from agentfx.fxString.string_evaluations import check_password_strength
 
         score = check_password_strength("C0mpl3x!Pass#2026")
         assert score >= 80
 
     def test_check_password_strength_type_error(self):
-        from formulite.fxString.string_evaluations import check_password_strength
+        from agentfx.fxString.string_evaluations import check_password_strength
 
         with pytest.raises(TypeError):
             check_password_strength(12345)
@@ -398,10 +398,6 @@ class TestExtractMentions:
 # fxString — string_evaluations.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxString.string_evaluations import (
-    is_valid_regex,
-    is_valid_mime_type,
-)
 
 class TestIsValidRegex:
 
@@ -437,7 +433,6 @@ class TestIsValidMimeType:
 # fxString — string_convertions.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxString.string_convertions import ordinal_suffix
 
 class TestIsValidIban:
 

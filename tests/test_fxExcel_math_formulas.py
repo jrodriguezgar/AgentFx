@@ -1,7 +1,7 @@
 """Tests for fxExcel.math_formulas."""
 
 
-from formulite.fxExcel.math_formulas import ROUND, SUMIF
+from agentfx.fxExcel.math_formulas import ROUND, SUMIF
 
 
 def test_sum_if():

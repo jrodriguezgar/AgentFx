@@ -4,8 +4,8 @@ from datetime import date, datetime
 
 import pytest
 
-from formulite.fxDate.date_convertions import hms_to_seconds
-from formulite.fxDate.date_operations import (
+from agentfx.fxDate.date_convertions import hms_to_seconds
+from agentfx.fxDate.date_operations import (
     academic_year,
     add_months,
     business_quarter_label,
@@ -31,7 +31,7 @@ from formulite.fxDate.date_operations import (
     working_hours_in_month,
     year_fraction,
 )
-from formulite.fxString.string_convertions import text_to_braille
+from agentfx.fxString.string_convertions import text_to_braille
 
 
 class TestDays360:
@@ -243,19 +243,19 @@ class TestEndOfMonthOffset:
 class TestCronNextRun:
 
     def test_next_hour(self):
-        from formulite.fxDate.date_operations import cron_next_run
+        from agentfx.fxDate.date_operations import cron_next_run
 
         result = cron_next_run("0 9 * * *", datetime(2026, 4, 8, 10, 0))
         assert result == datetime(2026, 4, 9, 9, 0)
 
     def test_same_day(self):
-        from formulite.fxDate.date_operations import cron_next_run
+        from agentfx.fxDate.date_operations import cron_next_run
 
         result = cron_next_run("30 14 * * *", datetime(2026, 4, 8, 10, 0))
         assert result == datetime(2026, 4, 8, 14, 30)
 
     def test_invalid_fields(self):
-        from formulite.fxDate.date_operations import cron_next_run
+        from agentfx.fxDate.date_operations import cron_next_run
 
         with pytest.raises(ValueError):
             cron_next_run("0 9 *", datetime(2026, 4, 8))
@@ -263,7 +263,7 @@ class TestCronNextRun:
 class TestCronPreviousRun:
 
     def test_previous_hour(self):
-        from formulite.fxDate.date_operations import cron_previous_run
+        from agentfx.fxDate.date_operations import cron_previous_run
 
         result = cron_previous_run("0 9 * * *", datetime(2026, 4, 8, 10, 0))
         assert result == datetime(2026, 4, 8, 9, 0)
@@ -271,7 +271,7 @@ class TestCronPreviousRun:
 class TestSunriseSunset:
 
     def test_madrid_summer(self):
-        from formulite.fxDate.date_operations import sunrise_sunset
+        from agentfx.fxDate.date_operations import sunrise_sunset
 
         sr, ss = sunrise_sunset(40.4168, -3.7038, date(2026, 6, 21))
         # Sunrise should be before sunset
@@ -281,7 +281,7 @@ class TestSunriseSunset:
         assert 13 < delta_hours < 17
 
     def test_type_error(self):
-        from formulite.fxDate.date_operations import sunrise_sunset
+        from agentfx.fxDate.date_operations import sunrise_sunset
 
         with pytest.raises(TypeError):
             sunrise_sunset("invalid", 0, date(2026, 1, 1))
@@ -289,14 +289,14 @@ class TestSunriseSunset:
 class TestDaylightHours:
 
     def test_summer_longer(self):
-        from formulite.fxDate.date_operations import daylight_hours
+        from agentfx.fxDate.date_operations import daylight_hours
 
         summer = daylight_hours(40.4168, date(2026, 6, 21))
         winter = daylight_hours(40.4168, date(2026, 12, 21))
         assert summer > winter
 
     def test_equator(self):
-        from formulite.fxDate.date_operations import daylight_hours
+        from agentfx.fxDate.date_operations import daylight_hours
 
         hours = daylight_hours(0.0, date(2026, 3, 20))
         assert 11.5 < hours < 12.5
@@ -304,17 +304,17 @@ class TestDaylightHours:
 class TestShiftSchedule:
 
     def test_work_day(self):
-        from formulite.fxDate.date_operations import shift_schedule
+        from agentfx.fxDate.date_operations import shift_schedule
 
         assert shift_schedule(date(2026, 1, 1), 4, 2, date(2026, 1, 4)) == "work"
 
     def test_rest_day(self):
-        from formulite.fxDate.date_operations import shift_schedule
+        from agentfx.fxDate.date_operations import shift_schedule
 
         assert shift_schedule(date(2026, 1, 1), 4, 2, date(2026, 1, 5)) == "rest"
 
     def test_cycle_wraps(self):
-        from formulite.fxDate.date_operations import shift_schedule
+        from agentfx.fxDate.date_operations import shift_schedule
 
         # Day 6 (index 5) mod 6 = 5 → rest
         assert shift_schedule(date(2026, 1, 1), 4, 2, date(2026, 1, 7)) == "work"
@@ -322,15 +322,15 @@ class TestShiftSchedule:
 class TestNextBusinessDay:
 
     def test_friday_to_monday(self):
-        from formulite.fxDate.date_operations import next_business_day
+        from agentfx.fxDate.date_operations import next_business_day
         assert next_business_day(date(2026, 4, 3)) == date(2026, 4, 6)
 
     def test_saturday_to_monday(self):
-        from formulite.fxDate.date_operations import next_business_day
+        from agentfx.fxDate.date_operations import next_business_day
         assert next_business_day(date(2026, 4, 4)) == date(2026, 4, 6)
 
     def test_with_holiday(self):
-        from formulite.fxDate.date_operations import next_business_day
+        from agentfx.fxDate.date_operations import next_business_day
         # Monday is holiday, skip to Tuesday
         result = next_business_day(date(2026, 4, 3), holidays=[date(2026, 4, 6)])
         assert result == date(2026, 4, 7)
@@ -338,30 +338,30 @@ class TestNextBusinessDay:
 class TestPreviousBusinessDay:
 
     def test_monday_to_friday(self):
-        from formulite.fxDate.date_operations import previous_business_day
+        from agentfx.fxDate.date_operations import previous_business_day
         assert previous_business_day(date(2026, 4, 6)) == date(2026, 4, 3)
 
     def test_sunday_to_friday(self):
-        from formulite.fxDate.date_operations import previous_business_day
+        from agentfx.fxDate.date_operations import previous_business_day
         assert previous_business_day(date(2026, 4, 5)) == date(2026, 4, 3)
 
 class TestDateSequence:
 
     def test_basic(self):
-        from formulite.fxDate.date_operations import date_sequence
+        from agentfx.fxDate.date_operations import date_sequence
         result = date_sequence(date(2026, 1, 1), date(2026, 1, 5))
         assert len(result) == 5
         assert result[0] == date(2026, 1, 1)
         assert result[-1] == date(2026, 1, 5)
 
     def test_step_2(self):
-        from formulite.fxDate.date_operations import date_sequence
+        from agentfx.fxDate.date_operations import date_sequence
         result = date_sequence(date(2026, 1, 1), date(2026, 1, 10), step_days=2)
         assert result == [date(2026, 1, 1), date(2026, 1, 3), date(2026, 1, 5),
                           date(2026, 1, 7), date(2026, 1, 9)]
 
     def test_zero_step_raises(self):
-        from formulite.fxDate.date_operations import date_sequence
+        from agentfx.fxDate.date_operations import date_sequence
 
         with pytest.raises(ValueError):
             date_sequence(date(2026, 1, 1), date(2026, 1, 5), step_days=0)
@@ -381,11 +381,6 @@ class TestTextToBraille:
 # fxDate — date_operations.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxDate.date_operations import (
-    time_zone_abbreviation,
-    next_occurrence,
-    business_days_until,
-)
 
 class TestTimeZoneAbbreviation:
     def test_utc(self):
@@ -569,11 +564,6 @@ class TestHmsToSeconds:
 # fxDate — date_operations.py
 # ---------------------------------------------------------------------------
 
-from formulite.fxDate.date_operations import (
-    business_quarter_label,
-    academic_year,
-    date_to_week_label,
-)
 
 class TestBusinessQuarterLabel:
 
@@ -600,47 +590,47 @@ class TestAcademicYear:
 class TestFiscalQuarter:
 
     def test_calendar_q1(self):
-        from formulite.fxDate.date_operations import fiscal_quarter
+        from agentfx.fxDate.date_operations import fiscal_quarter
         assert fiscal_quarter(date(2026, 3, 15)) == 1
 
     def test_calendar_q4(self):
-        from formulite.fxDate.date_operations import fiscal_quarter
+        from agentfx.fxDate.date_operations import fiscal_quarter
         assert fiscal_quarter(date(2026, 12, 1)) == 4
 
     def test_fiscal_april_start(self):
-        from formulite.fxDate.date_operations import fiscal_quarter
+        from agentfx.fxDate.date_operations import fiscal_quarter
         assert fiscal_quarter(date(2026, 3, 15), fiscal_start_month=4) == 4
 
     def test_fiscal_april_start_july(self):
-        from formulite.fxDate.date_operations import fiscal_quarter
+        from agentfx.fxDate.date_operations import fiscal_quarter
         assert fiscal_quarter(date(2026, 7, 1), fiscal_start_month=4) == 2
 
     def test_fiscal_october_start(self):
-        from formulite.fxDate.date_operations import fiscal_quarter
+        from agentfx.fxDate.date_operations import fiscal_quarter
         assert fiscal_quarter(date(2026, 10, 1), fiscal_start_month=10) == 1
         assert fiscal_quarter(date(2026, 1, 1), fiscal_start_month=10) == 2
 
 class TestCountdownDays:
 
     def test_future(self):
-        from formulite.fxDate.date_operations import countdown_days
+        from agentfx.fxDate.date_operations import countdown_days
         result = countdown_days(date(2026, 12, 31), date(2026, 1, 1))
         assert result == 364
 
     def test_past(self):
-        from formulite.fxDate.date_operations import countdown_days
+        from agentfx.fxDate.date_operations import countdown_days
         result = countdown_days(date(2026, 1, 1), date(2026, 12, 31))
         assert result == -364
 
     def test_same_day(self):
-        from formulite.fxDate.date_operations import countdown_days
+        from agentfx.fxDate.date_operations import countdown_days
         result = countdown_days(date(2026, 6, 15), date(2026, 6, 15))
         assert result == 0
 
 class TestDecimalHoursBetween:
 
     def test_basic(self):
-        from formulite.fxDate.date_operations import decimal_hours_between
+        from agentfx.fxDate.date_operations import decimal_hours_between
         result = decimal_hours_between(
             datetime(2024, 1, 1, 8, 0),
             datetime(2024, 1, 1, 9, 30),
@@ -648,7 +638,7 @@ class TestDecimalHoursBetween:
         assert result == 1.5
 
     def test_negative(self):
-        from formulite.fxDate.date_operations import decimal_hours_between
+        from agentfx.fxDate.date_operations import decimal_hours_between
         result = decimal_hours_between(
             datetime(2024, 1, 1, 10, 0),
             datetime(2024, 1, 1, 8, 0),
@@ -658,33 +648,33 @@ class TestDecimalHoursBetween:
 class TestSemester:
 
     def test_first(self):
-        from formulite.fxDate.date_operations import semester
+        from agentfx.fxDate.date_operations import semester
         assert semester(date(2024, 3, 15)) == 1
 
     def test_second(self):
-        from formulite.fxDate.date_operations import semester
+        from agentfx.fxDate.date_operations import semester
         assert semester(date(2024, 7, 1)) == 2
 
     def test_iso_string(self):
-        from formulite.fxDate.date_operations import semester
+        from agentfx.fxDate.date_operations import semester
         assert semester("2024-06-30") == 1
 
 class TestElapsedBusinessDays:
 
     def test_full_week(self):
-        from formulite.fxDate.date_operations import elapsed_business_days
+        from agentfx.fxDate.date_operations import elapsed_business_days
         # Mon 2024-01-01 to Fri 2024-01-05
         result = elapsed_business_days(date(2024, 1, 1), date(2024, 1, 5))
         assert result == 5
 
     def test_with_weekend(self):
-        from formulite.fxDate.date_operations import elapsed_business_days
+        from agentfx.fxDate.date_operations import elapsed_business_days
         # Mon 2024-01-01 to Sun 2024-01-07
         result = elapsed_business_days(date(2024, 1, 1), date(2024, 1, 7))
         assert result == 5
 
     def test_with_holiday(self):
-        from formulite.fxDate.date_operations import elapsed_business_days
+        from agentfx.fxDate.date_operations import elapsed_business_days
         result = elapsed_business_days(
             date(2024, 1, 1),
             date(2024, 1, 5),
@@ -695,29 +685,29 @@ class TestElapsedBusinessDays:
 class TestDayOfYear:
 
     def test_march_1_leap(self):
-        from formulite.fxDate.date_operations import day_of_year
+        from agentfx.fxDate.date_operations import day_of_year
         assert day_of_year(date(2024, 3, 1)) == 61
 
     def test_jan_1(self):
-        from formulite.fxDate.date_operations import day_of_year
+        from agentfx.fxDate.date_operations import day_of_year
         assert day_of_year(date(2024, 1, 1)) == 1
 
     def test_dec_31(self):
-        from formulite.fxDate.date_operations import day_of_year
+        from agentfx.fxDate.date_operations import day_of_year
         assert day_of_year(date(2024, 12, 31)) == 366
 
 class TestDaysRemainingInYear:
 
     def test_dec_30(self):
-        from formulite.fxDate.date_operations import days_remaining_in_year
+        from agentfx.fxDate.date_operations import days_remaining_in_year
         assert days_remaining_in_year(date(2024, 12, 30)) == 1
 
     def test_dec_31(self):
-        from formulite.fxDate.date_operations import days_remaining_in_year
+        from agentfx.fxDate.date_operations import days_remaining_in_year
         assert days_remaining_in_year(date(2024, 12, 31)) == 0
 
     def test_jan_1(self):
-        from formulite.fxDate.date_operations import days_remaining_in_year
+        from agentfx.fxDate.date_operations import days_remaining_in_year
         assert days_remaining_in_year(date(2024, 1, 1)) == 365
 
 
@@ -728,7 +718,7 @@ class TestDaysRemainingInYear:
 class TestFiscalQuarterV2:
 
     def test_calendar_year(self):
-        from formulite.fxDate.date_evaluations import fiscal_quarter
+        from agentfx.fxDate.date_evaluations import fiscal_quarter
 
         assert fiscal_quarter(date(2025, 3, 15)) == 1
         assert fiscal_quarter(date(2025, 6, 15)) == 2
@@ -736,13 +726,13 @@ class TestFiscalQuarterV2:
         assert fiscal_quarter(date(2025, 12, 15)) == 4
 
     def test_april_fiscal_year(self):
-        from formulite.fxDate.date_evaluations import fiscal_quarter
+        from agentfx.fxDate.date_evaluations import fiscal_quarter
 
         assert fiscal_quarter(date(2025, 3, 15), fiscal_start_month=4) == 4
         assert fiscal_quarter(date(2025, 4, 15), fiscal_start_month=4) == 1
 
     def test_type_error(self):
-        from formulite.fxDate.date_evaluations import fiscal_quarter
+        from agentfx.fxDate.date_evaluations import fiscal_quarter
 
         with pytest.raises(TypeError):
             fiscal_quarter("2025-03-15")

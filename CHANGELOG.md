@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [Unreleased][Unreleased]
+
+---
+
+## [0.3.0][0.3.0] — 2026-04-23
+
+Breaking rename release: PyPI package renamed from `formulite` to `agentfx` to avoid name conflict with existing PyPI project.
+
+### Changed
+
+- Rename PyPI package from `formulite` to `agentfx` to avoid name conflict with existing PyPI project
+- Add PEP 561 `py.typed` marker file for typed package support
+- Improve `publish.yml` workflow: add uv, twine check, TestPyPI staging step
+- Add `twine` to dev dependencies
 
 ---
 
@@ -49,7 +62,7 @@ Security hardening release: remove all `subprocess` usage, unsafe dispatch funct
 
 - `execute_os_command()` from `fxPython.py_operations` (security: no OS command execution in a function library)
 - `_is_uv_managed_environment()`, `_find_pyproject_dir()`, `_validate_package_name()`, `_install_library()` and all `subprocess` auto-install strategies from `fxString.string_similarity`
-- `FORMULITE_AUTO_INSTALL` / `ALLOW_AUTO_INSTALL` environment variables (no longer needed — library never installs packages)
+- `AGENTFX_AUTO_INSTALL` / `ALLOW_AUTO_INSTALL` environment variables (no longer needed — library never installs packages)
 - `CallByName()` from `fxVBA.misc_functions` (unrestricted `getattr`/`setattr` dispatch not appropriate for a formula library)
 
 ### Changed
@@ -70,20 +83,20 @@ Massive architecture overhaul: introduce `auto_export` dynamic re-export system,
 
 #### Core Infrastructure
 
-- `formulite/_loader.py` — Central `auto_export()` dynamic re-export helper; all `fx*/__init__.py` files now delegate to it (40 lines)
-- `formulite/_validators.py` — Shared input validation (`ensure_type`, `ensure_numeric`, `ensure_positive`, `ensure_non_negative`, `ensure_in_range`, `ensure_not_empty`) replacing ad-hoc `isinstance` checks (104 lines)
-- `formulite/registry.py` — Automatic function discovery, OpenAI-compatible JSON Schema generation (`get_tool_schemas`), invocation dispatcher (`invoke_tool`), and keyword/semantic search (`search_tools`) (360 lines)
-- `formulite/semantic_search.py` — `SemanticToolSearch` class using fastembed embeddings for natural-language function discovery (157 lines)
-- `formulite/__main__.py` — CLI entry point for `python -m formulite` (3 lines)
+- `agentfx/_loader.py` — Central `auto_export()` dynamic re-export helper; all `fx*/__init__.py` files now delegate to it (40 lines)
+- `agentfx/_validators.py` — Shared input validation (`ensure_type`, `ensure_numeric`, `ensure_positive`, `ensure_non_negative`, `ensure_in_range`, `ensure_not_empty`) replacing ad-hoc `isinstance` checks (104 lines)
+- `agentfx/registry.py` — Automatic function discovery, OpenAI-compatible JSON Schema generation (`get_tool_schemas`), invocation dispatcher (`invoke_tool`), and keyword/semantic search (`search_tools`) (360 lines)
+- `agentfx/semantic_search.py` — `SemanticToolSearch` class using fastembed embeddings for natural-language function discovery (157 lines)
+- `agentfx/__main__.py` — CLI entry point for `python -m agentfx` (3 lines)
 
 #### MCP Server (AI Agent Integration)
 
-- `formulite/mcp/` — New MCP (Model Context Protocol) server package:
-  - `server.py` — FastMCP server exposing 6 meta-tools: `search_formulite_tools`, `inspect_formulite_tool`, `call_formulite`, `list_formulite_categories`, `get_formulite_stats`, `get_formulite_function_names` (218 lines)
+- `agentfx/mcp/` — New MCP (Model Context Protocol) server package:
+  - `server.py` — FastMCP server exposing 6 meta-tools: `search_agentfx_tools`, `inspect_agentfx_tool`, `call_agentfx`, `list_agentfx_categories`, `get_agentfx_stats`, `get_agentfx_function_names` (218 lines)
   - `mcp.json` — MCP client configuration template (9 lines)
   - `README.md` — MCP integration documentation (281 lines)
   - `__init__.py`, `__main__.py` — Package init and entry point
-- `formulite/mcp_server.py` — Convenience re-export entry point (7 lines)
+- `agentfx/mcp_server.py` — Convenience re-export entry point (7 lines)
 
 #### fxNumeric — 24 New Submodules (~18 000 lines)
 
@@ -136,8 +149,8 @@ Massive architecture overhaul: introduce `auto_export` dynamic re-export system,
 
 #### Architecture — `auto_export` Migration
 
-- All 6 `fx*/__init__.py` files rewritten to use `formulite._loader.auto_export()` instead of manual imports or dynamic `__all__` construction
-- `formulite/__init__.py` — Emptied; subpackages are now imported explicitly by consumers
+- All 6 `fx*/__init__.py` files rewritten to use `agentfx._loader.auto_export()` instead of manual imports or dynamic `__all__` construction
+- `agentfx/__init__.py` — Emptied; subpackages are now imported explicitly by consumers
 
 #### fxNumeric — Rename & Expand (5 files renamed, 1 deleted)
 
@@ -207,15 +220,15 @@ Massive architecture overhaul: introduce `auto_export` dynamic re-export system,
 
 ### Removed
 
-- `formulite/fxNumeric/numeric_operations.py` — Deleted (−1 143 lines); functions redistributed to new domain-specific submodules
-- `formulite/fxVBA/README.md` — Removed (−42 lines)
-- `formulite/fxVBA/system_functions.py` — Reduced (−24 lines)
+- `agentfx/fxNumeric/numeric_operations.py` — Deleted (−1 143 lines); functions redistributed to new domain-specific submodules
+- `agentfx/fxVBA/README.md` — Removed (−42 lines)
+- `agentfx/fxVBA/system_functions.py` — Reduced (−24 lines)
 
 ---
 
 ## [0.1.0][0.1.0] — 2026-03-29
 
-Initial development release of FormuLite — a Python library for high-level functions similar to Excel formulas, organized into thematic modules (fxDate, fxString, fxNumeric, fxPython, fxExcel, fxVBA).
+Initial development release of AgentFx — a Python library for high-level functions similar to Excel formulas, organized into thematic modules (fxDate, fxString, fxNumeric, fxPython, fxExcel, fxVBA).
 
 ---
 
@@ -227,17 +240,17 @@ Add data masking, distinct split, improved lazy imports with auto-install, and C
 
 #### Added
 
-- `formulite/fxString/string_format.py` — Add `mask_data()` for data anonymization/obfuscation with positional masking modes (`all`, `start`, `end`, `index`) (+77 lines)
-- `formulite/fxString/string_operations.py` — Add `distinct_split()` to split delimited strings, remove duplicate tokens preserving order, and re-join (+66 lines)
-- `formulite/fxString/README.md` — Document `distinct_split` function in index and reference sections (+37 lines)
+- `agentfx/fxString/string_format.py` — Add `mask_data()` for data anonymization/obfuscation with positional masking modes (`all`, `start`, `end`, `index`) (+77 lines)
+- `agentfx/fxString/string_operations.py` — Add `distinct_split()` to split delimited strings, remove duplicate tokens preserving order, and re-join (+66 lines)
+- `agentfx/fxString/README.md` — Document `distinct_split` function in index and reference sections (+37 lines)
 
 #### Changed
 
-- `formulite/fxString/string_similarity.py` — Rewrite `_lazy_import()` with multi-strategy auto-install (uv add → uv pip → pip → pip --break-system-packages); add graceful fallbacks for `metaphone_score()` and `hamming_score()` when dependencies are unavailable (+122 −37)
+- `agentfx/fxString/string_similarity.py` — Rewrite `_lazy_import()` with multi-strategy auto-install (uv add → uv pip → pip → pip --break-system-packages); add graceful fallbacks for `metaphone_score()` and `hamming_score()` when dependencies are unavailable (+122 −37)
 
 #### Fixed
 
-- `formulite/fxString/string_spanish.py` — Fix CIF validation per AEAT (RD 1065/2007): correct odd/even digit sum algorithm and add letter `K` to letter-control-only group (+12 −12)
+- `agentfx/fxString/string_spanish.py` — Fix CIF validation per AEAT (RD 1065/2007): correct odd/even digit sum algorithm and add letter `K` to letter-control-only group (+12 −12)
 
 ---
 
@@ -261,7 +274,7 @@ Clean up docstrings across string evaluation functions.
 
 #### Changed
 
-- `formulite/fxString/string_evaluations.py` — Remove verbose `**Cost:**` annotations from 20+ function docstrings; simplify module-level docstring; standardize docstring format
+- `agentfx/fxString/string_evaluations.py` — Remove verbose `**Cost:**` annotations from 20+ function docstrings; simplify module-level docstring; standardize docstring format
 
 ---
 
@@ -285,13 +298,13 @@ Remove all re-exports from `__init__.py` files; prefer explicit module imports.
 
 #### Changed
 
-- `formulite/__init__.py` — Remove package docstring and star imports of subpackages (−20 lines)
-- `formulite/fxDate/__init__.py` — Remove `diff_time` re-export and `__all__` (−12 lines)
-- `formulite/fxExcel/__init__.py` — Remove dynamic submodule re-exports (−60 lines)
-- `formulite/fxNumeric/__init__.py` — Remove docstring and `__version__` (−9 lines)
-- `formulite/fxPython/__init__.py` — Remove explicit function re-exports from `py_operations`, `py_convertions`, `py_tools`, `py_itertools` (−60 lines)
-- `formulite/fxString/__init__.py` — Remove docstring and import guidance comment (−12 lines)
-- `formulite/fxVBA/__init__.py` — Remove dynamic re-exports and VBA aliases (`Join`, `Array`, `Filter`, `Type_`, `Input_`) (−90 lines)
+- `agentfx/__init__.py` — Remove package docstring and star imports of subpackages (−20 lines)
+- `agentfx/fxDate/__init__.py` — Remove `diff_time` re-export and `__all__` (−12 lines)
+- `agentfx/fxExcel/__init__.py` — Remove dynamic submodule re-exports (−60 lines)
+- `agentfx/fxNumeric/__init__.py` — Remove docstring and `__version__` (−9 lines)
+- `agentfx/fxPython/__init__.py` — Remove explicit function re-exports from `py_operations`, `py_convertions`, `py_tools`, `py_itertools` (−60 lines)
+- `agentfx/fxString/__init__.py` — Remove docstring and import guidance comment (−12 lines)
+- `agentfx/fxVBA/__init__.py` — Remove dynamic re-exports and VBA aliases (`Join`, `Array`, `Filter`, `Type_`, `Input_`) (−90 lines)
 
 ---
 
@@ -327,7 +340,7 @@ Remove duplicate `string_merge` function definition.
 
 #### Fixed
 
-- `formulite/fxString/string_operations.py` — Remove duplicated `string_merge()` function code block that caused syntax error (−138 lines)
+- `agentfx/fxString/string_operations.py` — Remove duplicated `string_merge()` function code block that caused syntax error (−138 lines)
 
 ---
 
@@ -339,7 +352,7 @@ Major release: complete documentation rewrite, add fxExcel and fxVBA modules, ad
 
 #### Added
 
-- `formulite/fxExcel/` — New Excel-compatible formulas module with 11 submodules:
+- `agentfx/fxExcel/` — New Excel-compatible formulas module with 11 submodules:
   - `database_formulas.py` — Database functions (DSUM, DCOUNT, DAVERAGE, etc.)
   - `date_formulas.py` — Date/time functions (DATE, TIME, NOW, TODAY, etc.)
   - `engineering_formulas.py` — Engineering functions (DEC2BIN, HEX2DEC, CONVERT, etc.)
@@ -351,22 +364,22 @@ Major release: complete documentation rewrite, add fxExcel and fxVBA modules, ad
   - `statistic_formulas.py` — Statistical functions (AVERAGE, MEDIAN, STDEV, etc.)
   - `text_formulas.py` — Text functions (CONCATENATE, LEFT, RIGHT, MID, etc.)
   - `fxExcel.md` — Module documentation
-- `formulite/fxVBA/` — New VBA/Access-compatible functions module:
+- `agentfx/fxVBA/` — New VBA/Access-compatible functions module:
   - `array_functions.py`, `conversion_functions.py`, `string_functions.py`
   - `date_functions.py`, `math_functions.py`, `financial_functions.py`
   - `logic_functions.py`, `system_functions.py`, `format_functions.py`
   - `interaction_functions.py`, `error_functions.py`
-- `formulite/fxDate/date_evaluations.py` — New date evaluation and validation functions
-- `formulite/fxDate/fxDate.md` — Module documentation
-- `formulite/fxNumeric/fxNumeric.md` — Module documentation
+- `agentfx/fxDate/date_evaluations.py` — New date evaluation and validation functions
+- `agentfx/fxDate/fxDate.md` — Module documentation
+- `agentfx/fxNumeric/fxNumeric.md` — Module documentation
 - `LLMs.txt` — Comprehensive LLM-friendly project description (+770 lines)
 - `Help.md` — Help documentation
 
 #### Changed
 
 - `README.md` — Complete rewrite with new structure: module overview, usage examples for fxExcel, fxDate, fxString, fxVBA; installation instructions (+120 −92)
-- `formulite/__init__.py` — Add package docstring with domain descriptions; add subpackage imports (+15 −4)
-- `formulite/fxDate/__init__.py` — Add docstring, `diff_time` re-export, and `__all__` (+11 −2)
+- `agentfx/__init__.py` — Add package docstring with domain descriptions; add subpackage imports (+15 −4)
+- `agentfx/fxDate/__init__.py` — Add docstring, `diff_time` re-export, and `__all__` (+11 −2)
 
 ---
 
@@ -378,8 +391,8 @@ Add itertools module, string merge function, and fix ISO datetime conversion.
 
 #### Added
 
-- `formulite/fxPython/py_itertools.py` — New itertools-based utilities module (+796 lines): batch processing, sliding windows, chain operations, grouping utilities, and more
-- `formulite/fxString/string_operations.py` — Add `string_merge()` for 3-way string merging with conflict detection and markers (+279 lines)
+- `agentfx/fxPython/py_itertools.py` — New itertools-based utilities module (+796 lines): batch processing, sliding windows, chain operations, grouping utilities, and more
+- `agentfx/fxString/string_operations.py` — Add `string_merge()` for 3-way string merging with conflict detection and markers (+279 lines)
 
 #### Changed
 
@@ -388,7 +401,7 @@ Add itertools module, string merge function, and fix ISO datetime conversion.
 
 #### Fixed
 
-- `formulite/fxDate/date_convertions.py` — Fix `from_iso_to_local_datetime()` for Python 3.10 compatibility: handle `'Z'` suffix by replacing with `'+00:00'`; use `datetime.astimezone()` without argument instead of `ZoneInfo("localtime")` for cross-platform support (+13 −22)
+- `agentfx/fxDate/date_convertions.py` — Fix `from_iso_to_local_datetime()` for Python 3.10 compatibility: handle `'Z'` suffix by replacing with `'+00:00'`; use `datetime.astimezone()` without argument instead of `ZoneInfo("localtime")` for cross-platform support (+13 −22)
 
 ---
 
@@ -412,18 +425,18 @@ Reorder and rename dictionary functions, remove Pydantic dependency, improve `fl
 
 #### Added
 
-- `formulite/fxPython/py_convertions.py` — Add `dictionary_to_string()`, `string_to_dictionary()`, and `convert_string_to_list()` functions
-- `formulite/fxPython/py_operations.py` — Add `dictionary_filter_by_keys()` and `combine_dictionaries()` (union/intersection) (+161 lines)
+- `agentfx/fxPython/py_convertions.py` — Add `dictionary_to_string()`, `string_to_dictionary()`, and `convert_string_to_list()` functions
+- `agentfx/fxPython/py_operations.py` — Add `dictionary_filter_by_keys()` and `combine_dictionaries()` (union/intersection) (+161 lines)
 
 #### Changed
 
-- `formulite/fxPython/py_convertions.py` — Rename `dict_*` functions to `dictionary_*` for consistency: `dictionary_keys_to_list`, `dictionary_items_to_list_of_tuples`, `dictionary_keys_to_set`, `dictionary_values_to_set`
-- `formulite/fxString/string_format.py` — Rewrite `flat_vowels()` to preserve Spanish special characters (ñ, ç, ü) while removing only acute accents; add `TypeError` raise instead of returning `False` for non-string input (+39 −7)
+- `agentfx/fxPython/py_convertions.py` — Rename `dict_*` functions to `dictionary_*` for consistency: `dictionary_keys_to_list`, `dictionary_items_to_list_of_tuples`, `dictionary_keys_to_set`, `dictionary_values_to_set`
+- `agentfx/fxString/string_format.py` — Rewrite `flat_vowels()` to preserve Spanish special characters (ñ, ç, ü) while removing only acute accents; add `TypeError` raise instead of returning `False` for non-string input (+39 −7)
 
 #### Removed
 
-- `formulite/fxPython/py_convertions.py` — Remove `json_schema_to_pydantic_model()` and Pydantic dependency (`from pydantic import BaseModel, Field, create_model`)
-- `formulite/fxString/string_convertions.py` — Remove `string_to_list()` (moved to `py_convertions.py` as `convert_string_to_list`) (−73 lines)
+- `agentfx/fxPython/py_convertions.py` — Remove `json_schema_to_pydantic_model()` and Pydantic dependency (`from pydantic import BaseModel, Field, create_model`)
+- `agentfx/fxString/string_convertions.py` — Remove `string_to_list()` (moved to `py_convertions.py` as `convert_string_to_list`) (−73 lines)
 
 ---
 
@@ -445,29 +458,29 @@ Refactor project structure and add JSON Schema to Pydantic model conversion.
 
 ### `7b8af4b` — move files to folder (2025-07-24)
 
-Move all source modules into `formulite/` package directory; add example files.
+Move all source modules into `agentfx/` package directory; add example files.
 
 **30 files changed** | +325 −69
 
 #### Added
 
 - `examples.py` — Usage examples for math, text, and lookup functions (+36 lines)
-- `formulite/fxString/example_grammar.py` — Grammar correction example using `SpellCorrector` (+39 lines)
-- `formulite/fxString/example_names_corrector.py` — Name correction and validation example with SQLite integration (+238 lines)
+- `agentfx/fxString/example_grammar.py` — Grammar correction example using `SpellCorrector` (+39 lines)
+- `agentfx/fxString/example_names_corrector.py` — Name correction and validation example with SQLite integration (+238 lines)
 
 #### Changed
 
-- All modules renamed from root to `formulite/` package:
-  - `fxDate/*.py` → `formulite/fxDate/*.py` (5 files)
-  - `fxNumeric/*.py` → `formulite/fxNumeric/*.py` (6 files)
-  - `fxPython/*.py` → `formulite/fxPython/*.py` (3 files)
-  - `fxString/*.py` → `formulite/fxString/*.py` (8 files)
+- All modules renamed from root to `agentfx/` package:
+  - `fxDate/*.py` → `agentfx/fxDate/*.py` (5 files)
+  - `fxNumeric/*.py` → `agentfx/fxNumeric/*.py` (6 files)
+  - `fxPython/*.py` → `agentfx/fxPython/*.py` (3 files)
+  - `fxString/*.py` → `agentfx/fxString/*.py` (8 files)
 - `__init__.py` — Remove `py_classes` import (module deleted)
 - `.gitignore` — Add exclusions for `.github/`, `.vscode/`, `tests/`, `docs/`, `notebooks/`, `ToDo/`
 
 #### Removed
 
-- `formulite/fxPython/py_tools.py` — Remove `generate_key()` function and its prime number generator (−67 lines)
+- `agentfx/fxPython/py_tools.py` — Remove `generate_key()` function and its prime number generator (−67 lines)
 
 ---
 
@@ -513,8 +526,9 @@ Repository initialization with license and README.
 
 ---
 
-[Unreleased]: https://github.com/jrodriguezgar/FormuLite/compare/v0.2.2...HEAD
-[0.2.2]: https://github.com/jrodriguezgar/FormuLite/compare/v0.2.1...v0.2.2
-[0.2.1]: https://github.com/jrodriguezgar/FormuLite/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/jrodriguezgar/FormuLite/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/jrodriguezgar/FormuLite/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jrodriguezgar/AgentFx/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/jrodriguezgar/AgentFx/compare/v0.2.2...v0.3.0
+[0.2.2]: https://github.com/jrodriguezgar/AgentFx/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/jrodriguezgar/AgentFx/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/jrodriguezgar/AgentFx/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/jrodriguezgar/AgentFx/releases/tag/v0.1.0

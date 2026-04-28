@@ -4,31 +4,31 @@ import math
 
 import pytest
 
-from formulite.fxNumeric import flux_integral_numerical, surface_integral_numerical
+from agentfx.fxNumeric import flux_integral_numerical, surface_integral_numerical
 
 
 class TestTripleProducts:
 
     def test_scalar_triple(self):
-        from formulite.fxNumeric.vector_analysis_functions import scalar_triple_product
+        from agentfx.fxNumeric.vector_analysis_functions import scalar_triple_product
         assert scalar_triple_product([1, 0, 0], [0, 1, 0], [0, 0, 1]) == pytest.approx(1.0)
 
     def test_vector_triple(self):
-        from formulite.fxNumeric.vector_analysis_functions import vector_triple_product
+        from agentfx.fxNumeric.vector_analysis_functions import vector_triple_product
         result = vector_triple_product([1, 0, 0], [0, 1, 0], [0, 0, 1])
         assert all(abs(v) < 1e-10 for v in result)
 
 class TestVectorProjection:
 
     def test_basic(self):
-        from formulite.fxNumeric.vector_analysis_functions import vector_projection
+        from agentfx.fxNumeric.vector_analysis_functions import vector_projection
         proj = vector_projection([3, 4], [1, 0])
         assert proj == pytest.approx([3.0, 0.0])
 
 class TestGradient:
 
     def test_gradient_quadratic(self):
-        from formulite.fxNumeric.vector_analysis_functions import gradient_numerical
+        from agentfx.fxNumeric.vector_analysis_functions import gradient_numerical
         grad = gradient_numerical(lambda x, y: x ** 2 + y ** 2, [1.0, 2.0])
         assert grad[0] == pytest.approx(2.0, rel=1e-4)
         assert grad[1] == pytest.approx(4.0, rel=1e-4)
@@ -36,7 +36,7 @@ class TestGradient:
 class TestDivergence:
 
     def test_identity_field(self):
-        from formulite.fxNumeric.vector_analysis_functions import divergence_numerical
+        from agentfx.fxNumeric.vector_analysis_functions import divergence_numerical
         div = divergence_numerical(
             [lambda x, y: x, lambda x, y: y],
             [1.0, 1.0],
@@ -46,7 +46,7 @@ class TestDivergence:
 class TestCurl:
 
     def test_rotation_field(self):
-        from formulite.fxNumeric.vector_analysis_functions import curl_numerical
+        from agentfx.fxNumeric.vector_analysis_functions import curl_numerical
         curl = curl_numerical(
             [lambda x, y, z: -y, lambda x, y, z: x, lambda x, y, z: 0],
             [0.0, 0.0, 0.0],
@@ -56,14 +56,14 @@ class TestCurl:
 class TestLaplacian:
 
     def test_quadratic(self):
-        from formulite.fxNumeric.vector_analysis_functions import laplacian_numerical
+        from agentfx.fxNumeric.vector_analysis_functions import laplacian_numerical
         lap = laplacian_numerical(lambda x, y: x ** 2 + y ** 2, [1.0, 1.0])
         assert lap == pytest.approx(4.0, rel=1e-3)
 
 class TestJacobian:
 
     def test_basic(self):
-        from formulite.fxNumeric.vector_analysis_functions import jacobian_numerical
+        from agentfx.fxNumeric.vector_analysis_functions import jacobian_numerical
         J = jacobian_numerical(
             [lambda x, y: x * y, lambda x, y: x + y],
             [2.0, 3.0],
@@ -76,7 +76,7 @@ class TestJacobian:
 class TestHessian:
 
     def test_quadratic(self):
-        from formulite.fxNumeric.vector_analysis_functions import hessian_numerical
+        from agentfx.fxNumeric.vector_analysis_functions import hessian_numerical
         H = hessian_numerical(lambda x, y: x ** 2 + y ** 2, [1.0, 1.0])
         assert H[0][0] == pytest.approx(2.0, rel=1e-3)
         assert H[1][1] == pytest.approx(2.0, rel=1e-3)

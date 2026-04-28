@@ -1,7 +1,7 @@
 """Tests for fxNumeric.polynomial_functions."""
 
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     partial_fraction_simple,
     polynomial_add,
     polynomial_composition,

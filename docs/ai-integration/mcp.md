@@ -1,15 +1,15 @@
 # MCP Server
 
-The Model Context Protocol (MCP) server allows AI agents to discover and execute any FormuLite function as a tool.
+The Model Context Protocol (MCP) server allows AI agents to discover and execute any AgentFx function as a tool.
 
 ## Installation
 
 ```bash
 # MCP support only
-pip install formulite[mcp]
+pip install agentfx[mcp]
 
 # MCP + semantic search (recommended)
-pip install formulite[mcp-semantic]
+pip install agentfx[mcp-semantic]
 ```
 
 ## Client Configuration
@@ -21,8 +21,8 @@ Add to your VS Code `settings.json` or `.vscode/mcp.json`:
 ```json
 {
   "servers": {
-    "formulite": {
-      "command": "formulite-mcp",
+    "agentfx": {
+      "command": "agentfx-mcp",
       "args": []
     }
   }
@@ -36,8 +36,8 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "formulite": {
-      "command": "formulite-mcp",
+    "agentfx": {
+      "command": "agentfx-mcp",
       "args": []
     }
   }
@@ -51,8 +51,8 @@ Add to `.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "formulite": {
-      "command": "formulite-mcp",
+    "agentfx": {
+      "command": "agentfx-mcp",
       "args": []
     }
   }
@@ -63,10 +63,10 @@ Add to `.cursor/mcp.json`:
 
 | Tool | Description |
 |------|-------------|
-| `search_formulite_tools` | Natural-language search across all functions |
-| `list_formulite_tools` | List functions by module (with optional filter) |
-| `get_formulite_tool_details` | Get JSON Schema for a specific function |
-| `call_formulite` | Execute a function by qualified name with JSON arguments |
+| `search_agentfx_tools` | Natural-language search across all functions |
+| `list_agentfx_tools` | List functions by module (with optional filter) |
+| `get_agentfx_tool_details` | Get JSON Schema for a specific function |
+| `call_agentfx` | Execute a function by qualified name with JSON arguments |
 | `scientific_calculate` | Evaluate a math expression (AST-based, safe) |
 
 ## Security

@@ -1,10 +1,6 @@
-# Deep coverage tests for formulite.fxExcel.database_formulas
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
+# Deep coverage tests for agentfx.fxExcel.database_formulas
 
-import formulite.fxExcel.database_formulas as mod
+import agentfx.fxExcel.database_formulas as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

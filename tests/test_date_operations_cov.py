@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxDate.date_operations
-import pytest
+# Coverage tests for agentfx.fxDate.date_operations
 from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-import math
 
-from formulite.fxDate import date_operations as mod
+from agentfx.fxDate import date_operations as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

@@ -1,10 +1,7 @@
-# Coverage tests for formulite.fxNumeric.trigonometry_functions
-import pytest
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
+# Coverage tests for agentfx.fxNumeric.trigonometry_functions
 import math
 
-from formulite.fxNumeric import trigonometry_functions as mod
+from agentfx.fxNumeric import trigonometry_functions as mod
 
 EXC = (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError,
        OverflowError, AttributeError, RuntimeError, StopIteration,

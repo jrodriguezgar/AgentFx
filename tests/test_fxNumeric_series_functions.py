@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from formulite.fxNumeric import (
+from agentfx.fxNumeric import (
     abel_sum,
     bbp_pi_digit,
     cesaro_sum,
@@ -230,80 +230,80 @@ class TestAbelSum:
 class TestArithmeticSeries:
 
     def test_basic(self):
-        from formulite.fxNumeric.series_functions import arithmetic_series_sum
+        from agentfx.fxNumeric.series_functions import arithmetic_series_sum
         # 1 + 3 + 5 + 7 + 9 = 25
         assert arithmetic_series_sum(1, 2, 5) == 25.0
 
     def test_single_term(self):
-        from formulite.fxNumeric.series_functions import arithmetic_series_sum
+        from agentfx.fxNumeric.series_functions import arithmetic_series_sum
         assert arithmetic_series_sum(5, 3, 1) == 5.0
 
 class TestGeometricSeries:
 
     def test_finite(self):
-        from formulite.fxNumeric.series_functions import geometric_series_sum
+        from agentfx.fxNumeric.series_functions import geometric_series_sum
         # 1 + 0.5 + 0.25 + ... (10 terms)
         assert geometric_series_sum(1, 0.5, 10) == pytest.approx(1.998046875)
 
     def test_infinite(self):
-        from formulite.fxNumeric.series_functions import geometric_series_infinite
+        from agentfx.fxNumeric.series_functions import geometric_series_infinite
         assert geometric_series_infinite(1, 0.5) == pytest.approx(2.0)
 
     def test_r_equal_1(self):
-        from formulite.fxNumeric.series_functions import geometric_series_sum
+        from agentfx.fxNumeric.series_functions import geometric_series_sum
         assert geometric_series_sum(3, 1, 5) == 15.0
 
 class TestHarmonicSeries:
 
     def test_h10(self):
-        from formulite.fxNumeric.series_functions import harmonic_series_partial
+        from agentfx.fxNumeric.series_functions import harmonic_series_partial
         assert harmonic_series_partial(10) == pytest.approx(2.928968, rel=1e-4)
 
     def test_generalized(self):
-        from formulite.fxNumeric.series_functions import generalized_harmonic
+        from agentfx.fxNumeric.series_functions import generalized_harmonic
         assert generalized_harmonic(10, 2) == pytest.approx(1.549768, rel=1e-4)
 
 class TestTaylorSeries:
 
     def test_exp(self):
-        from formulite.fxNumeric.series_functions import taylor_exp
+        from agentfx.fxNumeric.series_functions import taylor_exp
         assert taylor_exp(1.0) == pytest.approx(math.e, rel=1e-10)
 
     def test_sin(self):
-        from formulite.fxNumeric.series_functions import taylor_sin
+        from agentfx.fxNumeric.series_functions import taylor_sin
         assert taylor_sin(math.pi / 2) == pytest.approx(1.0, rel=1e-10)
 
     def test_cos(self):
-        from formulite.fxNumeric.series_functions import taylor_cos
+        from agentfx.fxNumeric.series_functions import taylor_cos
         assert taylor_cos(0) == pytest.approx(1.0)
 
     def test_ln1p(self):
-        from formulite.fxNumeric.series_functions import taylor_ln1p
+        from agentfx.fxNumeric.series_functions import taylor_ln1p
         assert taylor_ln1p(0.5, 50) == pytest.approx(math.log(1.5), rel=1e-6)
 
     def test_atan(self):
-        from formulite.fxNumeric.series_functions import taylor_atan
+        from agentfx.fxNumeric.series_functions import taylor_atan
         assert taylor_atan(1.0, 500) == pytest.approx(math.pi / 4, rel=1e-2)
 
     def test_sinh(self):
-        from formulite.fxNumeric.series_functions import taylor_sinh
+        from agentfx.fxNumeric.series_functions import taylor_sinh
         assert taylor_sinh(1.0) == pytest.approx(math.sinh(1.0), rel=1e-10)
 
     def test_cosh(self):
-        from formulite.fxNumeric.series_functions import taylor_cosh
+        from agentfx.fxNumeric.series_functions import taylor_cosh
         assert taylor_cosh(1.0) == pytest.approx(math.cosh(1.0), rel=1e-10)
 
 class TestBinomialSeries:
 
     def test_sqrt(self):
-        from formulite.fxNumeric.series_functions import binomial_series
+        from agentfx.fxNumeric.series_functions import binomial_series
         # (1+0.5)^0.5 = sqrt(1.5)
         assert binomial_series(0.5, 0.5, 30) == pytest.approx(math.sqrt(1.5), rel=1e-6)
 
 class TestFourierCoefficients:
 
     def test_sin_fundamental(self):
-        from formulite.fxNumeric.series_functions import fourier_coefficients
+        from agentfx.fxNumeric.series_functions import fourier_coefficients
         a, b = fourier_coefficients(math.sin, 2 * math.pi, 3, 2000)
         assert b[1] == pytest.approx(1.0, rel=1e-2)
         assert abs(a[1]) < 0.05
@@ -311,11 +311,11 @@ class TestFourierCoefficients:
 class TestLeibnizBasel:
 
     def test_leibniz(self):
-        from formulite.fxNumeric.series_functions import leibniz_pi
+        from agentfx.fxNumeric.series_functions import leibniz_pi
         assert leibniz_pi(10000) * 4 == pytest.approx(math.pi, rel=1e-3)
 
     def test_basel(self):
-        from formulite.fxNumeric.series_functions import basel_series
+        from agentfx.fxNumeric.series_functions import basel_series
         assert basel_series(10000) == pytest.approx(math.pi ** 2 / 6, rel=1e-3)
 
 

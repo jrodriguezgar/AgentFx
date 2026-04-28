@@ -15,7 +15,7 @@ Common design patterns, iterable utilities, type conversions, and logic helpers 
 ## Quick Examples
 
 ```python
-from formulite.fxPython import py_tools, py_itertools, py_logic
+from agentfx.fxPython import py_tools, py_itertools, py_logic
 
 # Create dictionary from parallel lists
 d = py_tools.create_key_value_dictionary("id,name", (1, "Alice"))

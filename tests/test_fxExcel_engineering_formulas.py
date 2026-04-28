@@ -3,7 +3,7 @@
 
 import pytest
 
-from formulite.fxExcel.engineering_formulas import (
+from agentfx.fxExcel.engineering_formulas import (
     BIN2DEC,
     BIN2HEX,
     BIN2OCT,
@@ -17,7 +17,7 @@ from formulite.fxExcel.engineering_formulas import (
     OCT2DEC,
     OCT2HEX,
 )
-from formulite.fxNumeric.statistics_functions import quantile
+from agentfx.fxNumeric.statistics_functions import quantile
 
 
 class TestQuantile:
@@ -39,12 +39,6 @@ class TestQuantile:
 
 # ── Excel Engineering Base Conversions ───────────────────────────────────────
 
-from formulite.fxExcel.engineering_formulas import (
-    BIN2DEC, BIN2HEX, BIN2OCT,
-    DEC2BIN, DEC2HEX, DEC2OCT,
-    HEX2BIN, HEX2DEC, HEX2OCT,
-    OCT2BIN, OCT2DEC, OCT2HEX,
-)
 
 class TestBIN2DEC:
 

@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "formulite": {
-      "command": "python",
-      "args": ["-m", "formulite.mcp"],
-      "env": {}
-    }
-  }
-}

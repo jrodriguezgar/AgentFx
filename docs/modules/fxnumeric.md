@@ -1,6 +1,6 @@
 # fxNumeric — Numeric & Mathematical Operations
 
-The largest module in FormuLite with 1,602 functions covering finance, statistics, geometry, transforms, series, number theory, and more.
+The largest module in AgentFx with 1,602 functions covering finance, statistics, geometry, transforms, series, number theory, and more.
 
 ## Submodules
 
@@ -39,7 +39,7 @@ The largest module in FormuLite with 1,602 functions covering finance, statistic
 ## Quick Examples
 
 ```python
-from formulite.fxNumeric import finance_functions, statistics_functions, geometry_functions
+from agentfx.fxNumeric import finance_functions, statistics_functions, geometry_functions
 
 # Future Value
 fv = finance_functions.future_value(rate=0.05, nper=10, pmt=-100, pv=-1000)

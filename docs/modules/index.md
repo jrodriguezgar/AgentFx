@@ -1,6 +1,6 @@
 # Modules
 
-FormuLite is organized into 6 thematic modules covering dates, mathematics, strings, Python utilities, and Excel/VBA compatibility.
+AgentFx is organized into 6 thematic modules covering dates, mathematics, strings, Python utilities, and Excel/VBA compatibility.
 
 | Module | Functions | Scope |
 |--------|----------:|-------|
@@ -20,7 +20,7 @@ All modules follow the same pattern:
 3. **Automatic discovery**: `registry.py` walks all `fx*` packages at runtime for JSON Schema generation and MCP tool exposure
 
 ```
-formulite/
+agentfx/
 ├── fxDate/
 │   ├── __init__.py          # auto_export()
 │   ├── date_operations.py
@@ -41,14 +41,14 @@ You can import at different levels:
 
 ```python
 # Package-level (recommended for quick use)
-from formulite import fxDate
+from agentfx import fxDate
 result = fxDate.add_time_to_date(...)
 
 # Submodule-level (explicit, recommended for large projects)
-from formulite.fxDate import date_operations
+from agentfx.fxDate import date_operations
 result = date_operations.add_time_to_date(...)
 
 # Direct function import
-from formulite.fxDate.date_operations import add_time_to_date
+from agentfx.fxDate.date_operations import add_time_to_date
 result = add_time_to_date(...)
 ```

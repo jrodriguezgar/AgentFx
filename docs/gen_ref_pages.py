@@ -5,7 +5,7 @@ from pathlib import Path
 import mkdocs_gen_files
 
 nav = mkdocs_gen_files.Nav()
-src = Path("formulite")
+src = Path("agentfx")
 
 for package_dir in sorted(src.glob("fx*")):
     if not package_dir.is_dir():
@@ -20,7 +20,7 @@ for package_dir in sorted(src.glob("fx*")):
         module_name = path.stem
         doc_path = Path(package_name, f"{module_name}.md")
         full_doc_path = Path("reference", package_name, f"{module_name}.md")
-        module_path = f"formulite.{package_name}.{module_name}"
+        module_path = f"agentfx.{package_name}.{module_name}"
 
         nav[package_name, module_name] = doc_path.as_posix()
 
